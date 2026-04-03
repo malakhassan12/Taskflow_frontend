@@ -1,118 +1,89 @@
+
+---
+
 # TaskFlow - Project Management System
 
-TaskFlow هو نظام إدارة مشاريع يساعد الفرق على تنظيم التاسكات ومتابعة تقدم المشاريع بشكل فعال.
+**TaskFlow** is a project management system designed to help teams organize tasks, assign work, and track project progress efficiently.
 
 ---
 
 ## **Overview**
 
-المشروع عبارة عن نظام لإدارة المشاريع، بيتيح للفرق تنظيم التاسكات، توزيع الشغل، ومتابعة التقدم لكل مشروع. كل مستخدم له دور محدد داخل النظام:
+TaskFlow allows teams to manage projects by organizing tasks, assigning work, and monitoring progress. Each user has a specific role in the system:
 
-- **Admin**: مسؤول عن النظام كله والموافقة على الحسابات الجديدة ومتابعة كل المشاريع والمستخدمين.
-- **Project Manager**: مسؤول عن المشروع نفسه، إنشاء المشاريع، توزيع التاسكات، ومتابعة أداء الفريق.
-- **Team Member**: الشخص اللي بينفذ التاسكات، يحدث حالتها، يضيف Comments ويرفع الملفات المتعلقة بها.
-
----
-
-## **Actors & Roles**
-
-### **1. Admin**
-- تسجيل الدخول والخروج (Login / Logout)  
-- إدارة حسابات Project Managers الجديدة (Accept / Reject)  
-- عرض كل المستخدمين (Managers و Members)  
-- تعديل أو حذف أي مستخدم  
-- تحديد Role لكل مستخدم  
-- متابعة كل المشاريع الموجودة  
-- حذف أو تعديل أي مشروع  
-- Dashboard:  
-  - عدد المستخدمين الكلي  
-  - عدد Project Managers و Members  
-  - عدد المشاريع  
-  - عدد التاسكات  
-  - إحصائيات عامة  
-
-### **2. Project Manager**
-- إنشاء وتعديل المشاريع (Name + Description)  
-- إنشاء وتعديل التاسكات داخل المشروع:  
-  - Title, Description, Priority, Due Date, Assigned Member  
-- توزيع Tasks على Members (Assign)  
-- متابعة حالة Tasks: To Do / In Progress / Done  
-- قبول أو رفض التاسكات بعد التنفيذ  
-- إضافة Comments على التاسكات  
-- Dashboard لكل مشروع:  
-  - نسبة التقدم  
-  - عدد Tasks في كل حالة  
-  - Deadlines قريبة  
-  - أداء Members  
-
-### **3. Team Member**
-- استقبال Tasks المخصصة له  
-- تحديث حالة Task: To Do → In Progress → Done  
-- إضافة Comments على التاسكات  
-- رفع ملفات (Attachments) مرتبطة بالتاسك  
-- إرسال Notifications للـ Project Manager بعد إنهاء Task  
-- متابعة كل التاسكات المخصصة له من مشاريع مختلفة  
-- تنظيم الشغل حسب الأولوية: High / Medium / Low  
+* **Admin**: Manages the whole system, approves new accounts, and monitors projects and users.
+* **Project Manager**: Manages individual projects, creates tasks, assigns them to team members, and tracks progress.
+* **Team Member**: Executes assigned tasks, updates their status, adds comments, and uploads related files.
 
 ---
 
-## **Project & Tasks Structure**
+## **Roles Summary**
 
-### **Project**
-- Name  
-- Description  
-- Manager  
-- Created At  
-- يحتوي على عدة Tasks  
-- كل Project ممكن يكون له عدة Members  
-
-### **Task**
-- Title  
-- Description  
-- Assigned Member  
-- Priority (High / Medium / Low)  
-- Due Date  
-- Status (To Do / In Progress / Done)  
-- يمكن إضافة Comments و Files  
-
-### **Workflow**
-Tasks تتحرك بين الحالات:  
-1. To Do  
-2. In Progress  
-3. Done  
+* **Admin**: Login/logout, manage Project Manager accounts, view all projects and users, and see basic system statistics.
+* **Project Manager**: Create projects and tasks, assign tasks, track progress, approve completed tasks, and view project statistics.
+* **Team Member**: Receive assigned tasks, update status (To Do → In Progress → Done), add comments, upload files, and receive notifications.
 
 ---
 
-## **Requirements**
-- كل Actor يقدر Login / Logout  
-- Admin يدير حسابات Project Managers الجديدة  
-- Project Manager ينشئ Projects وTasks  
-- Members يحدثوا حالة Tasks، يضيفوا Comments ويرفعوا Files  
-- Project Manager يرى إحصائيات المشروع  
-- Members يستقبلوا Notifications عند تعيين Tasks أو تحديثها  
-- استخدام Real-Time Sockets للـ Notifications (مثل: WebSockets أو Socket.IO)  
+## **Project & Task Structure**
+
+**Project**
+
+* Name, Description, Manager, Created At
+* Contains multiple tasks
+* Can have multiple members
+
+**Task**
+
+* Title, Description, Assigned Member, Priority (High/Medium/Low), Due Date, Status (To Do / In Progress / Done)
+* Can include comments and attachments
+
+**Workflow**
+
+* Tasks move through stages: To Do → In Progress → Done
 
 ---
 
-## **Database Schema**
-- **Users**: id, name, email, role, password, status  
-- **Projects**: id, name, description, manager_id, created_at  
-- **Tasks**: id, project_id, title, description, assigned_member_id, priority, due_date, status  
-- **Comments**: id, task_id, member_id, comment_text, created_at  
-- **Files**: id, task_id, member_id, file_path, created_at  
-- **Notifications**: id, user_id, type, message, read_status, created_at  
+## **Key Requirements**
+
+* Different actors can log in and log out
+* Admin can approve/reject Project Manager accounts
+* Project Manager can create/manage projects and tasks
+* Team Members can update tasks, add comments, upload files
+* Notifications sent in real-time when tasks are assigned or updated
+
+---
+
+## **Database Schema (Example)**
+
+* **Users**: id, name, email, role, password, status
+* **Projects**: id, name, description, manager_id, created_at
+* **Tasks**: id, project_id, title, description, assigned_member_id, priority, due_date, status
+* **Comments**: id, task_id, member_id, comment_text, created_at
+* **Files**: id, task_id, member_id, file_path, created_at
+* **Notifications**: id, user_id, type, message, read_status, created_at
 
 ---
 
 ## **Tech Stack**
-- **Front-End**: HTML, CSS, JavaScript, React/Vue (حسب اختيارك)  
-- **Back-End**: Node.js / PHP / Python (حسب اختيارك)  
-- **Database**: MySQL / PostgreSQL / MongoDB  
-- **Real-Time Notifications**: WebSockets / Socket.IO  
+
+* **Front-End**: HTML, CSS, JavaScript, React/Vue
+* **Back-End**: Node.js / PHP / Python
+* **Database**: MySQL / PostgreSQL / MongoDB
+* **Real-Time Notifications**: WebSockets / Socket.IO
 
 ---
 
 ## **How to Run**
+
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/malakhassan12/Taskflow_frontend.git
+```
+
+2. Install dependencies
+3. Start the development server
+
+---
+
