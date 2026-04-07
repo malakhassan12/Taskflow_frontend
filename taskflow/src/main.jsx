@@ -1,13 +1,22 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
+import { createRoot } from "react-dom/client";
+import "./index.css";
+import App from "./App.jsx";
 
-import { BrowserRouter } from "react-router";
+import { BrowserRouter } from "react-router-dom";
+import { DarkModeProvider } from "./Context/DarkModeProvider.jsx";
 
-
-createRoot(document.getElementById('root')).render(
+const loadingElement = document.getElementById("loading");
+createRoot(document.getElementById("root")).render(
   <BrowserRouter>
-    <App />
+    <DarkModeProvider>
+      <App />
+    </DarkModeProvider>
   </BrowserRouter>,
-)
+);
+if (loadingElement) {
+  loadingElement.style.transition = "opacity 0.3s";
+  loadingElement.style.opacity = "0";
+  setTimeout(() => {
+    loadingElement.style.display = "none";
+  }, 300);
+}
