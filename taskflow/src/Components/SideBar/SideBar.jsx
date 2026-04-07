@@ -1,12 +1,11 @@
-import React from "react";
 // ==================== Constants  ====================
 
 import { managerMenu } from "../../Constants/ManagerConstants";
 // ==================== Ant Design  ====================
 
 import Sider from "antd/es/layout/Sider.js";
-import { Menu } from "antd";
-
+import Menu from "antd/es/menu";
+import "antd/es/menu/style";
 const SideBar = ({ colorBgContainer }) => {
   return (
     <Sider

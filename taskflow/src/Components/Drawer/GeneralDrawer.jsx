@@ -1,6 +1,7 @@
 // ==================== Ant Design  ====================
 
-import { Drawer } from "antd";
+import Drawer from "antd/es/drawer";
+import "antd/es/drawer/style";
 
 const GeneralDrawer = ({ open, setOpen }) => {
   const onClose = () => {
