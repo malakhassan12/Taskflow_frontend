@@ -1,7 +1,7 @@
 // ==================== Ant Design  ====================
 
 import { Header } from "antd/es/layout/layout";
-import { Grid, Avatar, Typography, Tooltip, Button, Space, Flex } from "antd";
+import { Grid, Avatar, Typography, Tooltip, Button, Flex } from "antd";
 
 // ==================== Components  ====================
 
@@ -13,8 +13,11 @@ import DarkModeBtn from "../Buttons/DarkModeBtn";
 
 import { FaRegUser } from "react-icons/fa";
 import { IoIosNotificationsOutline } from "react-icons/io";
+// ==================== Constants  ====================
 
-const { Title, Text } = Typography;
+import { primaryColor } from "../../Constants/Colors";
+
+const { Text } = Typography;
 
 const { useBreakpoint } = Grid;
 
@@ -31,7 +34,7 @@ const Nav = () => {
         width: "100%",
         display: "flex",
         alignItems: "center",
-        background :"Pink",
+        background: primaryColor,
         justifyContent: "space-between",
         padding: "0 24px",
       }}
