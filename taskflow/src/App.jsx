@@ -1,40 +1,42 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import ProtectedRoute from "./Routes/ProtectedRoute";
+import ProjectGuard from "./Routes/ProjectGuard";
 
-// Public Pages
-import Login from "./Pages/Auth/Login/Login";
-import SignUp from "./Pages/Auth/SignUp/SignUp";
-import NotFound from "./Pages/NotFound"
-import Notifications from "./Pages/Notifications";
-import Settings from "./Pages/Settings";
+// Public Pages 
+const Login = lazy(() => import("./Pages/Auth/Login/Login"));
+const SignUp = lazy(() => import("./Pages/Auth/SignUp/SignUp"));
+const NotFound = lazy(() => import("./Pages/NotFound"));
+const Notifications = lazy(() => import("./Pages/Notifications"));
+const Settings = lazy(() => import("./Pages/Settings"));
+const LoadingPage =  lazy(() => import("./Pages/LoadingPage/LoadingPage"));
 
 // Layouts
-import AdminLayout from "./Layouts/AdminLayout";
-import ManagerLayout from "./Layouts/ManagerLayout";
-import MemberLayout from "./Layouts/MemberLayout";
+const AdminLayout = lazy(() => import("./Layouts/AdminLayout"));
+const ManagerLayout = lazy(() => import("./Layouts/ManagerLayout"));
+const MemberLayout = lazy(() => import("./Layouts/MemberLayout"));
 
-// ==================== Admin Pages ====================
-import AdminDashboard from "./Pages/Admin/AdminDashboard";
-import ProjectsRequests from "./Pages/Admin/ProjectsRequests";
-import ManageProjects from "./Pages/Admin/ManageProjects";
-import ProjectDetails from "./Pages/Admin/ProjectDetails";
-import UsersManagement from "./Pages/Admin/UsersManagement";
+// Admin Pages
+const AdminDashboard = lazy(() => import("./Pages/Admin/AdminDashboard"));
+const ProjectsRequests = lazy(() => import("./Pages/Admin/ProjectsRequests"));
+const ManageProjects = lazy(() => import("./Pages/Admin/ManageProjects"));
+const ProjectDetails = lazy(() => import("./Pages/Admin/ProjectDetails"));
+const UsersManagement = lazy(() => import("./Pages/Admin/UsersManagement"));
 
-// ==================== Manager Pages ====================
-import ManagerDashboard from "./Pages/Manager/ManagerDashboard";
-import CreateProject from "./Pages/Manager/CreateProject";
-import ManagerProjects from "./Pages/Manager/ManagerProjects";
-import ManageProject from "./Pages/Manager/ManageProject";
-import TaskDetails from "./Pages/Manager/TaskDetails";
+// Manager Pages
+const ManagerDashboard = lazy(() => import("./Pages/Manager/ManagerDashboard"));
+const CreateProject = lazy(() => import("./Pages/Manager/CreateProject"));
+const ManagerProjects = lazy(() => import("./Pages/Manager/ManagerProjects"));
+const ManageProject = lazy(() => import("./Pages/Manager/ManageProject"));
+const TaskDetails = lazy(() => import("./Pages/Manager/TaskDetails"));
+const Teams = lazy(() => import("./Pages/Manager/Teams"));
 
-// ==================== Member Pages ====================
-import MemberDashboard from "./Pages/Member/MemberDashboard";
-import ViewRequests from "./Pages/Member/ViewRequests";
-import MemberProjects from "./Pages/Member/MemberProjects";
-import MemberTaskDetails from "./Pages/Member/MemberTaskDetails";
-
+// Member Pages
+const MemberDashboard = lazy(() => import("./Pages/Member/MemberDashboard"));
+const ViewRequests = lazy(() => import("./Pages/Member/ViewRequests"));
+const MemberProjects = lazy(() => import("./Pages/Member/MemberProjects"));
+const MemberTaskDetails = lazy(() => import("./Pages/Member/MemberTaskDetails"));
 // ==================== Ant Design ====================
-
 
 function App() {
   const user = {
@@ -43,9 +45,7 @@ function App() {
   };
 
   return (
-    <>
-     
-
+    <Suspense fallback={<LoadingPage />}>
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
@@ -77,13 +77,13 @@ function App() {
         <Route element={<ProtectedRoute allowedRoles={["manager"]} />}>
           <Route path="/manager" element={<ManagerLayout />}>
             <Route index element={<ManagerDashboard />} />
-
-            {/* Create New Project */}
-            <Route path="create-project" element={<CreateProject />} />
-
+            <Route path="teams" element={<Teams />} />
             {/* Manage My Projects */}
             <Route path="projects" element={<ManagerProjects />}>
-              <Route path=":projectId" element={<ManageProject />}>
+              {/* Create New Project */}
+              <Route path="create-project" element={<CreateProject />} />
+
+              <Route path=":projectId" element={<ProjectGuard />}>
                 {/* Nested Task Details */}
                 <Route path="tasks/:taskId" element={<TaskDetails />} />
               </Route>
@@ -139,7 +139,7 @@ function App() {
         {/* 404 Not Found */}
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </>
+    </Suspense>
   );
 }
 
