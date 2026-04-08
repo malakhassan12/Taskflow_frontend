@@ -1,16 +1,16 @@
-import {  Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import ProtectedRoute from "./Routes/ProtectedRoute";
 import ProjectGuard from "./Routes/ProjectGuard";
 
 // Public Pages
-import Home from "./Pages/Home/Home";
+const Home = lazy(() => import("./Pages/Home/Home"));
 const Login = lazy(() => import("./Pages/Auth/Login/Login"));
 const SignUp = lazy(() => import("./Pages/Auth/SignUp/SignUp"));
 const NotFound = lazy(() => import("./Pages/NotFound"));
 const Notifications = lazy(() => import("./Pages/Notifications"));
 const Settings = lazy(() => import("./Pages/Settings"));
-const LoadingPage =  lazy(() => import("./Pages/LoadingPage/LoadingPage"));
+const LoadingPage = lazy(() => import("./Pages/LoadingPage/LoadingPage"));
 
 // Layouts
 const AdminLayout = lazy(() => import("./Layouts/AdminLayout"));
@@ -36,7 +36,9 @@ const Teams = lazy(() => import("./Pages/Manager/Teams"));
 const MemberDashboard = lazy(() => import("./Pages/Member/MemberDashboard"));
 const ViewRequests = lazy(() => import("./Pages/Member/ViewRequests"));
 const MemberProjects = lazy(() => import("./Pages/Member/MemberProjects"));
-const MemberTaskDetails = lazy(() => import("./Pages/Member/MemberTaskDetails"));
+const MemberTaskDetails = lazy(
+  () => import("./Pages/Member/MemberTaskDetails"),
+);
 // ==================== Ant Design ====================
 
 function App() {
