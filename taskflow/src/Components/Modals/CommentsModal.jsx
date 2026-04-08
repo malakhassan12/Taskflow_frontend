@@ -1,11 +1,11 @@
 import React from 'react'
 
-const Settings = () => {
+const CommentsModal = () => {
   return (
     <div>
-      Hashem
+      
     </div>
   )
 }
 
-export default Settings
+export default CommentsModal

@@ -1,5 +1,5 @@
 // ==================== Ant Design  ====================
-import {  Layout,  theme,  } from "antd";
+import { Layout, theme } from "antd";
 
 // ==================== Components  ====================
 import Nav from "../Components/Nav/Nav.jsx";
@@ -12,22 +12,23 @@ import DynamicBreadcrumb from "../Components/DynamicBreadCrumb/DynamicBreadCrumb
 
 import { Outlet } from "react-router-dom";
 
-const { Content,  } = Layout;
+const { Content } = Layout;
 
 const ManagerLayout = () => {
-
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
+  console.log(theme.useToken());
 
   return (
     <Layout>
       <Nav />
       <Layout>
-       <SideBar colorBgContainer={colorBgContainer} />
+        <SideBar colorBgContainer={colorBgContainer} />
 
         <Layout style={{ padding: "0 24px 24px" }}>
-          <DynamicBreadcrumb/>
+          <DynamicBreadcrumb />
           <Content
             style={{
               padding: 24,
@@ -37,7 +38,9 @@ const ManagerLayout = () => {
               borderRadius: borderRadiusLG,
             }}
           >
-            <Outlet />
+            <div data-aos="fade-up" data-aos-anchor-placement="top-center">
+              <Outlet />
+            </div>
           </Content>
         </Layout>
       </Layout>

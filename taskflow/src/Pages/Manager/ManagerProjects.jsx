@@ -1,9 +1,8 @@
-import React from 'react'
 
 const ManagerProjects = () => {
   return (
     <div>
-      
+      Hassan Moka
     </div>
   )
 }

@@ -1,7 +1,9 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import ProtectedRoute from "./Routes/ProtectedRoute";
 import ProjectGuard from "./Routes/ProjectGuard";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 // Public Pages
 const Home = lazy(() => import("./Pages/Home/Home"));
@@ -42,6 +44,13 @@ const MemberTaskDetails = lazy(
 // ==================== Ant Design ====================
 
 function App() {
+  useEffect(() => {
+    AOS.init({
+      duration: 800,
+      once: true,
+    });
+  }, []);
+
   const user = {
     name: "Malak",
     role: "Admin",
@@ -83,14 +92,16 @@ function App() {
             <Route index element={<ManagerDashboard />} />
             <Route path="teams" element={<Teams />} />
             {/* Manage My Projects */}
-            <Route path="projects" element={<ManagerProjects />}>
-              {/* Create New Project */}
-              <Route path="create-project" element={<CreateProject />} />
 
-              <Route path=":projectId" element={<ProjectGuard />}>
-                {/* Nested Task Details */}
-                <Route path="tasks/:taskId" element={<TaskDetails />} />
-              </Route>
+            {/* Manage My Projects - Table View */}
+            <Route path="projects" element={<ManagerProjects />} />
+
+            {/* Create New Project  */}
+            <Route path="projects/create-project" element={<CreateProject />} />
+
+            <Route path=":projectId" element={<ProjectGuard />}>
+              {/* Nested Task Details */}
+              <Route path="tasks/:taskId" element={<TaskDetails />} />
             </Route>
 
             {/* Settings & Notifications */}
