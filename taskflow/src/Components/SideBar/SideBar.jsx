@@ -6,7 +6,19 @@ import { managerMenu } from "../../Constants/ManagerConstants";
 import Sider from "antd/es/layout/Sider.js";
 import Menu from "antd/es/menu";
 import "antd/es/menu/style";
+// ====================React-router-dom  ====================
+
+import { useLocation } from "react-router-dom";
+// ==================== Functions  ====================
+
+import getSelectedKey from "../../Functions/Manager/GetSelectedKey";
+
 const SideBar = ({ colorBgContainer }) => {
+  const location = useLocation();
+
+
+  const selectedKey = getSelectedKey(location.pathname) || "1";
+
   return (
     <Sider
       breakpoint="md"
@@ -23,20 +35,14 @@ const SideBar = ({ colorBgContainer }) => {
         scrollbarGutter: "stable",
       }}
     >
-      {" "}
       <div className="demo-logo-vertical" />
       <Menu
         mode="inline"
-        defaultSelectedKeys={["1"]}
-        defaultOpenKeys={["sub1"]}
+        selectedKeys={[selectedKey]}
         style={{ height: "100%", borderInlineEnd: 0, marginTop: "4rem" }}
         items={managerMenu}
-        styles={{
-          marginTop: "1rem",
-        }}
       />
     </Sider>
   );
 };
-
 export default SideBar;

@@ -122,19 +122,13 @@ const ProjectCards = () => {
   ];
 
   return (
-    <div >
+    <div>
       <Row gutter={[16, 16]}>
-        {projectData.map((project ) => (
-          <Col
-
-            key={project.id}
-            xs={24} 
-            sm={12} 
-            md={12} 
-            lg={8} 
-            xl={6} 
-          >
-            <ProjectCard project={project} />
+        {projectData.map((project , index) => (
+          <Col key={project.id} xs={24} sm={12} md={12} lg={8} xl={6}>
+            <div data-aos="fade-down" data-aos-delay={index * 100} >
+              <ProjectCard project={project} />
+            </div>
           </Col>
         ))}
       </Row>

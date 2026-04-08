@@ -17,10 +17,11 @@ const ManagerCards = () => {
     { id: 3, status: "delayed" },
   ];
 
-
   const totalProjects = projects.length;
   const activeProjects = projects.filter((p) => p.status === "active").length;
-  const completedProjects = projects.filter((p) => p.status === "completed").length;
+  const completedProjects = projects.filter(
+    (p) => p.status === "completed",
+  ).length;
   const delayedProjects = projects.filter((p) => p.status === "delayed").length;
 
   const cards = [
@@ -56,7 +57,9 @@ const ManagerCards = () => {
     <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
       {cards.map((card, index) => (
         <Col xs={24} sm={12} lg={6} key={index}>
-          <GeneralCard {...card} />
+          <div data-aos="fade-down" data-aos-delay={index * 100}>
+            <GeneralCard {...card} />
+          </div>
         </Col>
       ))}
     </Row>

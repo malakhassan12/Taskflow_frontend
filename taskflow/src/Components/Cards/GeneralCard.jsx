@@ -1,7 +1,8 @@
 // ==================== Ant Design  ====================
 
 import { Card, Statistic, Progress } from "antd";
-import { FaArrowUp, FaArrowDown } from "react-icons/fa"; // ==================== Constants  ====================
+import { FaArrowUp, FaArrowDown } from "react-icons/fa"; 
+// ==================== Constants  ====================
 
 import { green, primaryColor, red } from "../../Constants/Colors";
 

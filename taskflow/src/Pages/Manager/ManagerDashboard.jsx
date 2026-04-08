@@ -2,8 +2,6 @@ import { lazy } from "react";
 
 // ==================== Ant Design  ====================
 
-import Button from "antd/es/button";
-import "antd/es/button/style";
 
 import Flex from "antd/es/flex";
 import "antd/es/flex/style";
@@ -18,6 +16,7 @@ import { IoIosAdd } from "react-icons/io";
 // ==================== Constants  ====================
 
 import { primaryColor } from "../../Constants/Colors";
+import { Link } from "react-router-dom";
 // ==================== Components  ====================
 
 const ManagerCards = lazy(() => import("../../Components/Cards/ManagerCards"));
@@ -38,9 +37,12 @@ const ManagerDashboard = () => {
         </div>
 
         <div>
-          <Button className={`bg-[${primaryColor}]`} icon={<IoIosAdd />}>
-            Create Project
-          </Button>
+          <Link
+            to="projects/create-project"
+            className={`${primaryColor} px-4 py-2 rounded flex items-center`}
+          >
+            <IoIosAdd /> Create Project
+          </Link>{" "}
         </div>
       </Flex>
 

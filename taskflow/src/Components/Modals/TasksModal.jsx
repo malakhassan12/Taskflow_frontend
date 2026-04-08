@@ -1,11 +1,11 @@
 import React from 'react'
 
-const Settings = () => {
+const TasksModal = () => {
   return (
     <div>
-      Hashem
+      
     </div>
   )
 }
 
-export default Settings
+export default TasksModal
