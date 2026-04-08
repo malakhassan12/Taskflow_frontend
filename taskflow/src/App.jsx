@@ -3,7 +3,8 @@ import { lazy, Suspense } from "react";
 import ProtectedRoute from "./Routes/ProtectedRoute";
 import ProjectGuard from "./Routes/ProjectGuard";
 
-// Public Pages 
+// Public Pages
+import Home from "./Pages/Home/Home";
 const Login = lazy(() => import("./Pages/Auth/Login/Login"));
 const SignUp = lazy(() => import("./Pages/Auth/SignUp/SignUp"));
 const NotFound = lazy(() => import("./Pages/NotFound"));
@@ -48,6 +49,7 @@ function App() {
     <Suspense fallback={<LoadingPage />}>
       <Routes>
         {/* Public Routes */}
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/sign-up" element={<SignUp />} />
 
