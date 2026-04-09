@@ -1,14 +1,14 @@
-import { lazy,  } from "react";
+import { lazy } from "react";
 
 // ==================== Ant Design  ====================
 
 import Tabs from "antd/es/tabs";
 import "antd/es/tabs/style";
 // ==================== Components  ====================
-const ProjectCards = lazy(() => import("../Cards/ProjectCards"));
+const ProjectCards = lazy(() => import("../../Cards/ProjectCards"));
 
-const ManagerTeams = lazy(() => import("../Analytics/ManagerTeams"));
-const ManagerAVGTasks = lazy(() => import("../Analytics/ManagerAVGTasks"));
+const ManagerTeams = lazy(() => import("../../Analytics/ManagerTeams"));
+const ManagerAVGTasks = lazy(() => import("../../Analytics/ManagerAVGTasks"));
 const onChange = (key) => {
   console.log(key);
 };

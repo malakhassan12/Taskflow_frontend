@@ -2,7 +2,6 @@ import { lazy } from "react";
 
 // ==================== Ant Design  ====================
 
-
 import Flex from "antd/es/flex";
 import "antd/es/flex/style";
 
@@ -21,7 +20,9 @@ import { Link } from "react-router-dom";
 
 const ManagerCards = lazy(() => import("../../Components/Cards/ManagerCards"));
 
-const ManagerTabs = lazy(() => import("../../Components/Tabs/ManagerTabs"));
+const ManagerTabs = lazy(
+  () => import("../../Components/Tabs/Manager/ManagerTabs"),
+);
 
 const ManagerDashboard = () => {
   return (

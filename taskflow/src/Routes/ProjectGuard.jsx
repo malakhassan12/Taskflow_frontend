@@ -1,9 +1,11 @@
-import { Navigate, Outlet, useParams } from "react-router-dom";
+import { Navigate,  useParams } from "react-router-dom";
+import ManageProject from "../Pages/Manager/ManageProject";
 
 const ProjectGuard = () => {
   const { projectId } = useParams();
 
-  return projectId ? <Outlet /> : <Navigate to="/manager/projects" />;
+    return projectId ? <ManageProject /> : <Navigate to="/manager/projects" />;
+
 };
 
 export default ProjectGuard;

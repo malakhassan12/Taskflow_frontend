@@ -1,10 +1,35 @@
+import { useState } from "react";
+
+// ==================== Ant Design   ====================
+
 import { Table, Card, Input, Typography } from "antd";
-import { columns } from "../../Constants/ManagerConstants";
+import { Avatar, Button, Space, Tag } from "antd";
+import { primaryColor } from "../../Constants/Colors";
+
+import {
+  EyeOutlined,
+  DeleteOutlined,
+  CommentOutlined,
+} from "@ant-design/icons";
+
+// ==================== React-router-dom  ====================
+
+import { Link } from "react-router-dom";
+
+// ==================== Components  ====================
+
+import TasksModal from "../Modals/TasksModal";
+import CommentsModal from "../Modals/CommentsModal";
+import DeleteMemberModal from "../Modals/Manager/DeleteMemeberModal";
 
 const { Title } = Typography;
 const { Search } = Input;
 
 const TeamTable = () => {
+  const [openTasksModal, setOpenTasksModal] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
   // From API
   const data = [
     {
@@ -153,10 +178,116 @@ const TeamTable = () => {
     },
   ];
 
+  const columns = [
+    {
+      title: "Project ID",
+      dataIndex: "project_id",
+      key: "project_id",
+      width: 100,
+      render: (text) => <Tag color="blue">#{text}</Tag>,
+    },
+    {
+      title: "Project Name",
+      dataIndex: "project_name",
+      key: "project_name",
+      width: 150,
+      sorter: true,
+    },
+    {
+      title: "Team Member",
+      dataIndex: "name",
+      key: "name",
+      width: 180,
+      render: (text) => (
+        <Space>
+          <Avatar size="small" style={{ backgroundColor: primaryColor }}>
+            {text.charAt(0)}
+          </Avatar>
+          <Link>{text}</Link>
+        </Space>
+      ),
+    },
+    {
+      title: "Phone",
+      dataIndex: "phone",
+      key: "phone",
+      width: 130,
+    },
+    {
+      title: "Tasks",
+      dataIndex: "number_of_tasks",
+      key: "number_of_tasks",
+      width: 80,
+      align: "center",
+    },
+    {
+      title: "Tags",
+      key: "tags",
+      dataIndex: "tags",
+      width: 150,
+      render: (tags) => (
+        <Space size="small" wrap>
+          {tags?.map((tag) => (
+            <Tag key={tag} color="geekblue">
+              {tag}
+            </Tag>
+          ))}
+        </Space>
+      ),
+    },
+    {
+      title: "Actions",
+      key: "action",
+      width: 150,
+      fixed: window.innerWidth >= 768 ? "right" : false,
+      render: () => (
+        <Space size="small">
+          <Button
+            type="link"
+            icon={<EyeOutlined />}
+            size="small"
+            onClick={setOpenTasksModal}
+          >
+            View
+          </Button>
+          <Button
+            type="link"
+            icon={<CommentOutlined />}
+            size="small"
+            onClick={setIsCommentsModalOpen}
+          />
+
+          <Button
+            type="link"
+            icon={<DeleteOutlined />}
+            size="small"
+            danger
+            onClick={setIsDeleteModalOpen}
+          />
+        </Space>
+      ),
+    },
+  ];
+
   // In View =  Will appear all tasks for this member can add , delete , edit task ,  show the status of the task , appproved or reject task , dowload the complete task and filally , Show the performace in this peoject for member
 
   return (
-    <div >
+    <div>
+      <TasksModal modalOpen={openTasksModal} setModalOpen={setOpenTasksModal} />
+      <CommentsModal
+        open={isCommentsModalOpen}
+        setOpen={setIsCommentsModalOpen}
+      />
+
+      <DeleteMemberModal
+        open={isDeleteModalOpen}
+        setOpen={setIsDeleteModalOpen}
+        memberName="John Doe"
+        onConfirm={() => {
+          // Handle delete logic here
+          console.log("Member deleted");
+        }}
+      />
       <Card style={{ borderRadius: "12px" }}>
         <div
           style={{
@@ -164,9 +295,8 @@ const TeamTable = () => {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            flexWrap :"wrap",
-            gap:"1rem"
-            
+            flexWrap: "wrap",
+            gap: "1rem",
           }}
         >
           <Title level={4} style={{ margin: 0 }}>

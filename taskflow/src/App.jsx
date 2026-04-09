@@ -99,7 +99,7 @@ function App() {
             {/* Create New Project  */}
             <Route path="projects/create-project" element={<CreateProject />} />
 
-            <Route path=":projectId" element={<ProjectGuard />}>
+            <Route path="projects/:projectId" element={<ProjectGuard />}>
               {/* Nested Task Details */}
               <Route path="tasks/:taskId" element={<TaskDetails />} />
             </Route>
