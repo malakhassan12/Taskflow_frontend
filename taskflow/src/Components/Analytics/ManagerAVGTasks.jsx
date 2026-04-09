@@ -72,7 +72,7 @@ const ManagerAVGTasks = () => {
       </Text>
 
       <div style={{ width: "100%", height: 350, marginTop: "20px" }}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height={300}>
           <ComposedChart
             data={avgProgressData}
             margin={{ top: 20, right: 20, bottom: 20, left: 0 }}
