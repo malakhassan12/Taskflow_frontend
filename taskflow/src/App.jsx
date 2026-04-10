@@ -116,6 +116,9 @@ function App() {
           <Route path="/member" element={<MemberLayout />}>
             <Route index element={<MemberDashboard />} />
 
+
+
+
             {/* View Requests from Project Manager */}
             <Route path="requests" element={<ViewRequests />} />
 
@@ -130,7 +133,7 @@ function App() {
 
             {/* Settings & Notifications */}
             <Route path="notifications" element={<Notifications />} />
-            <Route path="settings" element={<Settings />} />
+            <Route path="settings" element={<MemberSettings />} />
           </Route>
         </Route>
 

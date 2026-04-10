@@ -1,11 +1,6 @@
-import React from 'react'
+import React from "react";
+import MemberProjectsContent from "../../Components/Member/Projects/MemberProjectsContent";
 
-const MemberProjects = () => {
-  return (
-    <div>
-      
-    </div>
-  )
-}
+const MemberProjects = () => <MemberProjectsContent />;
 
-export default MemberProjects
+export default MemberProjects;
