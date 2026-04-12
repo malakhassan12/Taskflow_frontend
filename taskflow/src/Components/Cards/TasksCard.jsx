@@ -7,6 +7,9 @@ import TaskCard from "./TaskCard";
 // ==================== Constants  ====================
 
 import { primaryColor } from "../../Constants/Colors";
+// ==================== Functions  ====================
+
+import getStatusText from "../../Functions/Tasks/GetStatusText";
 
 const { Title, Text } = Typography;
 
@@ -77,13 +80,7 @@ const TasksCard = ({ status }) => {
   };
 
   const tasks = getTasksByStatus();
-  const statusTitles = {
-    completed: "Completed Tasks",
-    "in-progress": "In Progress Tasks",
-    pending: "Pending Tasks",
-    rejected: "Rejected Tasks"
-  };
-
+ 
   return (
     <Card 
       style={{ 
@@ -96,7 +93,7 @@ const TasksCard = ({ status }) => {
       <div style={{ marginBottom: "20px", borderBottom: "1px solid #f0f0f0", paddingBottom: "12px" }}>
         <Space orientation="vertical" size={4}>
           <Title level={4} style={{ margin: 0, color: primaryColor }}>
-            {statusTitles[status] || "Tasks"}
+            {getStatusText(status)|| "Tasks"}
           </Title>
           <Text type="secondary">Total: {tasks.length} tasks</Text>
         </Space>

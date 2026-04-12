@@ -1,20 +1,31 @@
-import React from "react";
 import { FiLock } from "react-icons/fi";
-import { useTheme } from "../../../Context/DarkModeProvider";
-import { primaryColor } from "../../../Constants/Colors";
+import { useTheme } from "../../Context/DarkModeProvider";
+import { primaryColor } from "../../Constants/Colors";
 
 const SecuritySettings = () => {
   const { isDarkMode } = useTheme();
 
   return (
     <div className="space-y-4">
-      <article className={`rounded-2xl border p-5 shadow-sm ${isDarkMode ? "border-slate-700 bg-slate-900" : "border-slate-200 bg-white"}`}>
-        <h3 className={`text-lg font-semibold ${isDarkMode ? "text-slate-100" : "text-slate-800"}`}>Change Password</h3>
-        <p className={`text-sm ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>Update your password to keep your account secure</p>
+      <article
+        className={`rounded-2xl border p-5 shadow-sm ${isDarkMode ? "border-slate-700 bg-slate-900" : "border-slate-200 bg-white"}`}
+      >
+        <h3
+          className={`text-lg font-semibold ${isDarkMode ? "text-slate-100" : "text-slate-800"}`}
+        >
+          Change Password
+        </h3>
+        <p
+          className={`text-sm ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}
+        >
+          Update your password to keep your account secure
+        </p>
 
         <form className="mt-5 space-y-4">
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-700">Current Password</span>
+            <span className="mb-1 block text-sm font-medium text-slate-700">
+              Current Password
+            </span>
             <input
               type="password"
               placeholder="Enter current password"
@@ -23,17 +34,23 @@ const SecuritySettings = () => {
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-700">New Password</span>
+            <span className="mb-1 block text-sm font-medium text-slate-700">
+              New Password
+            </span>
             <input
               type="password"
               placeholder="Enter new password"
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-indigo-400"
             />
-            <p className="mt-1 text-xs text-slate-400">Password must be at least 8 characters long</p>
+            <p className="mt-1 text-xs text-slate-400">
+              Password must be at least 8 characters long
+            </p>
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-700">Confirm New Password</span>
+            <span className="mb-1 block text-sm font-medium text-slate-700">
+              Confirm New Password
+            </span>
             <input
               type="password"
               placeholder="Confirm new password"
@@ -52,9 +69,19 @@ const SecuritySettings = () => {
         </form>
       </article>
 
-      <article className={`rounded-2xl border p-5 shadow-sm ${isDarkMode ? "border-slate-700 bg-slate-900" : "border-slate-200 bg-white"}`}>
-        <h3 className={`text-lg font-semibold ${isDarkMode ? "text-slate-100" : "text-slate-800"}`}>Two-Factor Authentication</h3>
-        <p className={`text-sm ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>Add an extra layer of security to your account</p>
+      <article
+        className={`rounded-2xl border p-5 shadow-sm ${isDarkMode ? "border-slate-700 bg-slate-900" : "border-slate-200 bg-white"}`}
+      >
+        <h3
+          className={`text-lg font-semibold ${isDarkMode ? "text-slate-100" : "text-slate-800"}`}
+        >
+          Two-Factor Authentication
+        </h3>
+        <p
+          className={`text-sm ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}
+        >
+          Add an extra layer of security to your account
+        </p>
 
         <div className="mt-5 flex items-center justify-between">
           <div>
@@ -73,7 +100,8 @@ const SecuritySettings = () => {
         </div>
 
         <p className="mt-4 text-xs text-slate-400">
-          Two-factor authentication is currently disabled. Enable it to secure your account.
+          Two-factor authentication is currently disabled. Enable it to secure
+          your account.
         </p>
       </article>
     </div>
