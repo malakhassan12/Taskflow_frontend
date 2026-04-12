@@ -1,79 +1,136 @@
-// ==================== Ant Design  ====================
-
-import { Card, Avatar, Space, Tag, Typography, Grid } from "antd";
-import { ClockCircleOutlined, UserOutlined } from "@ant-design/icons";
-// ==================== Functions  ====================
-
+import React from 'react';
+import { Card, Avatar, Space, Tag, Typography, Grid, Tooltip } from "antd";
+import { ClockCircleOutlined, UserOutlined, ArrowRightOutlined } from "@ant-design/icons";
+import { Link } from "react-router-dom";
 import getStatusText from "../../Functions/Tasks/GetStatusText";
 import getStatusColor from "../../Functions/Tasks/GetStatusColor";
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
 const { useBreakpoint } = Grid;
+
 const TaskCard = ({ task }) => {
-const screens = useBreakpoint();
+  const screens = useBreakpoint();
   
-  // screens.md is true if the screen is >= 768px
-  // So "isMobile" would be when md is false
-  const isMobile = !screens.md && screens.xs;
-    // When I click on card I will take the taskmodel from Rawan
+  const isXs = screens.xs && !screens.sm; 
+  const isMobile = !screens.md;
+
+  const statusColors = {
+    completed: "#52c41a",
+    "in-progress": "#1890ff",
+    pending: "#faad14",
+  };
+
+  const currentStatusColor = statusColors[task.status] || "#d9d9d9";
 
   return (
-    <Card 
+    <Card
       hoverable
-      style={{ 
-        borderLeft: `3px solid ${task.status === "completed" ? "#52c41a" : task.status === "in-progress" ? "#1890ff" : "#faad14"}`,
-        width: "100%",
-        maxWidth: "100%",
-        margin: isMobile ? "8px 0" : "0 auto",
+      styles={{
+        body: { padding: isMobile ? "12px" : "16px" }
+      }}
+      style={{
+        borderLeft: `4px solid ${currentStatusColor}`,
+        borderRadius: "8px",
+        transition: "all 0.3s ease",
+        height: "100%",
       }}
     >
-      <Space orientation={isMobile ? "vertical" : "horizontal"} size={isMobile ? "6px" : "8px"} style={{ width: "100%" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "12px", height: "100%" }}>
+        
+        {/* Row 1: Title & Status Tag */}
         <div style={{ 
           display: "flex", 
           justifyContent: "space-between", 
-          alignItems: isMobile ? "flex-start" : "center",  
-          flexWrap: "wrap",
-          gap: isMobile ? "12px" : "8px",
-          flexDirection: isMobile ? "column" : "row"
+          alignItems: "flex-start", 
+          gap: "8px" 
         }}>
-          <Text strong style={{ 
-            fontSize: isMobile ? "14px" : "16px",
-            width: "100%"
-          }}>{task.title}</Text>
-          <Tag color={getStatusColor(task.status).status} style={{ 
-            alignSelf: isMobile ? "flex-start" : "auto"
-          }}>{getStatusText(task.status)}</Tag>
+          <Link
+            to={`tasks/${task.id || 1}`}
+            style={{ 
+              flex: 1, 
+              color: "inherit",
+              display: "flex",
+              alignItems: "center",
+              gap: "4px"
+            }}
+          >
+            <Title 
+              level={5} 
+              style={{ 
+                margin: 0, 
+                fontSize: isXs ? "14px" : "16px",
+                lineHeight: 1.4
+              }}
+              ellipsis={{ rows: 2 }} 
+            >
+              {task.title}
+            </Title>
+            <ArrowRightOutlined style={{ fontSize: "12px", color: "#bfbfbf" }} />
+          </Link>
+
+          <Tag 
+            color={getStatusColor(task.status).status} 
+            style={{ 
+              marginInlineEnd: 0,
+              fontSize: "11px",
+              borderRadius: "4px",
+              padding: "0 4px"
+            }}
+          >
+            {getStatusText(task.status)}
+          </Tag>
         </div>
-        
-        <Text type="secondary" style={{ 
-          fontSize: isMobile ? "12px" : "13px",
-          display: "block",
-          wordBreak: "break-word"
-        }}>{task.desc}</Text>
-        
+
+        {/* Row 2: Description */}
+        <div style={{ flex: 1 }}>
+          <Text
+            type="secondary"
+            style={{
+              fontSize: isMobile ? "12px" : "13px",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+            }}
+          >
+            {task.desc}
+          </Text>
+        </div>
+
+        {/* Row 3: Footer (Member & Due Date) */}
         <div style={{ 
           display: "flex", 
           justifyContent: "space-between", 
-          alignItems: isMobile ? "flex-start" : "center", 
-          marginTop: "8px",
-          flexWrap: "wrap",
-          gap: isMobile ? "12px" : "8px",
-          flexDirection: isMobile ? "column" : "row"
+          alignItems: "center",
+          marginTop: "auto",
+          paddingTop: "12px",
+          borderTop: "1px solid #f0f0f0"
         }}>
-          <Space size="small" wrap>
-            <Avatar size="small" style={{ backgroundColor: "#1890ff" }}>
-              {task.member?.avatar}
-            </Avatar>
-            <Text style={{ fontSize: isMobile ? "11px" : "12px" }}>{task.member?.name}</Text>
-            <Tag size="small" style={{ fontSize: isMobile ? "10px" : "11px" }}>{task.member?.role}</Tag>
+          <Space size={4}>
+            <Tooltip title={`${task.member?.name} - ${task.member?.role}`}>
+              <Avatar 
+                size={24} 
+                style={{ backgroundColor: "#1890ff", verticalAlign: 'middle' }}
+                icon={<UserOutlined />}
+              >
+                {task.member?.avatar}
+              </Avatar>
+            </Tooltip>
+            {!isXs && (
+              <Text style={{ fontSize: "12px" }} strong>
+                {task.member?.name.split(' ')[0]}
+              </Text>
+            )}
           </Space>
-          
-          <Space size="small" wrap>
-            <ClockCircleOutlined style={{ fontSize: isMobile ? "11px" : "12px", color: "#8c8c8c" }} />
-            <Text type="secondary" style={{ fontSize: isMobile ? "11px" : "12px" }}>Due: {task.due_date}</Text>
+
+          <Space size={4} style={{ color: "#8c8c8c" }}>
+            <ClockCircleOutlined style={{ fontSize: "12px" }} />
+            <Text type="secondary" style={{ fontSize: "11px" }}>
+              {isXs ? task.due_date : `Due: ${task.due_date}`}
+            </Text>
           </Space>
         </div>
-      </Space>
+      </div>
     </Card>
   );
 };

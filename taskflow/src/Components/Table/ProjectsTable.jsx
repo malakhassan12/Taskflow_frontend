@@ -346,15 +346,17 @@ const ProjectsTable = () => {
           projectId={selectedProject?.project_id}
         />
       )}
-      <Table
-        columns={columns}
-        dataSource={data}
-        scroll={{ x: 1000 }}
-        pagination={{
-          pageSize: 10,
-          showTotal: (total) => `Total ${total} items`,
-        }}
-      />
+      <div data-aos="zoom-in">
+        <Table
+          columns={columns}
+          dataSource={data}
+          scroll={{ x: 1000 }}
+          pagination={{
+            pageSize: 10,
+            showTotal: (total) => `Total ${total} items`,
+          }}
+        />
+      </div>
     </div>
   );
 };
