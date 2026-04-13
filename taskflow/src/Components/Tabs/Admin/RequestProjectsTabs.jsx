@@ -1,8 +1,18 @@
 import React, { useState } from "react";
-import AllProjectsTable from "../../Components/Table/Admin/AllProjectsTable";
-import ProjectModal from "../../Components/Modals/ProjectModal";
-import ManagerModal from "../../Components/Modals/Admin/ManagerModal";
-import { message } from "antd";
+import {
+ 
+  Badge,
+  message,
+  Tabs,
+} from "antd";
+
+import ProjectModal from "../../../Components/Modals/ProjectModal";
+import ManagerModal from "../../../Components/Modals/Admin/ManagerModal";
+import ProjectsRequestTable from "../../Table/Admin/ProjectsRequestTable";
+import AllProjectsTable from "../../Table/Admin/AllProjectsTable";
+
+
+// ===== STATIC DATA =====
 
 // Mock manager data for the modal
 const mockManagers = [
@@ -68,7 +78,7 @@ const mockManagers = [
   },
 ];
 
-const ManageProjects = () => {
+const RequestProjectsTabs = () => {
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
@@ -79,7 +89,7 @@ const ManageProjects = () => {
     setProjectModalOpen(true);
   };
 
-  const handleViewManagerDetails = (managerName) => {
+  const handleViewManagerDetails = (managerName, ) => {
     // Find the manager by name
     const manager = mockManagers.find((m) => m.name === managerName);
     if (manager) {
@@ -90,34 +100,57 @@ const ManageProjects = () => {
     }
   };
 
-  return (
-    <>
-      <div
-        data-aos="fade-left"
-        data-aos-anchor="#example-anchor"
-        data-aos-offset="500"
-        data-aos-duration="500"
-      >
-        {/* Project Details Modal */}
-        <ProjectModal
-          open={projectModalOpen}
-          setOpen={setProjectModalOpen}
-          project={selectedProject}
-        />
 
-        {/* Manager Details Modal */}
-        <ManagerModal
-          viewModalOpen={viewModalOpen}
-          setViewModalOpen={setViewModalOpen}
-          selectedManager={selectedManager}
+  const tabItems = [
+    {
+      key: "pending",
+      label: (
+        <span>
+          Pending Approval <Badge count={2} offset={[10, -2]} size="small" />
+        </span>
+      ),
+      children: (
+        <ProjectsRequestTable
+          handleViewProjectDetails={handleViewProjectDetails}
+          handleViewManagerDetails={handleViewManagerDetails}
         />
+      ),
+    },
+    {
+      key: "all",
+      label: "All Managers",
+      children: (
         <AllProjectsTable
           handleViewProjectDetails={handleViewProjectDetails}
           handleViewManagerDetails={handleViewManagerDetails}
         />
-      </div>
+      ),
+    },
+  ];
+
+  return (
+    <>
+      {/* Project Details Modal */}
+      <ProjectModal
+        open={projectModalOpen}
+        setOpen={setProjectModalOpen}
+        project={selectedProject}
+      />
+
+      {/* Manager Details Modal */}
+      <ManagerModal
+        viewModalOpen={viewModalOpen}
+        setViewModalOpen={setViewModalOpen}
+        selectedManager={selectedManager}
+      />
+      <Tabs
+        defaultActiveKey="pending"
+        size="large"
+        items={tabItems}
+        animated={{ inkBar: true, tabPane: true }}
+      />
     </>
   );
 };
 
-export default ManageProjects;
+export default RequestProjectsTabs;

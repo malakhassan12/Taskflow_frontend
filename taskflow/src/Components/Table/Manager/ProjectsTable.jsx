@@ -2,7 +2,7 @@
 
 import { Table } from "antd";
 import { Avatar, Button, Space, Tag } from "antd";
-import { primaryColor } from "../../Constants/Colors";
+import { primaryColor } from "../../../Constants/Colors";
 
 import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 
@@ -10,7 +10,7 @@ import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import DeleteProjectModal from "../Modals/DeleteProjectModal";
+import DeleteProjectModal from "../../Modals/DeleteProjectModal";
 
 // ==================== Components  ====================
 

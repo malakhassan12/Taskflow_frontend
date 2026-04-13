@@ -1,11 +1,11 @@
-import ProjectsTable from "../../Components/Table/ProjectsTable"
+import ProjectsTable from "../../Components/Table/Manager/ProjectsTable";
 
 const ManagerProjects = () => {
   return (
     <div>
-      <ProjectsTable/>
+      <ProjectsTable />
     </div>
-  )
-}
+  );
+};
 
-export default ManagerProjects
+export default ManagerProjects;

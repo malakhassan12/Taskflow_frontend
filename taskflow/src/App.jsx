@@ -24,8 +24,9 @@ const MemberLayout = lazy(() => import("./Layouts/MemberLayout"));
 const AdminDashboard = lazy(() => import("./Pages/Admin/AdminDashboard"));
 const ProjectsRequests = lazy(() => import("./Pages/Admin/ProjectsRequests"));
 const ManageProjects = lazy(() => import("./Pages/Admin/ManageProjects"));
-const ProjectDetails = lazy(() => import("./Pages/Admin/ProjectDetails"));
+// const ProjectDetails = lazy(() => import("./Pages/Admin/ProjectDetails"));
 const UsersManagement = lazy(() => import("./Pages/Admin/UsersManagement"));
+import ManagersManagement from "./Pages/Admin/ManagersManagement";
 
 // Manager Pages
 const ManagerDashboard = lazy(() => import("./Pages/Manager/ManagerDashboard"));
@@ -34,6 +35,7 @@ const ManagerProjects = lazy(() => import("./Pages/Manager/ManagerProjects"));
 const ManageProject = lazy(() => import("./Pages/Manager/ManageProject"));
 const TaskDetails = lazy(() => import("./Pages/Task/TaskDetails"));
 const Teams = lazy(() => import("./Pages/Manager/Teams"));
+import PendingProjects from "./Pages/Manager/PendingProjects";
 
 // Member Pages
 const MemberDashboard = lazy(() => import("./Pages/Member/MemberDashboard"));
@@ -71,15 +73,27 @@ function App() {
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
 
-            {/* Users Management (Accept/Reject Project Managers) */}
+            {/* Users Management For all the system */}
             <Route path="users" element={<UsersManagement />} />
+
+            {/* Managers Management (Accept/Reject Project Managers) */}
+
+            <Route path="managers" element={<ManagersManagement />} />
 
             {/* Projects Requests  = accept or no  */}
             <Route path="project-requests" element={<ProjectsRequests />} />
 
             {/* Manage All Projects */}
-            <Route path="projects" element={<ManageProjects />}>
-              <Route path=":projectId" element={<ProjectDetails />} />
+            <Route path="projects">
+              <Route index element={<ManageProjects />} />
+
+              <Route path=":projectId">
+                <Route index element={<ManageProject />} />
+                <Route path="tasks">
+                  <Route index element={<Tasks />} />
+                  <Route path=":taskId" element={<TaskDetails />} />
+                </Route>
+              </Route>
             </Route>
 
             {/* Settings & Notifications */}
@@ -96,16 +110,19 @@ function App() {
             {/* Manage My Projects */}
 
             {/* Manage My Projects - Table View */}
-            <Route path="projects" element={<ManagerProjects />} />
+            <Route path="projects">
+              <Route index element={<ManagerProjects />} />
+              {/* Create New Project  */}
+              <Route path="create-project" element={<CreateProject />} />
 
-            {/* Create New Project  */}
-            <Route path="projects/create-project" element={<CreateProject />} />
+              <Route path="pending-projects" element={<PendingProjects />} />
 
-            <Route path="projects/:projectId">
-              <Route index element={<ManageProject />} />
-              <Route path="tasks">
-                <Route index element={<Tasks />} />
-                <Route path=":taskId" element={<TaskDetails />} />
+              <Route path=":projectId">
+                <Route index element={<ManageProject />} />
+                <Route path="tasks">
+                  <Route index element={<Tasks />} />
+                  <Route path=":taskId" element={<TaskDetails />} />
+                </Route>
               </Route>
             </Route>
 
