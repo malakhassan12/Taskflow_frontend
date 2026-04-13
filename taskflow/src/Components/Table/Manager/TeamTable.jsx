@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { Table, Card, Input, Typography } from "antd";
 import { Avatar, Button, Space, Tag } from "antd";
-import { primaryColor } from "../../Constants/Colors";
+import { primaryColor } from "../../../Constants/Colors";
 
 import {
   EyeOutlined,
@@ -18,9 +18,9 @@ import { Link } from "react-router-dom";
 
 // ==================== Components  ====================
 
-import TasksModal from "../Modals/TasksModal";
-import CommentsModal from "../Modals/CommentsModal";
-import DeleteMemberModal from "../Modals/Manager/DeleteMemeberModal";
+import TasksModal from "../../Modals/TasksModal";
+import CommentsModal from "../../Modals/CommentsModal";
+import DeleteMemberModal from "../../Modals/Manager/DeleteMemeberModal";
 
 const { Title } = Typography;
 const { Search } = Input;

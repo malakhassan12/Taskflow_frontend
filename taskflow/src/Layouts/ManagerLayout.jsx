@@ -8,9 +8,12 @@ import DynamicBreadcrumb from "../Components/DynamicBreadCrumb/DynamicBreadCrumb
 
 // ==================== Constants  ====================
 
+import { managerMenu } from "../Constants/ManagerConstants";
+
 // ==================== react-router-dom  ====================
 
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
+import GetSelectedKeyManager from "../Functions/Manager/GetSelectedKeyManager.js";
 
 const { Content } = Layout;
 
@@ -21,11 +24,19 @@ const ManagerLayout = () => {
 
   console.log(theme.useToken());
 
+  const location = useLocation();
+
+  const selectedKey = GetSelectedKeyManager(location.pathname) || "1";
+
   return (
     <Layout>
       <Nav />
       <Layout>
-        <SideBar colorBgContainer={colorBgContainer} />
+        <SideBar
+          colorBgContainer={colorBgContainer}
+          items={managerMenu}
+          selectedKey={selectedKey}
+        />
 
         <Layout style={{ padding: "0 24px 24px" }}>
           <DynamicBreadcrumb />

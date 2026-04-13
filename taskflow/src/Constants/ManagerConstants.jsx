@@ -5,6 +5,7 @@ import { FaFolderOpen } from "react-icons/fa";
 import { IoIosSettings } from "react-icons/io";
 import { MdCreateNewFolder } from "react-icons/md";
 import { LuFileSearch } from "react-icons/lu";
+import { MdPendingActions } from "react-icons/md";
 
 import { Link } from "react-router-dom";
 
@@ -38,6 +39,11 @@ const managerMenu = [
         key: "5",
         icon: <MdCreateNewFolder />,
         label: <Link to="projects/create-project">Create Project</Link>,
+      },
+       {
+        key: "6",
+        icon: <MdPendingActions />,
+        label: <Link to="projects/pending-projects">Pending Projects</Link>,
       },
     ],
   },
