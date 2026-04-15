@@ -4,6 +4,7 @@ import ProtectedRoute from "./Routes/ProtectedRoute";
 import ProjectGuard from "./Routes/ProjectGuard";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import Tasks from "./Pages/Task/Tasks";
 
 // Public Pages
 const Home = lazy(() => import("./Pages/Home/Home"));
@@ -23,23 +24,27 @@ const MemberLayout = lazy(() => import("./Layouts/MemberLayout"));
 const AdminDashboard = lazy(() => import("./Pages/Admin/AdminDashboard"));
 const ProjectsRequests = lazy(() => import("./Pages/Admin/ProjectsRequests"));
 const ManageProjects = lazy(() => import("./Pages/Admin/ManageProjects"));
-const ProjectDetails = lazy(() => import("./Pages/Admin/ProjectDetails"));
+// const ProjectDetails = lazy(() => import("./Pages/Admin/ProjectDetails"));
 const UsersManagement = lazy(() => import("./Pages/Admin/UsersManagement"));
+import ManagersManagement from "./Pages/Admin/ManagersManagement";
 
 // Manager Pages
 const ManagerDashboard = lazy(() => import("./Pages/Manager/ManagerDashboard"));
 const CreateProject = lazy(() => import("./Pages/Manager/CreateProject"));
 const ManagerProjects = lazy(() => import("./Pages/Manager/ManagerProjects"));
 const ManageProject = lazy(() => import("./Pages/Manager/ManageProject"));
-const TaskDetails = lazy(() => import("./Pages/Manager/TaskDetails"));
+const TaskDetails = lazy(() => import("./Pages/Task/TaskDetails"));
 const Teams = lazy(() => import("./Pages/Manager/Teams"));
+import PendingProjects from "./Pages/Manager/PendingProjects";
 
 // Member Pages
 const MemberDashboard = lazy(() => import("./Pages/Member/MemberDashboard"));
 const ViewRequests = lazy(() => import("./Pages/Member/ViewRequests"));
-const MemberSettings = lazy(() => import("./Pages/Member/MemberSettings"));
+// const MemberSettings = lazy(() => import("./Pages/Member/MemberSettings"));
 const MemberProjects = lazy(() => import("./Pages/Member/MemberProjects"));
-
+const MemberTaskDetails = lazy(
+  () => import("./Pages/Member/MemberTaskDetails"),
+);
 // ==================== Ant Design ====================
 
 function App() {
@@ -68,15 +73,27 @@ function App() {
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
 
-            {/* Users Management (Accept/Reject Project Managers) */}
+            {/* Users Management For all the system */}
             <Route path="users" element={<UsersManagement />} />
+
+            {/* Managers Management (Accept/Reject Project Managers) */}
+
+            <Route path="managers" element={<ManagersManagement />} />
 
             {/* Projects Requests  = accept or no  */}
             <Route path="project-requests" element={<ProjectsRequests />} />
 
             {/* Manage All Projects */}
-            <Route path="projects" element={<ManageProjects />}>
-              <Route path=":projectId" element={<ProjectDetails />} />
+            <Route path="projects">
+              <Route index element={<ManageProjects />} />
+
+              <Route path=":projectId">
+                <Route index element={<ManageProject />} />
+                <Route path="tasks">
+                  <Route index element={<Tasks />} />
+                  <Route path=":taskId" element={<TaskDetails />} />
+                </Route>
+              </Route>
             </Route>
 
             {/* Settings & Notifications */}
@@ -93,14 +110,20 @@ function App() {
             {/* Manage My Projects */}
 
             {/* Manage My Projects - Table View */}
-            <Route path="projects" element={<ManagerProjects />} />
+            <Route path="projects">
+              <Route index element={<ManagerProjects />} />
+              {/* Create New Project  */}
+              <Route path="create-project" element={<CreateProject />} />
 
-            {/* Create New Project  */}
-            <Route path="projects/create-project" element={<CreateProject />} />
+              <Route path="pending-projects" element={<PendingProjects />} />
 
-            <Route path="projects/:projectId" element={<ProjectGuard />}>
-              {/* Nested Task Details */}
-              <Route path="tasks/:taskId" element={<TaskDetails />} />
+              <Route path=":projectId">
+                <Route index element={<ManageProject />} />
+                <Route path="tasks">
+                  <Route index element={<Tasks />} />
+                  <Route path=":taskId" element={<TaskDetails />} />
+                </Route>
+              </Route>
             </Route>
 
             {/* Settings & Notifications */}
@@ -118,14 +141,11 @@ function App() {
             <Route path="requests" element={<ViewRequests />} />
 
             {/* My Projects */}
-            <Route path="/member/projects" element={<MemberProjects />}>
+            <Route path="projects" element={<MemberProjects />}>
               <Route path=":projectId" element={<ManageProject />}>
                 {/* Task Details with Update Status + Upload */}
+                <Route path="tasks/:taskId" element={<MemberTaskDetails />} />
               </Route>
-              <Route
-                path="/member/projects/settings"
-                element={<MemberSettings />}
-              />
             </Route>
 
             {/* Settings & Notifications */}

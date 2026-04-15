@@ -1,29 +1,39 @@
-// ==================== Ant Design  ====================
-
 import { Header } from "antd/es/layout/layout";
-import { Grid, Avatar, Typography, Tooltip, Button, Flex } from "antd";
+import {
+  Grid,
+  Avatar,
+  Typography,
+  Tooltip,
+  Button,
+  Flex,
+  theme,
+  Badge,
+} from "antd";
 
-// ==================== Components  ====================
-
+// ==================== Components ====================
 import OpenDrawerBtn from "../Buttons/OpenDrawerBtn";
 import Logo from "../Logo/Logo";
 import DarkModeBtn from "../Buttons/DarkModeBtn";
 
-// ==================== Icons  ====================
-
+// ==================== Icons ====================
 import { FaRegUser } from "react-icons/fa";
 import { IoIosNotificationsOutline } from "react-icons/io";
-// ==================== Constants  ====================
+// ==================== React-router-dom ====================
 
-import { primaryColor } from "../../Constants/Colors";
+import { useNavigate } from "react-router-dom";
 
 const { Text } = Typography;
-
 const { useBreakpoint } = Grid;
 
 const Nav = () => {
   const screens = useBreakpoint();
+  const { token } = theme.useToken();
+
   const isMobile = !screens.md;
+
+  const navigate = useNavigate();
+
+  const role = "manager";
 
   return (
     <Header
@@ -34,40 +44,73 @@ const Nav = () => {
         width: "100%",
         display: "flex",
         alignItems: "center",
-        background: primaryColor,
         justifyContent: "space-between",
-        padding: "0 24px",
+        backdropFilter: "blur(10px)",
+        padding: isMobile ? "0 12px" : "0 24px",
+        height: "64px",
+        transition: "all 0.3s ease",
       }}
     >
-      {/* LEFT */}
-      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-        <Logo />
+      {/* LEFT SECTION: Brand & Menu */}
+      <Flex align="center" gap={isMobile ? 8 : 16}>
         {isMobile && <OpenDrawerBtn />}
-      </div>
+        <Logo collapsed={isMobile} />
+      </Flex>
 
-      {/* RIGHT */}
-      <Flex align="center" gap={20}>
+      {/* RIGHT SECTION: Actions & User */}
+      <Flex align="center" gap={isMobile ? 12 : 20}>
+        {/* Responsive Greeting */}
         {!isMobile && (
-          <Text type="secondary" style={{ fontSize: 14 }}>
-            Welcome back, Sarah 👋
-          </Text>
+          <div style={{ textAlign: "right", lineHeight: "1.2" }}>
+            <Text
+              strong
+              style={{ display: "block", fontSize: "14px", color: "white" }}
+            >
+              Sarah Jenkins
+            </Text>
+            <Text type="secondary" style={{ fontSize: "12px", color: "white" }}>
+              Project Manager
+            </Text>
+          </div>
         )}
 
-        <Tooltip title="Notifications">
-          <Button
-            type="text"
-            shape="circle"
-            icon={<IoIosNotificationsOutline style={{ fontSize: 20 }} />}
-          />
-        </Tooltip>
+        <Flex align="center" gap={8}>
+          <Tooltip title="Notifications">
+            <Badge dot color={token.colorPrimary} offset={[-2, 4]}>
+              <Button
+                type="text"
+                shape="circle"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+                icon={
+                  <IoIosNotificationsOutline
+                    style={{ fontSize: 22, color: "white" }}
+                  />
+                }
+                onClick={() => navigate(`/${role}/notifications`)}
+              />
+            </Badge>
+          </Tooltip>
 
-        <Tooltip title="Profile">
-          <Avatar icon={<FaRegUser />} style={{ cursor: "pointer" }} />
-        </Tooltip>
+          <DarkModeBtn />
 
-        <DarkModeBtn />
+          <Tooltip title="Account Settings">
+            <Avatar
+              size={isMobile ? "default" : "large"}
+              icon={<FaRegUser />}
+              style={{
+                cursor: "pointer",
+                boxShadow: `0 2px 8px ${token.colorPrimary}40`,
+              }}
+            />
+          </Tooltip>
+        </Flex>
       </Flex>
     </Header>
   );
 };
+
 export default Nav;

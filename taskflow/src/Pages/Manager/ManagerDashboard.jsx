@@ -14,8 +14,8 @@ const { Title, Paragraph } = Typography;
 import { IoIosAdd } from "react-icons/io";
 // ==================== Constants  ====================
 
-import { primaryColor } from "../../Constants/Colors";
 import { Link } from "react-router-dom";
+import { Button } from "antd";
 // ==================== Components  ====================
 
 const ManagerCards = lazy(() => import("../../Components/Cards/ManagerCards"));
@@ -36,15 +36,22 @@ const ManagerDashboard = () => {
             Manage your projects, track progress, and analyze performance
           </Paragraph>
         </div>
-
-        <div>
-          <Link
-            to="projects/create-project"
-            className={`${primaryColor} px-4 py-2 rounded flex items-center`}
+        <Link to="projects/create-project">
+          <Button
+            type="primary"
+            icon={<IoIosAdd />}
+            size="large"
+            style={{
+              borderRadius: "8px",
+              display: "flex",
+              alignItems: "center",
+              fontWeight: "600",
+              boxShadow: "0 2px 4px rgba(24, 144, 255, 0.2)",
+            }}
           >
-            <IoIosAdd /> Create Project
-          </Link>{" "}
-        </div>
+            Create Project
+          </Button>
+        </Link>
       </Flex>
 
       <div>

@@ -62,7 +62,7 @@ const ProjectModal = ({ open, setOpen, project }) => {
             <CalendarOutlined style={{ marginRight: "8px", color: primaryColor }} />
             Timeline
           </Text>
-          <Space direction="vertical" size={4}>
+          <Space orientation="vertical" size={4}>
             <Text type="secondary">Start: <strong>{project.startTime || "Not set"}</strong></Text>
             <Text type="secondary">End: <strong>{project.endTime || "Not set"}</strong></Text>
           </Space>

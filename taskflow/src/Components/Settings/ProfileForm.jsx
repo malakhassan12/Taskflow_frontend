@@ -1,7 +1,7 @@
 import React from "react";
 import { FiMail, FiPhone, FiSave } from "react-icons/fi";
-import { useTheme } from "../../../Context/DarkModeProvider";
-import { primaryColor } from "../../../Constants/Colors";
+import { useTheme } from "../../Context/DarkModeProvider";
+import { primaryColor } from "../../Constants/Colors";
 
 const ProfileForm = () => {
   const { isDarkMode } = useTheme();

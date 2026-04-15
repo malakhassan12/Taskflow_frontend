@@ -1,6 +1,3 @@
-// ==================== Constants  ====================
-
-import { managerMenu } from "../../Constants/ManagerConstants";
 // ==================== Ant Design  ====================
 
 import Sider from "antd/es/layout/Sider.js";
@@ -8,16 +5,7 @@ import Menu from "antd/es/menu";
 import "antd/es/menu/style";
 // ====================React-router-dom  ====================
 
-import { useLocation } from "react-router-dom";
-// ==================== Functions  ====================
-
-import getSelectedKey from "../../Functions/Manager/GetSelectedKey";
-
-const SideBar = ({ colorBgContainer }) => {
-  const location = useLocation();
-
-
-  const selectedKey = getSelectedKey(location.pathname) || "1";
+const SideBar = ({ colorBgContainer , items , selectedKey}) => {
 
   return (
     <Sider
@@ -40,7 +28,7 @@ const SideBar = ({ colorBgContainer }) => {
         mode="inline"
         selectedKeys={[selectedKey]}
         style={{ height: "100%", borderInlineEnd: 0, marginTop: "4rem" }}
-        items={managerMenu}
+        items={items}
       />
     </Sider>
   );

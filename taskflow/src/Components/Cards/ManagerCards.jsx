@@ -57,7 +57,7 @@ const ManagerCards = () => {
     <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
       {cards.map((card, index) => (
         <Col xs={24} sm={12} lg={6} key={index}>
-          <div data-aos="fade-down" data-aos-delay={index * 100}>
+          <div data-aos="fade-down" data-aos-delay={index * 100} style={{height:"100%"}}>
             <GeneralCard {...card} />
           </div>
         </Col>

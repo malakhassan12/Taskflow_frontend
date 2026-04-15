@@ -1,5 +1,9 @@
 import { useState } from "react";
 
+// ==================== React-router-dom ====================
+
+import { Link, useParams } from "react-router-dom";
+
 // ==================== Ant Design ====================
 
 import {
@@ -17,6 +21,7 @@ import {
   CalendarOutlined,
   DeleteOutlined,
   PlusOutlined,
+  UnorderedListOutlined,
 } from "@ant-design/icons";
 
 // ==================== Components ====================
@@ -25,7 +30,6 @@ import BackBtn from "../../Components/Buttons/BackBtn";
 import TaskModal from "../../Components/Modals/TaskModal";
 import DeleteProjectModal from "../../Components/Modals/DeleteProjectModal";
 import ProjectTabs from "../../Components/Tabs/Project/ProjectTabs";
-import { useParams } from "react-router-dom";
 import PerformaceProject from "../../Components/Analytics/Project/PerformaceProject";
 
 const { Title, Text } = Typography;
@@ -76,7 +80,6 @@ const ManageProject = () => {
   return (
     <div style={{ minHeight: "100vh", paddingInline: 0 }}>
       {contextHolder}
-
       {/* Modals */}
       <TaskModal
         isTaskModalOpen={isTaskModalOpen}
@@ -85,7 +88,6 @@ const ManageProject = () => {
         handleSaveTask={handleSaveTask}
         form={form}
       />
-
       <DeleteProjectModal
         open={isDeleteModalOpen}
         setOpen={setIsDeleteModalOpen}
@@ -95,12 +97,14 @@ const ManageProject = () => {
           console.log("Project deleted");
         }}
       />
-
       {/* Header Section */}
       <Card style={{ marginBottom: "24px", borderRadius: "12px" }}>
         <Flex justify="space-between" align="start" wrap="wrap" gap="16px">
-          <Space orientation="vertical" size="8px">
-            <BackBtn />
+          <Space orientation="vertical" size="8px" style={{ width: "100%" }}>
+            <Flex justify="end" >
+              <BackBtn />
+            </Flex>
+
             <Title level={2} style={{ margin: "16px 0 8px 0" }}>
               {projectData.name}
             </Title>
@@ -150,9 +154,16 @@ const ManageProject = () => {
           </div>
         </Flex>
       </Card>
-
       <PerformaceProject />
       {/* Tabs Section */}
+      <Button
+        type="primary"
+        ghost
+        icon={<UnorderedListOutlined />}
+        style={{ borderRadius: "6px", marginBottom: "1rem" }}
+      >
+        <Link to="tasks">Show All Tasks</Link>
+      </Button>{" "}
       <Card style={{ borderRadius: "12px", padding: "0 !important" }}>
         <ProjectTabs projectId={projectId} />
       </Card>
