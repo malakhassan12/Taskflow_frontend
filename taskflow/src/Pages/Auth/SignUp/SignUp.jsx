@@ -1,11 +1,15 @@
-import React from 'react'
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import SignUpForm from '../../../Components/Auth/SignUp/SignUp';
 
 const SignUp = () => {
-  return (
-    <div>
-      
-    </div>
-  )
-}
+  const navigate = useNavigate();
 
-export default SignUp
+  const handleSignupSuccess = () => {
+    navigate('/member');
+  };
+
+  return <SignUpForm onSuccess={handleSignupSuccess} />;
+};
+
+export default SignUp;
