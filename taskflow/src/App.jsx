@@ -42,6 +42,7 @@ const MemberDashboard = lazy(() => import("./Pages/Member/MemberDashboard"));
 const ViewRequests = lazy(() => import("./Pages/Member/ViewRequests"));
 // const MemberSettings = lazy(() => import("./Pages/Member/MemberSettings"));
 const MemberProjects = lazy(() => import("./Pages/Member/MemberProjects"));
+const NewUser = lazy(() => import("./Pages/NewUser/NewUser"));
 
 // ==================== Ant Design ====================
 
@@ -142,7 +143,6 @@ function App() {
             <Route path="projects" element={<MemberProjects />}>
               <Route path=":projectId" element={<ManageProject />}>
                 {/* Task Details with Update Status + Upload */}
-                
               </Route>
             </Route>
 

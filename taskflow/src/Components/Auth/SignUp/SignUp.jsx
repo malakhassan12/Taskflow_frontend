@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Form, Input, Button, Typography, Row, Col, Card, message, Checkbox } from "antd";
+import { Form, Input, Button, Typography, Row, Col, Card, message, Checkbox, Radio } from "antd";
 import { UserOutlined, MailOutlined, LockOutlined, EyeInvisibleOutlined, EyeTwoTone, ThunderboltOutlined, SafetyOutlined, StarOutlined, RocketOutlined } from "@ant-design/icons";
 import { useAuth } from "../../../Context/AuthContext";
 import { useTheme } from "../../../Context/DarkModeProvider";
@@ -20,7 +20,7 @@ const SignUpForm = ({ onSuccess }) => {
     if (result.success) {
       form.resetFields();
       if (onSuccess) {
-        onSuccess();
+        onSuccess(result);
       }
     }
     
@@ -160,6 +160,22 @@ const SignUpForm = ({ onSuccess }) => {
                   size="large"
                   style={{ borderRadius: "8px", background: isDarkMode ? "#2a2a2a" : "white", borderColor: isDarkMode ? "#404040" : "#d9d9d9" }}
                 />
+              </Form.Item>
+
+              <Form.Item
+                label="I want to sign up as"
+                name="role"
+                rules={[{ required: true, message: "Please select a role" }]}
+                initialValue="member"
+              >
+                <Radio.Group size="large" style={{ width: "100%" }}>
+                  <Radio.Button value="member" style={{ width: "50%", textAlign: "center" }}>
+                    User
+                  </Radio.Button>
+                  <Radio.Button value="manager" style={{ width: "50%", textAlign: "center" }}>
+                    Project Manager
+                  </Radio.Button>
+                </Radio.Group>
               </Form.Item>
 
               <Form.Item

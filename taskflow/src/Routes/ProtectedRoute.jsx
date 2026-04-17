@@ -1,19 +1,21 @@
 import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "../Context/AuthContext";
 
 const ProtectedRoute = ({ allowedRoles }) => {
-  const user = {
-    name: "Malak",
-    role: "member",
-  };
+  const { user } = useAuth();
 
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
-    if (user.role === "admin") return <Navigate to="/admin" replace />;
-    if (user.role === "manager") return <Navigate to="/manager" replace />;
-    if (user.role === "member") return <Navigate to="/member" replace />;
+  const userRole = user.role?.toLowerCase();
+  // Treat 'teammember' as 'member'
+  const normalizedUserRole = userRole === "teammember" ? "member" : userRole;
+  
+  if (allowedRoles && !allowedRoles.map(r => r.toLowerCase()).includes(normalizedUserRole)) {
+    if (normalizedUserRole === "admin") return <Navigate to="/admin" replace />;
+    if (normalizedUserRole === "manager") return <Navigate to="/manager" replace />;
+    if (normalizedUserRole === "member") return <Navigate to="/member" replace />;
     return <Navigate to="/login" replace />;
   }
 
