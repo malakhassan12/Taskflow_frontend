@@ -1,30 +1,35 @@
-import React, { useState } from "react";
+import React from "react";
 import { Form, Input, Button, Typography, Row, Col, Card } from "antd";
 import { UserOutlined, LockOutlined, EyeInvisibleOutlined, EyeTwoTone, ThunderboltOutlined, SafetyOutlined, StarOutlined, RocketOutlined } from "@ant-design/icons";
 import { useAuth } from "../../../Context/AuthContext";
 import { useTheme } from "../../../Context/DarkModeProvider";
+import { useMutation } from '@tanstack/react-query';
 import { Link } from "react-router-dom";
 
 const { Title, Text, Paragraph } = Typography;
 
 const LoginForm = ({ onSuccess }) => {
   const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const { isDarkMode } = useTheme();
 
-  const onFinish = async (values) => {
-    setLoading(true);
-    const result = await login(values);
-    
-    if (result.success) {
-      form.resetFields();
-      if (onSuccess) {
-        onSuccess();
+  const mutation = useMutation({
+    mutationFn: (values) => login(values),
+    onSuccess: (result) => {
+      if (result.success) {
+        form.resetFields();
+        if (onSuccess) {
+          onSuccess(result.user);
+        }
       }
+    },
+    onError: (error) => {
+      console.error('Login error:', error);
     }
-    
-    setLoading(false);
+  });
+
+  const onFinish = (values) => {
+    mutation.mutate(values);
   };
 
   const validateEmail = (_, value) => {
@@ -108,7 +113,7 @@ const LoginForm = ({ onSuccess }) => {
                 <Button
                   type="primary"
                   htmlType="submit"
-                  loading={loading}
+                  loading={mutation.isPending}
                   size="large"
                   block
                   icon={<UserOutlined />}

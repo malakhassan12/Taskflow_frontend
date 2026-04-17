@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { message } from "antd";
+import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 const AuthContext = createContext(null);
 
@@ -10,18 +12,34 @@ export const AuthProvider = ({ children }) => {
 
   // Load user from localStorage on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
     const storedToken = localStorage.getItem("token");
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
-      setToken(storedToken);
+    if (storedToken) {
+      try {
+        // Decode token to get user data
+        const decodedToken = jwtDecode(storedToken);
+        const userFromToken = {
+          email: decodedToken.email || decodedToken.Email || "",
+          role: decodedToken.role || decodedToken.Role || decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || "member",
+          name: decodedToken.name || decodedToken.Name || decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || "",
+          token: storedToken,
+        };
+        setUser(userFromToken);
+        setToken(storedToken);
+        localStorage.setItem("user", JSON.stringify(userFromToken));
+      } catch (error) {
+        console.error("Error decoding token:", error);
+        // If token is invalid, clear localStorage
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("tokenExpiration");
+      }
     }
   }, []);
 
   // Frontend validation for signup
   const validateSignup = (formData) => {
     const errors = {};
-    
+
     // First Name validation
     if (!formData.firstName || formData.firstName.trim().length < 2) {
       errors.firstName = "First name must be at least 2 characters";
@@ -57,7 +75,10 @@ export const AuthProvider = ({ children }) => {
     }
 
     // Confirm password validation
-    if (formData.confirmPassword && formData.password !== formData.confirmPassword) {
+    if (
+      formData.confirmPassword &&
+      formData.password !== formData.confirmPassword
+    ) {
       errors.confirmPassword = "Passwords do not match";
     }
 
@@ -70,7 +91,7 @@ export const AuthProvider = ({ children }) => {
   // Frontend validation for login
   const validateLogin = (formData) => {
     const errors = {};
-    
+
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email || !emailRegex.test(formData.email)) {
@@ -91,7 +112,7 @@ export const AuthProvider = ({ children }) => {
   // Signup function
   const signup = async (formData) => {
     setLoading(true);
-    
+
     try {
       // Frontend validation
       const validation = validateSignup(formData);
@@ -109,35 +130,44 @@ export const AuthProvider = ({ children }) => {
         lastName: formData.lastName.trim(),
         age: parseInt(formData.age),
         email: formData.email.trim().toLowerCase(),
+        role: formData.role === 'manager' ? 'ProjectManager' : 'TeamMember',
         password: formData.password,
       };
 
+      // Real API call
+      const response = await axios.post("http://taskflowproject1.runasp.net/api/Account/register", signupData);
+
+      const { data } = response;
       
-      const mockUser = {
-        id: "1",
-        firstName: signupData.firstName,
-        lastName: signupData.lastName,
-        age: signupData.age,
-        email: signupData.email,
-        userName: signupData.email.split('@')[0],
-        role: "member",
-      };
-      
-      const mockToken = "mock-jwt-token";
-      
-      setUser(mockUser);
-      setToken(mockToken);
-      localStorage.setItem("user", JSON.stringify(mockUser));
-      localStorage.setItem("token", mockToken);
-      
-      message.success("Account created successfully!");
-      setLoading(false);
-      return { success: true, user: mockUser };
-      
+      // Backend returns only success message, not token
+      // User needs to login after signup
+      if (signupData.role === 'ProjectManager') {
+        setLoading(false);
+        return { success: true, requiresLogin: true, isManager: true };
+      } else {
+        message.success("Account created successfully! Please login.");
+        setLoading(false);
+        return { success: true, requiresLogin: true, isManager: false };
+      }
     } catch (error) {
-      message.error(error.message || "Signup failed");
+      console.log('Signup error:', error);
+      let errorMsg = "Signup failed";
+      
+      if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
+        errorMsg = "Network error. Please check your connection and try again.";
+      } else if (error.response?.status === 500) {
+        errorMsg = "Server error. Please try again later.";
+      } else if (error.response?.status === 400) {
+        errorMsg = error.response?.data?.message || error.response?.data || "Invalid data provided";
+      } else if (error.response?.data?.message) {
+        errorMsg = error.response.data.message;
+      } else if (error.response?.data) {
+        errorMsg = typeof error.response.data === 'string' ? error.response.data : "Signup failed";
+      }
+      
+      message.error(errorMsg);
       setLoading(false);
-      return { success: false, error: error.message };
+      return { success: false, error: errorMsg };
     }
   };
 
@@ -147,44 +177,58 @@ export const AuthProvider = ({ children }) => {
     
     try {
       // Frontend validation
-      const validation = validateLogin(formData);
-      if (!validation.isValid) {
-        Object.values(validation.errors).forEach((error) => {
-          message.error(error);
-        });
+      if (!formData.email || !formData.email.trim()) {
+        message.error("Email is required");
         setLoading(false);
-        return { success: false, errors: validation.errors };
+        return { success: false, error: "Email is required" };
+      }
+      
+      if (!formData.password) {
+        message.error("Password is required");
+        setLoading(false);
+        return { success: false, error: "Password is required" };
       }
 
-      // Prepare data for backend
-      const loginData = {
-        email: formData.email.trim().toLowerCase(),
-        password: formData.password,
-      };
+      // Real API call
+      const response = await axios.post("http://taskflowproject1.runasp.net/api/Account/login", {
+        email: formData.email,
+        password: formData.password
+      });
 
-      const mockUser = {
-        id: "1",
-        fullName: "Admin User",
-        email: loginData.email,
-        userName: loginData.email.split('@')[0],
-        role: "admin",
+      const { data } = response;
+      
+      // Backend returns: { token: string, expiration: date }
+      // Decode JWT token to extract user data
+      const decodedToken = jwtDecode(data.token);
+      
+      // Store token in localStorage
+      setToken(data.token);
+      localStorage.setItem("token", data.token);
+      
+      // Store expiration if provided
+      if (data.expiration) {
+        localStorage.setItem("tokenExpiration", data.expiration);
+      }
+      
+      // Create user object from decoded token
+      const userFromToken = {
+        email: decodedToken.email || decodedToken.Email || formData.email,
+        role: decodedToken.role || decodedToken.Role || decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || "member",
+        name: decodedToken.name || decodedToken.Name || decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || "",
+        token: data.token,
       };
-      
-      const mockToken = "mock-jwt-token";
-      
-      setUser(mockUser);
-      setToken(mockToken);
-      localStorage.setItem("user", JSON.stringify(mockUser));
-      localStorage.setItem("token", mockToken);
+      setUser(userFromToken);
+      localStorage.setItem("user", JSON.stringify(userFromToken));
       
       message.success("Login successful!");
       setLoading(false);
-      return { success: true, user: mockUser };
+      return { success: true, user: userFromToken };
       
     } catch (error) {
-      message.error(error.message || "Login failed");
+      const errorMsg = error.response?.data?.message || error.response?.data || "Login failed";
+      message.error(errorMsg);
       setLoading(false);
-      return { success: false, error: error.message };
+      return { success: false, error: errorMsg };
     }
   };
 
