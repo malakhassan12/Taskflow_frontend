@@ -12,7 +12,7 @@ const { RangePicker } = DatePicker;
 const TimelineProjectField = () => {
   return (
     <Form.Item
-    
+      validateFirst
       label={
         <span>
           <CalendarOutlined

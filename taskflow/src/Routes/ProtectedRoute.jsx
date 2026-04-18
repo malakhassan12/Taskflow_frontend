@@ -2,23 +2,37 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
 
 const ProtectedRoute = ({ allowedRoles }) => {
-  const { token , user } = useAuth();
+  const { token, user } = useAuth();
 
-
-  console.log(token)
+  console.log(token);
 
   if (!token) {
     return <Navigate to="/login" replace />;
   }
 
-  const userRole = user?.role?.toLowerCase();
+  const userRole = user?.role;
   // Treat 'teammember' as 'member'
-  const normalizedUserRole = userRole === "teammember" ? "member" : userRole;
-  
-  if (allowedRoles && !allowedRoles.map(r => r.toLowerCase()).includes(normalizedUserRole)) {
-    if (normalizedUserRole === "Admin") return <Navigate to="/admin" replace />;
-    if (normalizedUserRole === "manager") return <Navigate to="/manager" replace />;
-    if (normalizedUserRole === "member") return <Navigate to="/member" replace />;
+
+  console.log(user);
+  const normalizedUserRole =
+    userRole === "teammember"
+      ? "member"
+      : userRole === "ProjectManager"
+        ? "manager"
+        : userRole === "Admin"
+          ? "admin"
+          : userRole;
+
+  console.log(normalizedUserRole);
+  if (
+    allowedRoles &&
+    !allowedRoles.map((r) => r.toLowerCase()).includes(normalizedUserRole)
+  ) {
+    if (normalizedUserRole === "admin") return <Navigate to="/admin" replace />;
+    if (normalizedUserRole === "manager")
+      return <Navigate to="/manager" replace />;
+    if (normalizedUserRole === "member")
+      return <Navigate to="/member" replace />;
     return <Navigate to="/login" replace />;
   }
 

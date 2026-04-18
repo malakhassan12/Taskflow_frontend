@@ -12,7 +12,7 @@ const { TextArea } = Input;
 const DescProjectField = () => {
   return (
     <Form.Item
-    
+      validateFirst
       label={
         <span>
           <FileTextOutlined
