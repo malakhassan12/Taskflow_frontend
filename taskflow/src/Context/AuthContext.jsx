@@ -19,8 +19,20 @@ export const AuthProvider = ({ children }) => {
         const decodedToken = jwtDecode(storedToken);
         const userFromToken = {
           email: decodedToken.email || decodedToken.Email || "",
-          role: decodedToken.role || decodedToken.Role || decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || "member",
-          name: decodedToken.name || decodedToken.Name || decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || "",
+          role:
+            decodedToken.role ||
+            decodedToken.Role ||
+            decodedToken[
+              "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+            ] ||
+            "member",
+          name:
+            decodedToken.name ||
+            decodedToken.Name ||
+            decodedToken[
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
+            ] ||
+            "",
           token: storedToken,
         };
         setUser(userFromToken);
@@ -130,18 +142,21 @@ export const AuthProvider = ({ children }) => {
         lastName: formData.lastName.trim(),
         age: parseInt(formData.age),
         email: formData.email.trim().toLowerCase(),
-        role: formData.role === 'manager' ? 'ProjectManager' : 'TeamMember',
+        role: formData.role === "manager" ? "ProjectManager" : "TeamMember",
         password: formData.password,
       };
 
       // Real API call
-      const response = await axios.post("http://taskflowproject1.runasp.net/api/Account/register", signupData);
+      const response = await axios.post(
+        "http://taskflowproject1.runasp.net/api/Account/register",
+        signupData,
+      );
 
       const { data } = response;
-      
+
       // Backend returns only success message, not token
       // User needs to login after signup
-      if (signupData.role === 'ProjectManager') {
+      if (signupData.role === "ProjectManager") {
         setLoading(false);
         return { success: true, requiresLogin: true, isManager: true };
       } else {
@@ -150,21 +165,30 @@ export const AuthProvider = ({ children }) => {
         return { success: true, requiresLogin: true, isManager: false };
       }
     } catch (error) {
-      console.log('Signup error:', error);
+      console.log("Signup error:", error);
       let errorMsg = "Signup failed";
-      
-      if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
+
+      if (
+        error.code === "ERR_NETWORK" ||
+        error.message.includes("Network Error")
+      ) {
         errorMsg = "Network error. Please check your connection and try again.";
       } else if (error.response?.status === 500) {
         errorMsg = "Server error. Please try again later.";
       } else if (error.response?.status === 400) {
-        errorMsg = error.response?.data?.message || error.response?.data || "Invalid data provided";
+        errorMsg =
+          error.response?.data?.message ||
+          error.response?.data ||
+          "Invalid data provided";
       } else if (error.response?.data?.message) {
         errorMsg = error.response.data.message;
       } else if (error.response?.data) {
-        errorMsg = typeof error.response.data === 'string' ? error.response.data : "Signup failed";
+        errorMsg =
+          typeof error.response.data === "string"
+            ? error.response.data
+            : "Signup failed";
       }
-      
+
       message.error(errorMsg);
       setLoading(false);
       return { success: false, error: errorMsg };
@@ -174,7 +198,7 @@ export const AuthProvider = ({ children }) => {
   // Login function
   const login = async (formData) => {
     setLoading(true);
-    
+
     try {
       // Frontend validation
       if (!formData.email || !formData.email.trim()) {
@@ -182,7 +206,7 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
         return { success: false, error: "Email is required" };
       }
-      
+
       if (!formData.password) {
         message.error("Password is required");
         setLoading(false);
@@ -190,42 +214,57 @@ export const AuthProvider = ({ children }) => {
       }
 
       // Real API call
-      const response = await axios.post("http://taskflowproject1.runasp.net/api/Account/login", {
-        email: formData.email,
-        password: formData.password
-      });
+      const response = await axios.post(
+        "http://taskflowproject1.runasp.net/api/Account/login",
+        {
+          email: formData.email,
+          password: formData.password,
+        },
+      );
 
       const { data } = response;
-      
+
       // Backend returns: { token: string, expiration: date }
       // Decode JWT token to extract user data
       const decodedToken = jwtDecode(data.token);
-      
+
       // Store token in localStorage
       setToken(data.token);
       localStorage.setItem("token", data.token);
-      
+
       // Store expiration if provided
       if (data.expiration) {
         localStorage.setItem("tokenExpiration", data.expiration);
       }
-      
+
       // Create user object from decoded token
       const userFromToken = {
         email: decodedToken.email || decodedToken.Email || formData.email,
-        role: decodedToken.role || decodedToken.Role || decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || "member",
-        name: decodedToken.name || decodedToken.Name || decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || "",
+        role:
+          decodedToken.role ||
+          decodedToken.Role ||
+          decodedToken[
+            "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+          ] ||
+          "member",
+        name:
+          decodedToken.name ||
+          decodedToken.Name ||
+          decodedToken[
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
+          ] ||
+          "",
         token: data.token,
       };
       setUser(userFromToken);
       localStorage.setItem("user", JSON.stringify(userFromToken));
-      
+
       message.success("Login successful!");
       setLoading(false);
       return { success: true, user: userFromToken };
-      
     } catch (error) {
-      const errorMsg = error.response?.data?.message || error.response?.data || "Login failed";
+      const errorMsg =
+        error.response?.data?.message || error.response?.data || "Login failed";
       message.error(errorMsg);
       setLoading(false);
       return { success: false, error: errorMsg };
