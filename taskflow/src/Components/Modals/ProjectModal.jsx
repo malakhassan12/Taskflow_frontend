@@ -1,11 +1,11 @@
 // ==================== Ant Deisgn  ====================
 
-import { Modal, Typography, Tag, Space,  Button } from "antd";
-import { 
-  CalendarOutlined, 
-  UserOutlined, 
+import { Modal, Typography, Tag, Space, Button } from "antd";
+import {
+  CalendarOutlined,
+  UserOutlined,
   FileTextOutlined,
-  TeamOutlined 
+  TeamOutlined,
 } from "@ant-design/icons";
 // ==================== Constants  ====================
 
@@ -15,13 +15,16 @@ const { Title, Text, Paragraph } = Typography;
 
 const ProjectModal = ({ open, setOpen, project }) => {
   project = {
-    name: "Taskflow Project",
-    desc: "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Quisquam, sequi excepturi? Soluta nemo laboriosam, nulla accusantium amet, ex, ad libero doloribus quod impedit rem ab nostrum quo suscipit fugit eum!",
-    startTime: "2024-01-15",
-    endTime: "2024-04-30",
+    name: project?.projectName || "Taskflow Project",
+    desc:
+      project?.projectDescription ||
+      "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Quisquam, sequi excepturi? Soluta nemo laboriosam, nulla accusantium amet, ex, ad libero doloribus quod impedit rem ab nostrum quo suscipit fugit eum!",
+    startTime: project?.dateRange?.start || "2024-01-15",
+    endTime: project?.dateRange?.end || "2024-04-30",
     members: ["Malak", "Rawan", "Hassan"],
   };
 
+  
   const handleCancel = () => {
     setOpen(false);
   };
@@ -30,12 +33,13 @@ const ProjectModal = ({ open, setOpen, project }) => {
     <Modal
       open={open}
       onCancel={handleCancel}
-     
       width={600}
       title={
         <Space>
           <FileTextOutlined style={{ color: primaryColor }} />
-          <span style={{ fontSize: "20px", fontWeight: 600 }}>Project Review</span>
+          <span style={{ fontSize: "20px", fontWeight: 600 }}>
+            Project Review
+          </span>
         </Space>
       }
     >
@@ -48,10 +52,12 @@ const ProjectModal = ({ open, setOpen, project }) => {
         {/* Description */}
         <div style={{ marginBottom: "20px" }}>
           <Text strong style={{ display: "block", marginBottom: "8px" }}>
-            <FileTextOutlined style={{ marginRight: "8px", color: primaryColor }} />
+            <FileTextOutlined
+              style={{ marginRight: "8px", color: primaryColor }}
+            />
             Description
           </Text>
-          <Paragraph style={{ marginBottom: 0, color: primaryColor}}>
+          <Paragraph style={{ marginBottom: 0, color: primaryColor }}>
             {project.desc}
           </Paragraph>
         </div>
@@ -59,12 +65,18 @@ const ProjectModal = ({ open, setOpen, project }) => {
         {/* Timeline */}
         <div style={{ marginBottom: "20px" }}>
           <Text strong style={{ display: "block", marginBottom: "8px" }}>
-            <CalendarOutlined style={{ marginRight: "8px", color: primaryColor }} />
+            <CalendarOutlined
+              style={{ marginRight: "8px", color: primaryColor }}
+            />
             Timeline
           </Text>
           <Space orientation="vertical" size={4}>
-            <Text type="secondary">Start: <strong>{project.startTime || "Not set"}</strong></Text>
-            <Text type="secondary">End: <strong>{project.endTime || "Not set"}</strong></Text>
+            <Text type="secondary">
+              Start: <strong>{project.startTime || "Not set"}</strong>
+            </Text>
+            <Text type="secondary">
+              End: <strong>{project.endTime || "Not set"}</strong>
+            </Text>
           </Space>
         </div>
 
@@ -76,7 +88,12 @@ const ProjectModal = ({ open, setOpen, project }) => {
           </Text>
           <Space wrap size="middle">
             {project.members.map((member, index) => (
-              <Tag key={index} icon={<UserOutlined />} color="blue" style={{ padding: "4px 12px" }}>
+              <Tag
+                key={index}
+                icon={<UserOutlined />}
+                color="blue"
+                style={{ padding: "4px 12px" }}
+              >
                 {member}
               </Tag>
             ))}

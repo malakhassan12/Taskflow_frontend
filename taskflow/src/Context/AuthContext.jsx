@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState } from "react";
 import { message } from "antd";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
@@ -18,8 +18,15 @@ export const AuthProvider = ({ children }) => {
 
       if (storedToken) {
         const decodedToken = jwtDecode(storedToken);
+        console.log(decodedToken);
         const userFromToken = {
-          email: decodedToken.email || decodedToken.Email || "",
+          nameidentifier:
+            decodedToken.nameidentifier ||
+            decodedToken.nameidentifier ||
+            decodedToken[
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+            ] ||
+            "",
           role:
             decodedToken.role ||
             decodedToken.Role ||
@@ -36,7 +43,7 @@ export const AuthProvider = ({ children }) => {
             "",
           token: storedToken,
         };
-        console.log(userFromToken)
+        console.log(userFromToken);
         return userFromToken;
       }
     } catch (error) {

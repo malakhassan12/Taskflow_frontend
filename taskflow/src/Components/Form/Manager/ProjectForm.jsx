@@ -2,7 +2,7 @@ import { useState } from "react";
 
 // ==================== Ant Deisgn  ====================
 
-import { Button, Card, message, Row, Col,  Typography } from "antd";
+import { Button, Card, message, Row, Col, Typography } from "antd";
 import Form from "antd/es/form/Form";
 import { SendOutlined, ClearOutlined } from "@ant-design/icons";
 // ==================== FormComponents  ====================
@@ -18,19 +18,26 @@ import TimelineProjectField from "../../FormComponents/Manager/TimelineProjectFi
 
 import { red } from "../../../Constants/Colors";
 
+import useManagerMutations from "../../../Hooks/Manager/useManagerMutations.js";
+import { useAuth } from "../../../Context/AuthContext.jsx";
 const { Text } = Typography;
 
 const ProjectForm = () => {
   const [open, setOpen] = useState(false);
 
+  const { user } = useAuth();
+
+  const { createProjectMutation } = useManagerMutations();
+
   const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
+  const values = Form.useWatch([], form);
+
+  console.log(values);
 
   // Send Throght API
 
   const onFinish = async (values) => {
     console.log(values);
-    setLoading(true);
     try {
       // Format the date range
       const formattedValues = {
@@ -43,15 +50,24 @@ const ProjectForm = () => {
           : null,
       };
 
+      // teamMembers
+      // :
+      // (3) ['happy', 'angry', 'cool']
+      const finalData = {
+        name: formattedValues?.projectName,
+        description: formattedValues?.projectDescription,
+        manegerID: user?.nameidentifier,
+        manegerName: user?.name,
+        startDate: formattedValues?.dateRange?.start,
+        endDate: formattedValues?.dateRange?.end,
+      };
+
       console.log("Form values:", formattedValues);
 
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      message.success({
-        content: "Project submitted to admin successfully!",
-        duration: 3,
-      });
+      createProjectMutation.mutate(finalData);
+
       form.resetFields();
     } catch (err) {
       console.log(err);
@@ -59,8 +75,6 @@ const ProjectForm = () => {
         content: "Failed to submit project. Please try again.",
         duration: 3,
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -86,7 +100,7 @@ const ProjectForm = () => {
         minHeight: "100vh",
       }}
     >
-      {open && <ProjectModal open={open} setOpen={setOpen} project={{}} />}
+      {open && <ProjectModal open={open} setOpen={setOpen} project={values} />}
 
       <div data-aos="flip-left">
         <Card>
@@ -107,17 +121,16 @@ const ProjectForm = () => {
             <NameProjectField />
             <DescProjectField />
             <TimelineProjectField />
-            <SelectManager />
+            {/* <SelectManager /> */}
 
-            <Form.Item             
->
+            <Form.Item>
               <Row gutter={[16, 16]}>
                 <Col xs={24} sm={12} md={12} lg={12}>
                   <Button
                     type="primary"
                     htmlType="submit"
                     icon={<SendOutlined />}
-                    loading={loading}
+                    loading={createProjectMutation?.loading}
                     block
                     style={{
                       height: "44px",
@@ -127,7 +140,9 @@ const ProjectForm = () => {
                       fontSize: "clamp(14px, 4vw, 16px)", // Responsive font size
                     }}
                   >
-                    {loading ? "Submitting..." : "Submit To Admin"}
+                    {createProjectMutation?.loading
+                      ? "Submitting..."
+                      : "Submit To Admin"}
                   </Button>
                 </Col>
                 <Col xs={24} sm={12} md={12} lg={12}>

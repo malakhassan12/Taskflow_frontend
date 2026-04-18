@@ -1,11 +1,18 @@
 // ==================== Ant Design ====================
-import { Modal, Button, Space } from 'antd';
-import { ExclamationCircleOutlined } from '@ant-design/icons';
+import { Modal, Button, Space } from "antd";
+import { ExclamationCircleOutlined } from "@ant-design/icons";
 // ==================== Ant Design ====================
 
-import { red } from '../../Constants/Colors';
+import { red } from "../../Constants/Colors";
+import useManagerMutations from "../../Hooks/Manager/useManagerMutations";
 
-const DeleteProjectModal = ({ open, setOpen, projectName = "this project", onConfirm }) => {
+const DeleteProjectModal = ({ open, setOpen, project }) => {
+  const { deleteProjectMutation } = useManagerMutations();
+
+  const deleteProject = () => {
+    deleteProjectMutation.mutate(project?.id);
+    setOpen(false)
+  };
   return (
     <Modal
       title="Delete Project"
@@ -15,18 +22,18 @@ const DeleteProjectModal = ({ open, setOpen, projectName = "this project", onCon
       centered
       width={400}
     >
-      <Space orientation="vertical" style={{ width: '100%', textAlign: 'center' }}>
+      <Space
+        orientation="vertical"
+        style={{ width: "100%", textAlign: "center" }}
+      >
         <ExclamationCircleOutlined style={{ fontSize: 48, color: red }} />
-        
+
         <h3>Are you sure?</h3>
-        <p>Delete "{projectName}" permanently?</p>
-        
+        <p>Delete "{project?.name}" permanently?</p>
+
         <Space style={{ marginTop: 20 }}>
           <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button danger onClick={() => {
-            onConfirm?.();
-            setOpen(false);
-          }}>
+          <Button danger onClick={deleteProject}>
             Delete
           </Button>
         </Space>
