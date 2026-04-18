@@ -6,35 +6,93 @@ import { jwtDecode } from "jwt-decode";
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [token, setToken] = useState(localStorage.getItem("token"));
 
-  // Load user from localStorage on mount
-  useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    if (storedToken) {
-      try {
-        // Decode token to get user data
+  // ...existing code...
+
+  // Lazy initializer for user state
+  const initializeUser = () => {
+    try {
+      const storedToken = localStorage.getItem("token");
+      console.log(storedToken);
+
+      if (storedToken) {
         const decodedToken = jwtDecode(storedToken);
         const userFromToken = {
           email: decodedToken.email || decodedToken.Email || "",
-          role: decodedToken.role || decodedToken.Role || decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || "member",
-          name: decodedToken.name || decodedToken.Name || decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || "",
+          role:
+            decodedToken.role ||
+            decodedToken.Role ||
+            decodedToken[
+              "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+            ] ||
+            "member",
+          name:
+            decodedToken.name ||
+            decodedToken.Name ||
+            decodedToken[
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
+            ] ||
+            "",
           token: storedToken,
         };
-        setUser(userFromToken);
-        setToken(storedToken);
-        localStorage.setItem("user", JSON.stringify(userFromToken));
-      } catch (error) {
-        console.error("Error decoding token:", error);
-        // If token is invalid, clear localStorage
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        localStorage.removeItem("tokenExpiration");
+        console.log(userFromToken)
+        return userFromToken;
       }
+    } catch (error) {
+      // Handle error, e.g., console.error(error);
     }
-  }, []);
+    return null;
+  };
+
+  // Lazy initializer for token state
+  const initializeToken = () => {
+    try {
+      const storedToken = localStorage.getItem("token");
+      console.log(storedToken);
+      return storedToken;
+    } catch (error) {
+      // Handle error, e.g., console.error(error);
+    }
+    return null;
+  };
+
+  const [user, setUser] = useState(initializeUser);
+  const [token, setToken] = useState(initializeToken);
+
+  // Remove the useEffect that was setting state on mount, as it's now handled by lazy initialization
+  // If useEffect had other logic, keep it but remove the state-setting lines
+
+  // ...existing code...
+
+  // Load user from localStorage on mount
+  // useEffect(() => {
+  //   console.log(token)
+
+  //   const storedToken = localStorage.getItem("token");
+
+  //   if (storedToken) {
+  //     try {
+  //       // Decode token to get user data
+  //       const decodedToken = jwtDecode(storedToken);
+  //       const userFromToken = {
+  //         email: decodedToken.email || decodedToken.Email || "",
+  //         role: decodedToken.role || decodedToken.Role || decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || "member",
+  //         name: decodedToken.name || decodedToken.Name || decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || "",
+  //         token: storedToken,
+  //       };
+  //       setUser(userFromToken);
+  //       setToken(storedToken);
+  //       localStorage.setItem("user", JSON.stringify(userFromToken));
+  //     } catch (error) {
+  //       console.error("Error decoding token:", error);
+  //       // If token is invalid, clear localStorage
+  //       localStorage.removeItem("token");
+  //       localStorage.removeItem("user");
+  //       localStorage.removeItem("tokenExpiration");
+  //     }
+  //   }
+  // }, []);
 
   // Frontend validation for signup
   const validateSignup = (formData) => {
@@ -130,18 +188,21 @@ export const AuthProvider = ({ children }) => {
         lastName: formData.lastName.trim(),
         age: parseInt(formData.age),
         email: formData.email.trim().toLowerCase(),
-        role: formData.role === 'manager' ? 'ProjectManager' : 'TeamMember',
+        role: formData.role === "manager" ? "ProjectManager" : "TeamMember",
         password: formData.password,
       };
 
       // Real API call
-      const response = await axios.post("http://taskflowproject1.runasp.net/api/Account/register", signupData);
+      const response = await axios.post(
+        "http://taskflowproject1.runasp.net/api/Account/register",
+        signupData,
+      );
 
       const { data } = response;
-      
+
       // Backend returns only success message, not token
       // User needs to login after signup
-      if (signupData.role === 'ProjectManager') {
+      if (signupData.role === "ProjectManager") {
         setLoading(false);
         return { success: true, requiresLogin: true, isManager: true };
       } else {
@@ -150,21 +211,30 @@ export const AuthProvider = ({ children }) => {
         return { success: true, requiresLogin: true, isManager: false };
       }
     } catch (error) {
-      console.log('Signup error:', error);
+      console.log("Signup error:", error);
       let errorMsg = "Signup failed";
-      
-      if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
+
+      if (
+        error.code === "ERR_NETWORK" ||
+        error.message.includes("Network Error")
+      ) {
         errorMsg = "Network error. Please check your connection and try again.";
       } else if (error.response?.status === 500) {
         errorMsg = "Server error. Please try again later.";
       } else if (error.response?.status === 400) {
-        errorMsg = error.response?.data?.message || error.response?.data || "Invalid data provided";
+        errorMsg =
+          error.response?.data?.message ||
+          error.response?.data ||
+          "Invalid data provided";
       } else if (error.response?.data?.message) {
         errorMsg = error.response.data.message;
       } else if (error.response?.data) {
-        errorMsg = typeof error.response.data === 'string' ? error.response.data : "Signup failed";
+        errorMsg =
+          typeof error.response.data === "string"
+            ? error.response.data
+            : "Signup failed";
       }
-      
+
       message.error(errorMsg);
       setLoading(false);
       return { success: false, error: errorMsg };
@@ -174,7 +244,7 @@ export const AuthProvider = ({ children }) => {
   // Login function
   const login = async (formData) => {
     setLoading(true);
-    
+
     try {
       // Frontend validation
       if (!formData.email || !formData.email.trim()) {
@@ -182,7 +252,7 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
         return { success: false, error: "Email is required" };
       }
-      
+
       if (!formData.password) {
         message.error("Password is required");
         setLoading(false);
@@ -190,42 +260,57 @@ export const AuthProvider = ({ children }) => {
       }
 
       // Real API call
-      const response = await axios.post("http://taskflowproject1.runasp.net/api/Account/login", {
-        email: formData.email,
-        password: formData.password
-      });
+      const response = await axios.post(
+        "http://taskflowproject1.runasp.net/api/Account/login",
+        {
+          email: formData.email,
+          password: formData.password,
+        },
+      );
 
       const { data } = response;
-      
+
       // Backend returns: { token: string, expiration: date }
       // Decode JWT token to extract user data
       const decodedToken = jwtDecode(data.token);
-      
+
       // Store token in localStorage
       setToken(data.token);
       localStorage.setItem("token", data.token);
-      
+
       // Store expiration if provided
       if (data.expiration) {
         localStorage.setItem("tokenExpiration", data.expiration);
       }
-      
+
       // Create user object from decoded token
       const userFromToken = {
         email: decodedToken.email || decodedToken.Email || formData.email,
-        role: decodedToken.role || decodedToken.Role || decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || "member",
-        name: decodedToken.name || decodedToken.Name || decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || "",
+        role:
+          decodedToken.role ||
+          decodedToken.Role ||
+          decodedToken[
+            "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+          ] ||
+          "member",
+        name:
+          decodedToken.name ||
+          decodedToken.Name ||
+          decodedToken[
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
+          ] ||
+          "",
         token: data.token,
       };
       setUser(userFromToken);
       localStorage.setItem("user", JSON.stringify(userFromToken));
-      
+
       message.success("Login successful!");
       setLoading(false);
       return { success: true, user: userFromToken };
-      
     } catch (error) {
-      const errorMsg = error.response?.data?.message || error.response?.data || "Login failed";
+      const errorMsg =
+        error.response?.data?.message || error.response?.data || "Login failed";
       message.error(errorMsg);
       setLoading(false);
       return { success: false, error: errorMsg };
