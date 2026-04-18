@@ -6,16 +6,17 @@ import { jwtDecode } from "jwt-decode";
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [token, setToken] = useState(localStorage.getItem("token"));
 
-  // Load user from localStorage on mount
-  useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    if (storedToken) {
-      try {
-        // Decode token to get user data
+  // ...existing code...
+
+  // Lazy initializer for user state
+  const initializeUser = () => {
+    try {
+      const storedToken = localStorage.getItem("token");
+      console.log(storedToken);
+
+      if (storedToken) {
         const decodedToken = jwtDecode(storedToken);
         const userFromToken = {
           email: decodedToken.email || decodedToken.Email || "",
@@ -35,18 +36,63 @@ export const AuthProvider = ({ children }) => {
             "",
           token: storedToken,
         };
-        setUser(userFromToken);
-        setToken(storedToken);
-        localStorage.setItem("user", JSON.stringify(userFromToken));
-      } catch (error) {
-        console.error("Error decoding token:", error);
-        // If token is invalid, clear localStorage
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        localStorage.removeItem("tokenExpiration");
+        console.log(userFromToken)
+        return userFromToken;
       }
+    } catch (error) {
+      // Handle error, e.g., console.error(error);
     }
-  }, []);
+    return null;
+  };
+
+  // Lazy initializer for token state
+  const initializeToken = () => {
+    try {
+      const storedToken = localStorage.getItem("token");
+      console.log(storedToken);
+      return storedToken;
+    } catch (error) {
+      // Handle error, e.g., console.error(error);
+    }
+    return null;
+  };
+
+  const [user, setUser] = useState(initializeUser);
+  const [token, setToken] = useState(initializeToken);
+
+  // Remove the useEffect that was setting state on mount, as it's now handled by lazy initialization
+  // If useEffect had other logic, keep it but remove the state-setting lines
+
+  // ...existing code...
+
+  // Load user from localStorage on mount
+  // useEffect(() => {
+  //   console.log(token)
+
+  //   const storedToken = localStorage.getItem("token");
+
+  //   if (storedToken) {
+  //     try {
+  //       // Decode token to get user data
+  //       const decodedToken = jwtDecode(storedToken);
+  //       const userFromToken = {
+  //         email: decodedToken.email || decodedToken.Email || "",
+  //         role: decodedToken.role || decodedToken.Role || decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || "member",
+  //         name: decodedToken.name || decodedToken.Name || decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || "",
+  //         token: storedToken,
+  //       };
+  //       setUser(userFromToken);
+  //       setToken(storedToken);
+  //       localStorage.setItem("user", JSON.stringify(userFromToken));
+  //     } catch (error) {
+  //       console.error("Error decoding token:", error);
+  //       // If token is invalid, clear localStorage
+  //       localStorage.removeItem("token");
+  //       localStorage.removeItem("user");
+  //       localStorage.removeItem("tokenExpiration");
+  //     }
+  //   }
+  // }, []);
 
   // Frontend validation for signup
   const validateSignup = (formData) => {

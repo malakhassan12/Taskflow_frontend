@@ -1,101 +1,155 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState, useEffect, useCallback } from "react";
 import TaskColumn from "../TaskBoard/TaskColumn";
 import TaskDetailsModal from "../TaskBoard/TaskDetailsModal";
 import { useNotifications } from "../../../../Context/NotificationsProvider";
+import axios from "axios";
+import { message } from "antd";
 
-const initialTasks = [
-  {
-    id: "t1",
-    title: "Set up contact form",
-    project: "Website Redesign",
-    dueDate: "4/20/2024",
-    priority: "high",
-    statusLabel: "Todo",
-    description: "Create contact form with validation and email integration",
-    assignedTo: "Emma Wilson",
-    createdBy: "Sarah Johnson",
-    lastUpdated: "about 2 years ago",
-    attachments: [],
-    comments: [],
-  },
-  {
-    id: "t1b",
-    title: "Prepare FAQ section",
-    project: "Website Redesign",
-    dueDate: "4/23/2024",
-    priority: "medium",
-    statusLabel: "Todo",
-    description: "Draft FAQs and map each item to contact form flows.",
-    assignedTo: "Emma Wilson",
-    createdBy: "Sarah Johnson",
-    lastUpdated: "about 2 years ago",
-    attachments: [],
-    comments: [],
-  },
-  {
-    id: "t2",
-    title: "Research payment APIs",
-    project: "API Integration",
-    dueDate: "4/25/2024",
-    priority: "high",
-    statusLabel: "In progress",
-    description: "Compare Stripe and PayPal options and document integration risks.",
-    assignedTo: "Emma Wilson",
-    createdBy: "Sarah Johnson",
-    lastUpdated: "about 2 years ago",
-    attachments: [],
-    comments: [],
-  },
-  {
-    id: "t2b",
-    title: "Implement API auth flow",
-    project: "API Integration",
-    dueDate: "4/27/2024",
-    priority: "medium",
-    statusLabel: "In progress",
-    description: "Integrate secure token flow and test refresh strategy.",
-    assignedTo: "Emma Wilson",
-    createdBy: "Sarah Johnson",
-    lastUpdated: "about 2 years ago",
-    attachments: [],
-    comments: [],
-  },
-  {
-    id: "t3",
-    title: "Design homepage mockup",
-    project: "Website Redesign",
-    dueDate: "4/18/2024",
-    priority: "low",
-    statusLabel: "Done",
-    description: "Create final homepage mockup and share design handoff notes.",
-    assignedTo: "Emma Wilson",
-    createdBy: "Sarah Johnson",
-    lastUpdated: "about 2 years ago",
-    attachments: [],
-    comments: [],
-  },
-  {
-    id: "t3b",
-    title: "Finalize hero section assets",
-    project: "Website Redesign",
-    dueDate: "4/16/2024",
-    priority: "low",
-    statusLabel: "Done",
-    description: "Export final hero illustrations and optimize image sizes.",
-    assignedTo: "Emma Wilson",
-    createdBy: "Sarah Johnson",
-    lastUpdated: "about 2 years ago",
-    attachments: [],
-    comments: [],
-  },
-];
+const STATUS_OVERRIDES_KEY = "taskflow_task_status_overrides";
+
+const loadStatusOverrides = () => {
+  try {
+    const raw = sessionStorage.getItem(STATUS_OVERRIDES_KEY);
+    if (!raw) {
+      return {};
+    }
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
+const saveStatusOverrides = (overrides) => {
+  try {
+    sessionStorage.setItem(STATUS_OVERRIDES_KEY, JSON.stringify(overrides));
+  } catch {
+    // ignore quota / private mode
+  }
+};
+
+const mapApiStatusToUi = (status) => {
+  if (typeof status === "number") {
+    // Common enum mappings:
+    // 0/1/2 => Todo / In progress / Done
+    // (fallback: 3 => Done)
+    if (status === 0) return "Todo";
+    if (status === 1) return "In progress";
+    if (status === 2) return "Done";
+    if (status === 3) return "Done";
+  }
+
+  const s = String(status ?? "").trim().toLowerCase();
+  if (s === "todo" || s === "to_do" || s === "to-do") return "Todo";
+  if (s === "in_progress" || s === "inprogress" || s === "in progress")
+    return "In progress";
+  if (s === "done" || s === "completed" || s === "complete") return "Done";
+  return "Todo";
+};
+
+/** When GET /api/Task omits `status`, mapApiStatusToUi falls back to Todo — use this to compare server truth. */
+const getRawStatusFromTask = (task) =>
+  task?.status ?? task?.Status ?? task?.state ?? task?.State;
+
+const rawStatusToApiParam = (raw) => {
+  if (raw == null || raw === "") {
+    return null;
+  }
+  if (typeof raw === "number") {
+    if (raw === 0) return "todo";
+    if (raw === 1) return "in_progress";
+    if (raw === 2 || raw === 3) return "done";
+  }
+  const s = String(raw).trim().toLowerCase();
+  if (s === "todo" || s === "to_do" || s === "to-do") return "todo";
+  if (s === "in_progress" || s === "inprogress" || s === "in progress")
+    return "in_progress";
+  if (s === "done" || s === "completed" || s === "complete") return "done";
+  return null;
+};
 
 const MyTasksTab = () => {
-  const [tasks, setTasks] = useState(initialTasks);
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState(null);
   const [toastMessage, setToastMessage] = useState("");
   const toastTimerRef = useRef(null);
   const { addNotification } = useNotifications();
+
+  const fetchTasks = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    const response = await axios.get("http://taskflowproject1.runasp.net/api/Task", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    let overrides = loadStatusOverrides();
+
+    // Drop overrides once API starts returning a real status for that task
+    let overridesChanged = false;
+    for (const task of response.data) {
+      const raw = getRawStatusFromTask(task);
+      const idKey = String(task.id);
+      if (raw != null && raw !== "" && overrides[idKey]) {
+        delete overrides[idKey];
+        overridesChanged = true;
+      }
+    }
+    if (overridesChanged) {
+      saveStatusOverrides(overrides);
+    }
+
+    // Convert API response to UI format
+    return response.data.map((task) => {
+      const raw = getRawStatusFromTask(task);
+      const idKey = String(task.id);
+      const fallbackApiStatus = overrides[idKey];
+      const effectiveRaw =
+        raw != null && raw !== "" ? raw : fallbackApiStatus ?? raw;
+
+      return {
+        id: task.id.toString(),
+        title: task.title,
+        project: `Project ${task.projectID}`,
+        dueDate: task.dueTime ? new Date(task.dueTime).toLocaleDateString() : "",
+        priority:
+          task.priority === 3 ? "high" : task.priority === 2 ? "medium" : "low",
+        statusLabel: mapApiStatusToUi(effectiveRaw),
+        description: task.discription || task.description || "", // Handle typo in API
+        assignedTo: task.assignedMemberName || "Unassigned",
+        createdBy: "Project Manager",
+        lastUpdated: "Recently",
+        attachments: [],
+        comments: [],
+        // Merge known status (from API or last successful PATCH) for downstream use
+        originalTask: {
+          ...task,
+          ...(fallbackApiStatus && (raw == null || raw === "")
+            ? { status: fallbackApiStatus }
+            : {}),
+        },
+      };
+    });
+  }, []);
+
+  // Fetch tasks from API
+  useEffect(() => {
+    const run = async () => {
+      try {
+        setLoading(true);
+        const formattedTasks = await fetchTasks();
+        setTasks(formattedTasks);
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+        message.error("Failed to load tasks");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    run();
+  }, [fetchTasks]);
 
   const taskColumns = useMemo(() => {
     const todoItems = tasks.filter((task) => task.statusLabel === "Todo");
@@ -121,25 +175,65 @@ const MyTasksTab = () => {
     }, 2500);
   };
 
-  const handleSaveTask = (updatedTask) => {
-    const previousTask = tasks.find((task) => task.id === updatedTask.id);
-    setTasks((prev) =>
-      prev.map((task) => (task.id === updatedTask.id ? updatedTask : task)),
-    );
-    setSelectedTask(updatedTask);
+  const handleSaveTask = async (updatedTask) => {
+    try {
+      const token = localStorage.getItem('token');
+      const originalTask = updatedTask.originalTask;
+      
+      // Convert UI status back to API status
+      const apiStatus = updatedTask.statusLabel === 'Todo' ? 'todo' 
+                      : updatedTask.statusLabel === 'In progress' ? 'in_progress' 
+                      : 'done';
+      
+      // Update task status using API
+      await axios.patch(
+        `http://taskflowproject1.runasp.net/api/Task/progress/${originalTask.id}?status=${apiStatus}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    if (previousTask && previousTask.assignedTo !== updatedTask.assignedTo) {
-      pushNotification({
-        type: "assigned",
-        title: "Task assigned to you",
-        message: `Task "${updatedTask.title}" assigned to ${updatedTask.assignedTo}.`,
-      });
-    } else {
-      pushNotification({
-        type: "updated",
-        title: "Task updated",
-        message: `Task "${updatedTask.title}" updated successfully.`,
-      });
+      const overrides = loadStatusOverrides();
+      overrides[String(originalTask.id)] = apiStatus;
+      saveStatusOverrides(overrides);
+
+      // Refresh from server to ensure persistence (what you see after refresh)
+      const previousTask = tasks.find((task) => task.id === updatedTask.id);
+      const formattedTasks = await fetchTasks();
+      setTasks(formattedTasks);
+      setSelectedTask(null);
+
+      const serverTask = formattedTasks.find((t) => t.id === updatedTask.id);
+      const serverRaw = serverTask ? getRawStatusFromTask(serverTask.originalTask) : null;
+      const serverCanonical = rawStatusToApiParam(serverRaw);
+
+      if (serverCanonical && serverCanonical !== apiStatus) {
+        message.warning(
+          "Server didn't persist the new status. Showing server state.",
+        );
+      } else {
+        message.success("Task updated successfully");
+      }
+
+      if (previousTask && previousTask.assignedTo !== updatedTask.assignedTo) {
+        pushNotification({
+          type: "assigned",
+          title: "Task assigned to you",
+          message: `Task "${updatedTask.title}" assigned to ${updatedTask.assignedTo}.`,
+        });
+      } else {
+        pushNotification({
+          type: "updated",
+          title: "Task updated",
+          message: `Task "${updatedTask.title}" updated successfully.`,
+        });
+      }
+    } catch (error) {
+      console.error('Error updating task:', error);
+      message.error('Failed to update task');
     }
   };
 
@@ -151,24 +245,32 @@ const MyTasksTab = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-        {taskColumns.map((column) => (
-          <TaskColumn
-            key={column.id}
-            title={column.title}
-            count={column.items.length}
-            items={column.items}
-            tone={column.tone}
-            onTaskClick={setSelectedTask}
-          />
-        ))}
-      </div>
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+            {taskColumns.map((column) => (
+              <TaskColumn
+                key={column.id}
+                title={column.title}
+                count={column.items.length}
+                items={column.items}
+                tone={column.tone}
+                onTaskClick={setSelectedTask}
+              />
+            ))}
+          </div>
 
-      <TaskDetailsModal
-        task={selectedTask}
-        onClose={() => setSelectedTask(null)}
-        onSave={handleSaveTask}
-      />
+          <TaskDetailsModal
+            task={selectedTask}
+            onClose={() => setSelectedTask(null)}
+            onSave={handleSaveTask}
+          />
+        </>
+      )}
     </>
   );
 };

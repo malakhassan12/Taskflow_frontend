@@ -137,7 +137,7 @@ function App() {
             <Route index element={<MemberDashboard />} />
 
             {/* View Requests from Project Manager */}
-            <Route path="requests" element={<ViewRequests />} />
+            <Route path="view-requests" element={<ViewRequests />} />
 
             {/* My Projects */}
             <Route path="projects" element={<MemberProjects />}>
