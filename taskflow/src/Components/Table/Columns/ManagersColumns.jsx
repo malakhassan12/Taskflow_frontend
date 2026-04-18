@@ -8,7 +8,7 @@ import {
   EyeOutlined,
 } from "@ant-design/icons";
 
-const ManagersColumns = (handleViewDetails) => [
+const ManagersColumns = (handleViewDetails, handleApprove, handleReject) => [
   {
     title: "Manager",
     dataIndex: "name",
@@ -66,28 +66,37 @@ const ManagersColumns = (handleViewDetails) => [
     key: "actions",
     width: 150,
     fixed: window.innerWidth >= 768 ? "right" : false,
-    render: (_, record) => (
-      <Space>
-        <Tooltip title="View Details">
-          <Button
-            icon={<EyeOutlined />}
-            size="small"
-            onClick={() => handleViewDetails(record)}
-          />
-        </Tooltip>
-        {record.status === "pending" && (
-          <>
+    render: (_, record) => {
+      console.log(record);
+      return (
+        <Space>
+          <Tooltip title="View Details">
             <Button
-              type="primary"
-              icon={<CheckCircleOutlined />}
+              icon={<EyeOutlined />}
               size="small"
-              style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
+              onClick={() => handleViewDetails(record)}
             />
-            <Button danger icon={<CloseCircleOutlined />} size="small" />
-          </>
-        )}
-      </Space>
-    ),
+          </Tooltip>
+          {record.status === "pending" && (
+            <>
+              <Button
+                onClick={() => handleApprove(record.id)}
+                type="primary"
+                icon={<CheckCircleOutlined />}
+                size="small"
+                style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
+              />
+              <Button
+                danger
+                icon={<CloseCircleOutlined />}
+                size="small"
+                onClick={() => handleReject(record.id)}
+              />
+            </>
+          )}
+        </Space>
+      );
+    },
   },
 ];
 
