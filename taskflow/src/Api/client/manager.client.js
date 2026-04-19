@@ -1,17 +1,16 @@
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL + "/Account";
+const API_URL = import.meta.env.VITE_API_URL;
 
-const adminClient = axios.create({
+const managerClient = axios.create({
   baseURL: API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  headers: "application/json",
 });
 
-adminClient.interceptors.request.use(
+managerClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -20,4 +19,4 @@ adminClient.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-export default adminClient;
+export default managerClient;

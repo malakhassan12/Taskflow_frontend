@@ -35,6 +35,7 @@ const NameProjectField = () => {
             "Project name can only contain letters, numbers, spaces, hyphens, and underscores!",
         },
       ]}
+      validateFirst
       tooltip="Give your project a clear and descriptive name"
     >
       <Input

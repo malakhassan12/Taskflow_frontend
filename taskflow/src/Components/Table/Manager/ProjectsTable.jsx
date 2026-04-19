@@ -2,7 +2,6 @@
 
 import { Table } from "antd";
 import { Avatar, Button, Space, Tag } from "antd";
-import { primaryColor } from "../../../Constants/Colors";
 
 import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 
@@ -11,15 +10,41 @@ import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import DeleteProjectModal from "../../Modals/DeleteProjectModal";
+import useGetProjects from "../../../Hooks/Manager/useGetProjects";
+import { formatRegistrationDate } from "../../../Utils/TimeFormatt";
 
 // ==================== Components  ====================
 
 const ProjectsTable = () => {
   const navigate = useNavigate();
+  const { data: temp } = useGetProjects();
+  console.log(temp);
+  //   {
+  //   key: "1",
+  //   project_id: "PRJ-001",
+  //   project_name: "TaskFlow Pro",
+  //   team_members: [
+  //     {
+  //       name: "John Brown",
+  //       email: "john.brown@example.com",
+  //       role: "Manager",
+  //     },
+  //     {
+  //       name: "Sarah Wilson",
+  //       email: "sarah.w@example.com",
+  //       role: "Developer",
+  //     },
+  //     { name: "Mike Ross", email: "mike.r@example.com", role: "Designer" },
+  //   ],
+  //   number_of_tasks: 12,
+  //   completed_tasks: 8,
+  //   status: "in-progress",
+  // },
+
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
 
-  const data = [
+  const _data = [
     {
       key: "1",
       project_id: "PRJ-001",
@@ -261,51 +286,66 @@ const ProjectsTable = () => {
   const columns = [
     {
       title: "Project ID",
-      dataIndex: "project_id",
-      key: "project_id",
+      dataIndex: "id",
+      key: "id",
       width: 100,
       render: (text) => <Tag color="blue">#{text}</Tag>,
     },
     {
       title: "Project Name",
-      dataIndex: "project_name",
-      key: "project_name",
+      dataIndex: "name",
+      key: "name",
       width: 150,
       sorter: true,
     },
-    {
-      title: "Team Members",
-      dataIndex: "team_members",
-      key: "team_members",
-      width: 180,
-      render: (members) => (
-        <Avatar.Group max={{ count: 3 }} size="small">
-          {members?.map((member, index) => (
-            <Avatar
-              key={index}
-              style={{ backgroundColor: primaryColor }}
-              title={typeof member === "string" ? member : member.name}
-            >
-              {typeof member === "string"
-                ? member.charAt(0)
-                : member.name?.charAt(0)}
-            </Avatar>
-          ))}
-          {members?.length > 3 && (
-            <Avatar style={{ backgroundColor: "#ccc" }}>
-              +{members.length - 3}
-            </Avatar>
-          )}
-        </Avatar.Group>
-      ),
-    },
+    // {
+    //   title: "Team Members",
+    //   dataIndex: "team_members",
+    //   key: "team_members",
+    //   width: 180,
+    //   render: (members) => (
+    //     <Avatar.Group max={{ count: 3 }} size="small">
+    //       {members?.map((member, index) => (
+    //         <Avatar
+    //           key={index}
+    //           style={{ backgroundColor: primaryColor }}
+    //           title={typeof member === "string" ? member : member.name}
+    //         >
+    //           {typeof member === "string"
+    //             ? member.charAt(0)
+    //             : member.name?.charAt(0)}
+    //         </Avatar>
+    //       ))}
+    //       {members?.length > 3 && (
+    //         <Avatar style={{ backgroundColor: "#ccc" }}>
+    //           +{members.length - 3}
+    //         </Avatar>
+    //       )}
+    //     </Avatar.Group>
+    //   ),
+    // },
+
+    // {
+    //   title: "Tasks",
+    //   dataIndex: "number_of_tasks",
+    //   key: "number_of_tasks",
+    //   width: 80,
+    //   align: "center",
+    // },
 
     {
-      title: "Tasks",
-      dataIndex: "number_of_tasks",
-      key: "number_of_tasks",
+      title: "Start Date",
+      dataIndex: "startDate",
+      key: "startDate",
       width: 80,
-      align: "center",
+      sorter: true,
+    },
+    {
+      title: "End Date",
+      dataIndex: "endDate",
+      key: "endDate",
+      width: 80,
+      sorter: true,
     },
 
     {
@@ -319,7 +359,7 @@ const ProjectsTable = () => {
             type="link"
             icon={<EyeOutlined />}
             size="small"
-            onClick={() => navigate(`/manager/projects/${record.key}`)}
+            onClick={() => navigate(`/manager/projects/${record.id}`)}
           >
             View details
           </Button>
@@ -336,20 +376,24 @@ const ProjectsTable = () => {
     },
   ];
 
+  const moko = temp?.map((item) => ({
+    ...item,
+    endDate: formatRegistrationDate(item.endDate),
+    startDate: formatRegistrationDate(item.startDate),
+  }));
   return (
     <div>
       {isDeleteModalOpen && (
         <DeleteProjectModal
           open={isDeleteModalOpen}
           setOpen={setIsDeleteModalOpen}
-          projectName={selectedProject?.project_name}
-          projectId={selectedProject?.project_id}
+          project={selectedProject}
         />
       )}
       <div data-aos="zoom-in">
         <Table
           columns={columns}
-          dataSource={data}
+          dataSource={moko || []}
           scroll={{ x: 1000 }}
           pagination={{
             pageSize: 10,

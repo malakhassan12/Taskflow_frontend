@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Form, Input, Button, Typography, Row, Col, Card, message, Checkbox, Radio } from "antd";
+import { Form, Input, Button, Typography, Row, Col, Card, Checkbox, Radio } from "antd";
 import { UserOutlined, MailOutlined, LockOutlined, EyeInvisibleOutlined, EyeTwoTone, ThunderboltOutlined, SafetyOutlined, StarOutlined, RocketOutlined } from "@ant-design/icons";
 import { useAuth } from "../../../Context/AuthContext";
 import { useTheme } from "../../../Context/DarkModeProvider";

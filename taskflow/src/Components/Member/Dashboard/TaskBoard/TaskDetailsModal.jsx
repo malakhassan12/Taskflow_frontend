@@ -75,10 +75,13 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
   const [editingText, setEditingText] = useState("");
   const fileInputRef = useRef(null);
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!task) {
       setDraft(emptyDraft);
       setNewComment("");
+      setEditingCommentId(null);
+      setEditingText("");
       return;
     }
 
@@ -97,51 +100,8 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
     setNewComment("");
     setEditingCommentId(null);
     setEditingText("");
-
-    // Comments fetching disabled due to backend returning 400 error
-    // Comments can still be added but won't be fetched automatically
-    // TODO: Re-enable when backend is fixed
-    /*
-    const fetchComments = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get('http://taskflowproject1.runasp.net/api/Comment', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        
-        // Filter comments for this task
-        const taskComments = response.data.filter(
-          (comment) => comment.taskId === task.originalTask?.id
-        );
-        
-        // Convert API comments to UI format
-        const formattedComments = taskComments.map((comment) => ({
-          id: comment.id.toString(),
-          text: comment.comment,
-          author: 'User',
-          createdAt: comment.createdAt,
-        }));
-        
-        setDraft((prev) => ({
-          ...prev,
-          comments: formattedComments,
-        }));
-      } catch (error) {
-        console.error('Error fetching comments:', error);
-        console.error('Error response:', error.response?.data);
-        console.error('Error status:', error.response?.status);
-        // Don't show error message to user, just log it
-        // Comments are optional, so we can continue without them
-      }
-    };
-
-    if (task.originalTask?.id) {
-      fetchComments();
-    }
-    */
   }, [task]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!task) {
     return null;

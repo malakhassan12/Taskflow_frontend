@@ -48,7 +48,7 @@ const myPendingProjects = [
 ];
 
 const PendingProjects = () => {
-  const [projects, setProjects] = useState(myPendingProjects);
+  const [projects, _setProjects] = useState(myPendingProjects);
   const [selectedProject, setSelectedProject] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
 
