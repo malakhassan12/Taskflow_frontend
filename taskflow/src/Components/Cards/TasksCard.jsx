@@ -1,117 +1,126 @@
-// ==================== Ant Design  ====================
-
-import { Card, Typography, Space, Empty } from "antd";
-// ==================== Components  ====================
-
+// ==================== Ant Design ====================
+import { Card, Typography, Space, Empty, Badge, Progress } from "antd";
+import { CheckCircleOutlined, SyncOutlined, ClockCircleOutlined } from "@ant-design/icons";
+// ==================== Components ====================
 import TaskCard from "./TaskCard";
-// ==================== Constants  ====================
-
+// ==================== Constants ====================
 import { primaryColor } from "../../Constants/Colors";
-// ==================== Functions  ====================
-
+// ==================== Functions ====================
 import getStatusText from "../../Functions/Tasks/GetStatusText";
 
 const { Title, Text } = Typography;
 
-const TasksCard = ({ status }) => {
-  console.log(status);
-
-  // Static data for tasks based on status
+const TasksCard = ({ status, allTasks = [] }) => {
+  // Filter tasks based on status
   const getTasksByStatus = () => {
-    const allTasks = {
-      completed: [
-        {
-          title: "Design Database Schema",
-          desc: "Create and optimize database structure for the project",
-          due_date: "2024-01-20",
-          status: "completed",
-          member: { name: "Malak", avatar: "M", role: "Developer" }
-        },
-        {
-          title: "Create UI Components",
-          desc: "Build reusable React components",
-          due_date: "2024-01-25",
-          status: "completed",
-          member: { name: "Rawan", avatar: "R", role: "Designer" }
-        }
-      ],
-      "in-progress": [
-        {
-          title: "Develop API Endpoints",
-          desc: "Implement RESTful APIs for user management",
-          due_date: "2024-01-28",
-          status: "in-progress",
-          member: { name: "Malak", avatar: "M", role: "Developer" }
-        },
-        {
-          title: "Integration Testing",
-          desc: "Test all API integrations",
-          due_date: "2024-01-30",
-          status: "in-progress",
-          member: { name: "Ahmed", avatar: "A", role: "Tester" }
-        },
-        {
-          title: "Frontend Optimization",
-          desc: "Optimize loading speed and performance",
-          due_date: "2024-02-01",
-          status: "in-progress",
-          member: { name: "Rawan", avatar: "R", role: "Developer" }
-        }
-      ],
-      pending: [
-        {
-          title: "Write Documentation",
-          desc: "Create API documentation for developers",
-          due_date: "2024-02-05",
-          status: "pending",
-          member: { name: "Sara", avatar: "S", role: "Writer" }
-        },
-        {
-          title: "Deploy to Production",
-          desc: "Deploy the application to production server",
-          due_date: "2024-02-10",
-          status: "pending",
-          member: { name: "Malak", avatar: "M", role: "DevOps" }
-        }
-      ]
+    if (!allTasks.length) return [];
+    
+    // Map status to actual task status values
+    const statusMap = {
+      "completed": "completed",
+      "in-progress": "in-progress",
+      "pending": "pending",
+      "todo": "todo"
     };
-
-    return allTasks[status] || [];
+    
+    const mappedStatus = statusMap[status] || status;
+    
+    return allTasks.filter(task => {
+      // Handle different status field names
+      const taskStatus = task.status || task.statusPorAp?.toLowerCase();
+      return taskStatus === mappedStatus;
+    });
   };
 
   const tasks = getTasksByStatus();
- 
+  
+  // Get status icon
+  const getStatusIcon = () => {
+    switch(status) {
+      case "completed":
+        return <CheckCircleOutlined style={{ color: "#52c41a" }} />;
+      case "in-progress":
+        return <SyncOutlined spin style={{ color: "#1890ff" }} />;
+      case "pending":
+        return <ClockCircleOutlined style={{ color: "#faad14" }} />;
+      default:
+        return null;
+    }
+  };
+
+  // Calculate progress percentage
+  const totalTasks = allTasks.length;
+  const progressPercentage = totalTasks > 0 
+    ? Math.round((tasks.length / totalTasks) * 100) 
+    : 0;
+
   return (
     <Card 
       style={{ 
         borderRadius: "12px",
         marginBottom: "16px",
         boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-        height:"100%"
+        height: "100%",
+        transition: "all 0.3s ease"
       }}
+      hoverable
     >
-      <div style={{ marginBottom: "20px", borderBottom: "1px solid #f0f0f0", paddingBottom: "12px" }}>
-        <Space orientation="vertical" size={4}>
-          <Title level={4} style={{ margin: 0, color: primaryColor }}>
-            {getStatusText(status)|| "Tasks"}
-          </Title>
-          <Text type="secondary">Total: {tasks.length} tasks</Text>
+      {/* Header Section */}
+      <div style={{ 
+        marginBottom: "20px", 
+        borderBottom: "1px solid #f0f0f0", 
+        paddingBottom: "12px" 
+      }}>
+        <Space direction="vertical" size={8} style={{ width: "100%" }}>
+          <Space size={12} align="center">
+            {getStatusIcon()}
+            <Title level={4} style={{ margin: 0, color: primaryColor }}>
+              {getStatusText(status) || status || "Tasks"}
+            </Title>
+            <Badge 
+              count={tasks.length} 
+              style={{ backgroundColor: primaryColor }}
+            />
+          </Space>
+          
+          {/* Progress Bar */}
+          {totalTasks > 0 && (
+            <div>
+              <Progress 
+                percent={progressPercentage} 
+                size="small" 
+                showInfo={false}
+                strokeColor={primaryColor}
+              />
+              <Space style={{ marginTop: 4, width: "100%", justifyContent: "space-between" }}>
+                <Text type="secondary" style={{ fontSize: "12px" }}>
+                  {tasks.length} of {totalTasks} tasks
+                </Text>
+                <Text type="secondary" style={{ fontSize: "12px" }}>
+                  {progressPercentage}%
+                </Text>
+              </Space>
+            </div>
+          )}
         </Space>
       </div>
 
-      <div style={{ maxHeight: "500px", overflowY: "auto" }}>
+      {/* Tasks List Section */}
+      <div style={{ maxHeight: "500px", overflowY: "auto", paddingRight: "4px" }}>
         {tasks.length === 0 ? (
           <Empty 
             image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={`No ${status} tasks available`}
+            description={`No ${getStatusText(status) || status} tasks`}
             style={{ padding: "40px 0" }}
-          />
+          >
+            <Text type="secondary" style={{ fontSize: "12px" }}>
+              Tasks will appear here when assigned
+            </Text>
+          </Empty>
         ) : (
-          <Space orientation="vertical" size="16px" style={{ width: "100%" }}>
-            {tasks.map((item, i) => (
-              <div key={i} className="mb-3">
-                <TaskCard task={item} />
-              </div>
+          <Space direction="vertical" size="16px" style={{ width: "100%" }}>
+            {tasks.map((task) => (
+              <TaskCard key={task.id} task={task} />
             ))}
           </Space>
         )}

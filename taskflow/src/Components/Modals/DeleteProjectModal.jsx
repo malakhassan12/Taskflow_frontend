@@ -11,16 +11,21 @@ const DeleteProjectModal = ({ open, setOpen, project }) => {
 
   const deleteProject = () => {
     deleteProjectMutation.mutate(project?.id);
-    setOpen(false)
   };
   return (
     <Modal
       title="Delete Project"
       open={open}
-      onCancel={() => setOpen(false)}
+      onCancel={() => {
+        if (!deleteProjectMutation.isPending) {
+          setOpen(false);
+        }
+      }}
       footer={null}
       centered
       width={400}
+      closable={!deleteProjectMutation.isPending}
+      maskClosable={!deleteProjectMutation.isPending}
     >
       <Space
         orientation="vertical"
@@ -33,7 +38,12 @@ const DeleteProjectModal = ({ open, setOpen, project }) => {
 
         <Space style={{ marginTop: 20 }}>
           <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button danger onClick={deleteProject}>
+          <Button
+            danger
+            onClick={deleteProject}
+            loading={deleteProjectMutation.isPending}
+            disabled={deleteProjectMutation.isPending}
+          >
             Delete
           </Button>
         </Space>

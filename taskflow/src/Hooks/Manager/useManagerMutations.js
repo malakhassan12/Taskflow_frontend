@@ -1,8 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { message } from "antd";
-import { createProject, deleteProject } from "../../Api/api/manager.api";
+import {
+  createProject,
+  createTask,
+  deleteProject,
+  updateTask,
+} from "../../Api/api/manager.api";
 
-const useManagerMutations = () => {
+const useManagerMutations = (projectId) => {
   const queryClient = useQueryClient();
 
   const createProjectMutation = useMutation({
@@ -20,7 +25,7 @@ const useManagerMutations = () => {
   const deleteProjectMutation = useMutation({
     mutationFn: deleteProject,
     onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["managerProjects"] });
+      queryClient.invalidateQueries({ queryKey: ["managerProjects"] });
 
       message.success("Project deleted successfully!");
     },
@@ -29,9 +34,38 @@ const useManagerMutations = () => {
     },
   });
 
+  const createTaskMutation = useMutation({
+    mutationFn: createTask,
+    onSuccess: () => {
+      /// Comment here !!!
+      queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
+
+      message.success("Task Created successfully!");
+    },
+    onError: (err) => {
+      message.error(err?.message || "Failed to Create  Task");
+    },
+  });
+
+  const updateTaskMuatation = useMutation({
+    mutationFn: updateTask,
+    onSuccess: () => {
+      /// Comment here !!!
+      queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
+
+      message.success("Task Created successfully!");
+    },
+    onError: (err) => {
+      message.error(err?.message || "Failed to Create  Task");
+    },
+  });
+
+  
   return {
     createProjectMutation,
     deleteProjectMutation,
+    createTaskMutation,
+    updateTaskMuatation,
   };
 };
 

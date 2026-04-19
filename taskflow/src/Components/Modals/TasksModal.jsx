@@ -73,11 +73,7 @@ const TasksModal = ({ modalOpen, setModalOpen, memberName = "Malak", projectName
   const [form] = Form.useForm();
 
   // ============ CRUD OPERATIONS ============
-  const handleAddTask = () => {
-    setEditingTask(null);
-    form.resetFields();
-    setIsTaskModalOpen(true);
-  };
+
 
   const handleEditTask = (task) => {
     setEditingTask(task);
@@ -91,45 +87,7 @@ const TasksModal = ({ modalOpen, setModalOpen, memberName = "Malak", projectName
     console.log(task);
   };
 
-  // Will split later
-  const handleSaveTask = () => {
-    form.validateFields().then((values) => {
-      if (editingTask) {
-        // Edit existing task
-        setTasks(
-          tasks.map((task) =>
-            task.id === editingTask.id
-              ? {
-                  ...task,
-                  title: values.title,
-                  description: values.description,
-                  dueDate: values.dueDate.format("YYYY-MM-DD"),
-                  priority: values.priority,
-                }
-              : task,
-          ),
-        );
-        messageApi.success("Task updated successfully");
-      } else {
-        // Add new task
-        const newTask = {
-          id: Date.now(),
-          title: values.title,
-          description: values.description,
-          status: "pending",
-          approved: false,
-          createdAt: dayjs().format("YYYY-MM-DD"),
-          dueDate: values.dueDate.format("YYYY-MM-DD"),
-          completedAt: null,
-          priority: values.priority,
-        };
-        setTasks([...tasks, newTask]);
-        messageApi.success("Task added successfully");
-      }
-      setIsTaskModalOpen(false);
-      form.resetFields();
-    });
-  };
+ 
 
   const handleApproveTask = (taskId) => {
     setTasks(
@@ -277,7 +235,7 @@ const TasksModal = ({ modalOpen, setModalOpen, memberName = "Malak", projectName
         <PerformanceTasksPerMember />
 
         {/* Add Task Button */}
-        <AddNewTaskBtn handleAddTask={handleAddTask} />
+        {/* <AddNewTaskBtn projectId={projectId}/> */}
 
         {/* Tasks Table */}
         <Table
@@ -295,8 +253,6 @@ const TasksModal = ({ modalOpen, setModalOpen, memberName = "Malak", projectName
         isTaskModalOpen={isTaskModalOpen}
         setIsTaskModalOpen={setIsTaskModalOpen}
         task={editingTask !== null ? editingTask : {}}
-        handleSaveTask={handleSaveTask}
-        form={form}
       />
     </>
   );
