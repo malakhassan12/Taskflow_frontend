@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { FiFolder, FiHome, FiSettings } from "react-icons/fi";
+import { FiFolder, FiHome, FiSettings, FiInbox } from "react-icons/fi";
 import { HiAdjustmentsHorizontal } from "react-icons/hi2";
 import { primaryColor } from "../../../Constants/Colors";
 import { useTheme } from "../../../Context/DarkModeProvider";
@@ -8,6 +8,7 @@ import { useTheme } from "../../../Context/DarkModeProvider";
 const links = [
   { to: "/member", label: "My Tasks", icon: FiHome, end: true },
   { to: "/member/projects", label: "Projects", icon: FiFolder },
+  { to: "/member/view-requests", label: "View Requests", icon: FiInbox },
   { to: "/member/settings", label: "Settings", icon: FiSettings },
 ];
 

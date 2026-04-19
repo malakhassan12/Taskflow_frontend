@@ -4,13 +4,14 @@ const API_URL = import.meta.env.VITE_API_URL + "/Account";
 
 const adminClient = axios.create({
   baseURL: API_URL,
-  headers: "application/json",
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
 adminClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
-
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

@@ -2,7 +2,6 @@
 
 import { Table } from "antd";
 import { Avatar, Button, Space, Tag } from "antd";
-import { primaryColor } from "../../../Constants/Colors";
 
 import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 
@@ -45,7 +44,7 @@ const ProjectsTable = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
 
-  const data = [
+  const _data = [
     {
       key: "1",
       project_id: "PRJ-001",

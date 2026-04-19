@@ -37,32 +37,33 @@ const avgProgressData = [
   },
 ];
 
-const ManagerAVGTasks = () => {
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div
-          style={{
-            backgroundColor: "#fff",
-            padding: "10px",
-            border: "1px solid #ccc",
-            borderRadius: "8px",
-          }}
-        >
-          <p style={{ fontWeight: "bold", margin: 0 }}>{label}</p>
-          <p style={{ color: purple, margin: 0 }}>
-            Avg Progress: {payload[0].value}%
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div
+        style={{
+          backgroundColor: "#fff",
+          padding: "10px",
+          border: "1px solid #ccc",
+          borderRadius: "8px",
+        }}
+      >
+        <p style={{ fontWeight: "bold", margin: 0 }}>{label}</p>
+        <p style={{ color: purple, margin: 0 }}>
+          Avg Progress: {payload[0].value}%
+        </p>
+        {payload[1] && (
+          <p style={{ color: "#999", fontSize: "12px" }}>
+            Range: {payload[1].value[0]}% - {payload[1].value[1]}%
           </p>
-          {payload[1] && (
-            <p style={{ color: "#999", fontSize: "12px" }}>
-              Range: {payload[1].value[0]}% - {payload[1].value[1]}%
-            </p>
-          )}
-        </div>
-      );
-    }
-    return null;
-  };
+        )}
+      </div>
+    );
+  }
+  return null;
+};
+
+const ManagerAVGTasks = () => {
 
   return (
     <Card style={{ borderRadius: "16px" }}>

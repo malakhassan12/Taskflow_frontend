@@ -1,32 +1,39 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
 
+/** Map JWT / signup role strings to route keys used in `allowedRoles`. */
+const normalizeUserRole = (role) => {
+  if (role == null || role === "") return "";
+  const s = String(role).trim();
+  const lower = s.toLowerCase();
+
+  if (lower === "teammember" || lower === "team member") return "member";
+  if (lower === "projectmanager" || lower === "project manager") return "manager";
+  if (lower === "admin") return "admin";
+  if (lower === "manager") return "manager";
+  if (lower === "member") return "member";
+
+  return lower;
+};
+
 const ProtectedRoute = ({ allowedRoles }) => {
   const { token, user } = useAuth();
-
-  console.log(token);
 
   if (!token) {
     return <Navigate to="/login" replace />;
   }
 
-  const userRole = user?.role;
-  // Treat 'teammember' as 'member'
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
-  console.log(user);
-  const normalizedUserRole =
-    userRole === "teammember"
-      ? "member"
-      : userRole === "ProjectManager"
-        ? "manager"
-        : userRole === "Admin"
-          ? "admin"
-          : userRole;
+  const normalizedUserRole = normalizeUserRole(user.role);
 
-  console.log(normalizedUserRole);
   if (
     allowedRoles &&
-    !allowedRoles.map((r) => r.toLowerCase()).includes(normalizedUserRole)
+    !allowedRoles
+      .map((r) => String(r).toLowerCase())
+      .includes(normalizedUserRole)
   ) {
     if (normalizedUserRole === "admin") return <Navigate to="/admin" replace />;
     if (normalizedUserRole === "manager")

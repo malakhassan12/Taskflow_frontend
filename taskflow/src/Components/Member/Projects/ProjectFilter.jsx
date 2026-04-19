@@ -3,17 +3,21 @@ import { useTheme } from "../../../Context/DarkModeProvider";
 
 const ProjectFilter = ({ activeFilter, onChange }) => {
   const { isDarkMode } = useTheme();
-  const filters = ["All", "active", "planning"];
+  const filters = [
+    { value: "All", label: "All" },
+    { value: "active", label: "Active" },
+    { value: "planning", label: "Planning" },
+  ];
 
   return (
     <div className={`inline-flex rounded-lg p-1 ${isDarkMode ? "bg-slate-800" : "bg-slate-100"}`}>
-      {filters.map((filter) => (
+      {filters.map(({ value, label }) => (
         <button
-          key={filter}
+          key={value}
           type="button"
-          onClick={() => onChange(filter)}
-          className={`rounded-md px-3 py-1.5 text-xs font-medium capitalize ${
-            activeFilter === filter
+          onClick={() => onChange(value)}
+          className={`rounded-md px-3 py-1.5 text-xs font-medium ${
+            activeFilter === value
               ? isDarkMode
                 ? "bg-slate-700 text-slate-100 shadow-sm"
                 : "bg-white text-slate-800 shadow-sm"
@@ -22,7 +26,7 @@ const ProjectFilter = ({ activeFilter, onChange }) => {
                 : "text-slate-600"
           }`}
         >
-          {filter}
+          {label}
         </button>
       ))}
     </div>

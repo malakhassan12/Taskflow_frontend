@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
   FiCalendar,
+  FiCheck,
   FiClock,
   FiEdit2,
   FiFile,
@@ -13,6 +14,45 @@ import {
 } from "react-icons/fi";
 import { useTheme } from "../../../../Context/DarkModeProvider";
 import { primaryColor } from "../../../../Constants/Colors";
+import axios from "axios";
+import { message } from "antd";
+import { jwtDecode } from "jwt-decode";
+
+const getAuthUserId = () => {
+  const token = localStorage.getItem("token");
+  const stored = JSON.parse(localStorage.getItem("user") || "{}");
+  if (!token) {
+    return stored.email || "";
+  }
+  try {
+    const decoded = jwtDecode(token);
+    return (
+      decoded.sub ||
+      decoded.nameid ||
+      decoded[
+        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+      ] ||
+      decoded.userId ||
+      decoded.UserId ||
+      stored.email ||
+      ""
+    );
+  } catch {
+    return stored.email || "";
+  }
+};
+
+const API_BASE = "http://taskflowproject1.runasp.net";
+
+/** Returns server comment id for API routes, or null for local-only rows (e.g. temp id). */
+const getCommentApiId = (comment) => {
+  const raw = comment.apiId ?? comment.id;
+  const n = Number(raw);
+  if (!Number.isInteger(n) || n <= 0 || n > 2147483647) {
+    return null;
+  }
+  return n;
+};
 
 const emptyDraft = {
   title: "",
@@ -31,12 +71,17 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
   const { isDarkMode } = useTheme();
   const [draft, setDraft] = useState(emptyDraft);
   const [newComment, setNewComment] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editingText, setEditingText] = useState("");
   const fileInputRef = useRef(null);
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!task) {
       setDraft(emptyDraft);
       setNewComment("");
+      setEditingCommentId(null);
+      setEditingText("");
       return;
     }
 
@@ -53,7 +98,10 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
       comments: task.comments || [],
     });
     setNewComment("");
+    setEditingCommentId(null);
+    setEditingText("");
   }, [task]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!task) {
     return null;
@@ -96,19 +144,180 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
     }));
   };
 
-  const addComment = () => {
+  const addComment = async () => {
     const trimmed = newComment.trim();
     if (!trimmed) {
       return;
     }
-    setDraft((prev) => ({
-      ...prev,
-      comments: [
-        ...prev.comments,
-        { id: `${Date.now()}`, text: trimmed, author: "Emma Wilson" },
-      ],
-    }));
-    setNewComment("");
+
+    const taskId = task.originalTask?.id;
+    if (taskId == null) {
+      message.error("Cannot add comment: task is missing an id.");
+      return;
+    }
+
+    const userId = getAuthUserId();
+    if (!userId) {
+      message.error("Cannot add comment: please sign in again.");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.post(
+        `${API_BASE}/api/Comment`,
+        {
+          id: 0,
+          comment: trimmed,
+          taskId,
+          userId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const serverId = response.data?.id ?? response.data?.Id;
+      const rowId = serverId != null ? serverId : Date.now();
+      const idNum = Number(serverId);
+      const apiId =
+        serverId != null &&
+        Number.isInteger(idNum) &&
+        idNum > 0 &&
+        idNum <= 2147483647
+          ? idNum
+          : null;
+      setDraft((prev) => ({
+        ...prev,
+        comments: [
+          ...prev.comments,
+          {
+            id: String(rowId),
+            apiId,
+            text: trimmed,
+            author: "User",
+            createdAt:
+              response.data?.createdAt ||
+              response.data?.CreatedAt ||
+              new Date().toISOString(),
+          },
+        ],
+      }));
+      setNewComment("");
+      message.success("Comment saved");
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      console.error("Error response:", error.response?.data);
+      const detail =
+        error.response?.data?.message ||
+        error.response?.data?.title ||
+        (typeof error.response?.data === "string"
+          ? error.response.data
+          : null);
+      message.error(detail || "Failed to save comment");
+    }
+  };
+
+  const startEditComment = (comment) => {
+    setEditingCommentId(comment.id);
+    setEditingText(comment.text || "");
+  };
+
+  const cancelEditComment = () => {
+    setEditingCommentId(null);
+    setEditingText("");
+  };
+
+  const saveEditedComment = async (comment) => {
+    const trimmed = editingText.trim();
+    if (!trimmed) {
+      message.error("Enter comment text");
+      return;
+    }
+    const commentId = getCommentApiId(comment);
+    if (commentId == null) {
+      setDraft((prev) => ({
+        ...prev,
+        comments: prev.comments.map((c) =>
+          c.id === comment.id ? { ...c, text: trimmed } : c,
+        ),
+      }));
+      cancelEditComment();
+      message.success("Comment updated locally");
+      return;
+    }
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(
+        `${API_BASE}/api/Comment/${commentId}`,
+        JSON.stringify(trimmed),
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+      setDraft((prev) => ({
+        ...prev,
+        comments: prev.comments.map((c) =>
+          c.id === comment.id ? { ...c, text: trimmed } : c,
+        ),
+      }));
+      cancelEditComment();
+      message.success("Comment updated");
+    } catch (error) {
+      console.error("Error updating comment:", error);
+      const detail =
+        error.response?.data?.message ||
+        error.response?.data?.title ||
+        (typeof error.response?.data === "string"
+          ? error.response.data
+          : null);
+      message.error(detail || "Failed to update comment");
+    }
+  };
+
+  const deleteComment = async (comment) => {
+    const commentId = getCommentApiId(comment);
+    if (commentId == null) {
+      setDraft((prev) => ({
+        ...prev,
+        comments: prev.comments.filter((c) => c.id !== comment.id),
+      }));
+      if (editingCommentId === comment.id) {
+        cancelEditComment();
+      }
+      message.success("Comment removed");
+      return;
+    }
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`${API_BASE}/api/Comment/${commentId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDraft((prev) => ({
+        ...prev,
+        comments: prev.comments.filter((c) => c.id !== comment.id),
+      }));
+      if (editingCommentId === comment.id) {
+        cancelEditComment();
+      }
+      message.success("Comment deleted");
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      const detail =
+        error.response?.data?.message ||
+        error.response?.data?.title ||
+        (typeof error.response?.data === "string"
+          ? error.response.data
+          : null);
+      message.error(detail || "Failed to delete comment");
+    }
   };
 
   const handleSave = () => {
@@ -120,7 +329,6 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
       ...draft,
       lastUpdated: "just now",
     });
-    onClose?.();
   };
 
   return (
@@ -277,13 +485,108 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
             </button>
           </div>
           {draft.comments.length > 0 && (
-            <div className="mt-2 space-y-1">
-              {draft.comments.map((comment) => (
-                <p key={comment.id} className="rounded-md bg-slate-50 px-2 py-1">
-                  <span className="font-medium">{comment.author}: </span>
-                  {comment.text}
-                </p>
-              ))}
+            <div className="mt-2 space-y-2">
+              {draft.comments.map((comment) => {
+                const isEditing = editingCommentId === comment.id;
+                return (
+                  <div
+                    key={comment.id}
+                    className={`flex items-start justify-between gap-2 rounded-md px-2 py-1.5 ${
+                      isDarkMode ? "bg-slate-800" : "bg-slate-50"
+                    }`}
+                  >
+                    <div className="min-w-0 flex-1 text-start">
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          value={editingText}
+                          onChange={(e) => setEditingText(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              saveEditedComment(comment);
+                            }
+                            if (e.key === "Escape") {
+                              cancelEditComment();
+                            }
+                          }}
+                          className={`w-full rounded border px-2 py-1 text-xs ${
+                            isDarkMode
+                              ? "border-slate-600 bg-slate-900 text-slate-100"
+                              : "border-slate-200 bg-white text-slate-800"
+                          }`}
+                          autoFocus
+                        />
+                      ) : (
+                        <p className="break-words text-xs leading-relaxed">
+                          <span className="font-medium">{comment.author}: </span>
+                          {comment.text}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
+                      {isEditing ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => saveEditedComment(comment)}
+                            className={`rounded px-2 py-1 text-[11px] font-medium ${
+                              isDarkMode
+                                ? "bg-emerald-900/50 text-emerald-300 hover:bg-emerald-900/70"
+                                : "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
+                            }`}
+                            title="Save"
+                            aria-label="Save comment"
+                          >
+                            <FiCheck className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={cancelEditComment}
+                            className={`rounded px-2 py-1 text-[11px] ${
+                              isDarkMode
+                                ? "bg-slate-700 text-slate-200 hover:bg-slate-600"
+                                : "bg-slate-200 text-slate-700 hover:bg-slate-300"
+                            }`}
+                            title="Cancel"
+                            aria-label="Cancel editing"
+                          >
+                            <FiX className="h-3.5 w-3.5" />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => startEditComment(comment)}
+                            className={`inline-flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium ${
+                              isDarkMode
+                                ? "bg-indigo-900/40 text-indigo-200 hover:bg-indigo-900/60"
+                                : "bg-indigo-100 text-indigo-800 hover:bg-indigo-200"
+                            }`}
+                            aria-label="Edit comment"
+                          >
+                            <FiEdit2 className="h-3.5 w-3.5 shrink-0" />
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => deleteComment(comment)}
+                            className={`inline-flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium ${
+                              isDarkMode
+                                ? "bg-rose-900/40 text-rose-200 hover:bg-rose-900/60"
+                                : "bg-rose-100 text-rose-800 hover:bg-rose-200"
+                            }`}
+                            aria-label="Delete comment"
+                          >
+                            <FiTrash2 className="h-3.5 w-3.5 shrink-0" />
+                            Delete
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

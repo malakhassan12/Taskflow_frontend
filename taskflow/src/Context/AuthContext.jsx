@@ -13,16 +13,15 @@ export const AuthProvider = ({ children }) => {
   // Lazy initializer for user state
   const initializeUser = () => {
     try {
+      if (typeof window === 'undefined') return null;
       const storedToken = localStorage.getItem("token");
-      console.log(storedToken);
 
       if (storedToken) {
         const decodedToken = jwtDecode(storedToken);
-        console.log(decodedToken);
         const userFromToken = {
-          nameidentifier:
-            decodedToken.nameidentifier ||
-            decodedToken.nameidentifier ||
+          email: decodedToken.email || decodedToken.Email || "",
+          userId:
+            decodedToken.sub ||
             decodedToken[
               "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
             ] ||
@@ -43,11 +42,14 @@ export const AuthProvider = ({ children }) => {
             "",
           token: storedToken,
         };
-        console.log(userFromToken);
         return userFromToken;
       }
-    } catch (error) {
-      // Handle error, e.g., console.error(error);
+    } catch {
+      // If token is invalid, clear it
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
     }
     return null;
   };
@@ -55,13 +57,12 @@ export const AuthProvider = ({ children }) => {
   // Lazy initializer for token state
   const initializeToken = () => {
     try {
+      if (typeof window === 'undefined') return null;
       const storedToken = localStorage.getItem("token");
-      console.log(storedToken);
       return storedToken;
-    } catch (error) {
-      // Handle error, e.g., console.error(error);
+    } catch {
+      return null;
     }
-    return null;
   };
 
   const [user, setUser] = useState(initializeUser);
@@ -200,12 +201,10 @@ export const AuthProvider = ({ children }) => {
       };
 
       // Real API call
-      const response = await axios.post(
+      await axios.post(
         "http://taskflowproject1.runasp.net/api/Account/register",
         signupData,
       );
-
-      const { data } = response;
 
       // Backend returns only success message, not token
       // User needs to login after signup
@@ -293,6 +292,12 @@ export const AuthProvider = ({ children }) => {
       // Create user object from decoded token
       const userFromToken = {
         email: decodedToken.email || decodedToken.Email || formData.email,
+        userId:
+          decodedToken.sub ||
+          decodedToken[
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+          ] ||
+          "",
         role:
           decodedToken.role ||
           decodedToken.Role ||
