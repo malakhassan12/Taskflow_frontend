@@ -1,6 +1,22 @@
-import React from 'react';
-import { Card, Avatar, Space, Tag, Typography, Grid, Tooltip } from "antd";
-import { ClockCircleOutlined, UserOutlined, ArrowRightOutlined } from "@ant-design/icons";
+import React from "react";
+import {
+  Card,
+  Avatar,
+  Space,
+  Tag,
+  Typography,
+  Grid,
+  Tooltip,
+  Badge,
+  Progress,
+} from "antd";
+import {
+  ClockCircleOutlined,
+  UserOutlined,
+  ArrowRightOutlined,
+  FlagOutlined,
+  CalendarOutlined,
+} from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import getStatusText from "../../Functions/Tasks/GetStatusText";
 import getStatusColor from "../../Functions/Tasks/GetStatusColor";
@@ -10,124 +26,247 @@ const { useBreakpoint } = Grid;
 
 const TaskCard = ({ task }) => {
   const screens = useBreakpoint();
-  
-  const isXs = screens.xs && !screens.sm; 
+  const isXs = screens.xs && !screens.sm;
   const isMobile = !screens.md;
 
-  const statusColors = {
-    completed: "#52c41a",
-    "in-progress": "#1890ff",
-    pending: "#faad14",
+  // Format date
+  const formatDate = (dateString) => {
+    if (!dateString) return "No date";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
-  const currentStatusColor = statusColors[task.status] || "#d9d9d9";
+  // Get priority color
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case 1:
+        return { color: "#52c41a", text: "Low" };
+      case 2:
+        return { color: "#1890ff", text: "Medium" };
+      case 3:
+        return { color: "#faad14", text: "High" };
+      case 4:
+        return { color: "#ff4d4f", text: "Urgent" };
+      default:
+        return { color: "#d9d9d9", text: "None" };
+    }
+  };
+
+  const priorityInfo = getPriorityColor(task.priority);
+  const statusInfo = getStatusColor(task.status);
+  const isOverdue =
+    task.dueTime &&
+    new Date(task.dueTime) < new Date() &&
+    task.status !== "completed";
 
   return (
     <Card
       hoverable
-      styles={{
-        body: { padding: isMobile ? "12px" : "16px" }
-      }}
       style={{
-        borderLeft: `4px solid ${currentStatusColor}`,
-        borderRadius: "8px",
+        borderRadius: "12px",
         transition: "all 0.3s ease",
         height: "100%",
+        cursor: "pointer",
+        position: "relative",
+        overflow: "hidden",
+      }}
+      styles={{
+        body: { padding: isMobile ? "14px" : "18px" },
       }}
     >
-      <div style={{ display: "flex", flexDirection: "column", gap: "12px", height: "100%" }}>
-        
+      {/* Status Bar at top */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: "4px",
+          background: statusInfo.color,
+        }}
+      />
+
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "12px",
+          height: "100%",
+        }}
+      >
         {/* Row 1: Title & Status Tag */}
-        <div style={{ 
-          display: "flex", 
-          justifyContent: "space-between", 
-          alignItems: "flex-start", 
-          gap: "8px" 
-        }}>
-          <Link
-            to={`tasks/${task.id || 1}`}
-            style={{ 
-              flex: 1, 
-              color: "inherit",
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: "8px",
+          }}
+        >
+          <div
+            style={{
+              flex: 1,
               display: "flex",
               alignItems: "center",
-              gap: "4px"
+              gap: "8px",
             }}
           >
-            <Title 
-              level={5} 
-              style={{ 
-                margin: 0, 
+            <Badge
+              color={priorityInfo.color}
+              text={!isXs && priorityInfo.text}
+              style={{ fontSize: "11px" }}
+            />
+            <Title
+              level={5}
+              style={{
+                margin: 0,
                 fontSize: isXs ? "14px" : "16px",
-                lineHeight: 1.4
+                lineHeight: 1.4,
+                flex: 1,
               }}
-              ellipsis={{ rows: 2 }} 
+              ellipsis={{ rows: 2 }}
             >
-              {task.title}
+              <Link to={`${task?.id}`}>{task.title || "Untitled Task"}</Link>
             </Title>
-            <ArrowRightOutlined style={{ fontSize: "12px", color: "#bfbfbf" }} />
-          </Link>
+          </div>
 
-          <Tag 
-            color={getStatusColor(task.status).status} 
-            style={{ 
-              marginInlineEnd: 0,
+          <Tag
+            color={statusInfo.color}
+            style={{
+              margin: 0,
               fontSize: "11px",
               borderRadius: "4px",
-              padding: "0 4px"
+              padding: "2px 8px",
+              fontWeight: 500,
             }}
           >
-            {getStatusText(task.status)}
+            {getStatusText(task.status) || task.statusPorAp || "Todo"}
           </Tag>
         </div>
 
         {/* Row 2: Description */}
-        <div style={{ flex: 1 }}>
-          <Text
-            type="secondary"
-            style={{
-              fontSize: isMobile ? "12px" : "13px",
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-            }}
-          >
-            {task.desc}
-          </Text>
-        </div>
+        {task.discription && (
+          <div>
+            <Text
+              type="secondary"
+              style={{
+                fontSize: isMobile ? "12px" : "13px",
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+                lineHeight: 1.5,
+              }}
+            >
+              {task.discription}
+            </Text>
+          </div>
+        )}
 
-        {/* Row 3: Footer (Member & Due Date) */}
-        <div style={{ 
-          display: "flex", 
-          justifyContent: "space-between", 
-          alignItems: "center",
-          marginTop: "auto",
-          paddingTop: "12px",
-          borderTop: "1px solid #f0f0f0"
-        }}>
-          <Space size={4}>
-            <Tooltip title={`${task.member?.name} - ${task.member?.role}`}>
-              <Avatar 
-                size={24} 
-                style={{ backgroundColor: "#1890ff", verticalAlign: 'middle' }}
-                icon={<UserOutlined />}
-              >
-                {task.member?.avatar}
-              </Avatar>
-            </Tooltip>
-            {!isXs && (
-              <Text style={{ fontSize: "12px" }} strong>
-                {task.member?.name.split(' ')[0]}
-              </Text>
-            )}
+        {/* Row 3: Priority & Due Date */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "8px",
+            flexWrap: "wrap",
+          }}
+        >
+          <Space size={8}>
+            <FlagOutlined
+              style={{ fontSize: "12px", color: priorityInfo.color }}
+            />
+            <Text
+              style={{
+                fontSize: "11px",
+                color: priorityInfo.color,
+                fontWeight: 500,
+              }}
+            >
+              {priorityInfo.text} Priority
+            </Text>
           </Space>
 
-          <Space size={4} style={{ color: "#8c8c8c" }}>
-            <ClockCircleOutlined style={{ fontSize: "12px" }} />
-            <Text type="secondary" style={{ fontSize: "11px" }}>
-              {isXs ? task.due_date : `Due: ${task.due_date}`}
+          <Space size={4}>
+            <CalendarOutlined
+              style={{
+                fontSize: "11px",
+                color: isOverdue ? "#ff4d4f" : "#8c8c8c",
+              }}
+            />
+            <Text
+              type="secondary"
+              style={{
+                fontSize: "11px",
+                color: isOverdue ? "#ff4d4f" : undefined,
+                fontWeight: isOverdue ? 500 : undefined,
+              }}
+            >
+              {formatDate(task.dueTime)}
+              {isOverdue && " (Overdue)"}
             </Text>
+          </Space>
+        </div>
+
+        {/* Row 4: Assigned Member & Comments Count */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: "auto",
+            paddingTop: "8px",
+            borderTop: "1px solid #f0f0f0",
+          }}
+        >
+          <Tooltip
+            title={`${task.assignedMember?.firstName || ""} ${task.assignedMember?.lastName || ""} - ${task.assignedMember?.role || "Unassigned"}`}
+          >
+            <Space size={8}>
+              <Avatar
+                size={28}
+                style={{
+                  backgroundColor: "#1890ff",
+                  fontSize: "12px",
+                }}
+                icon={<UserOutlined />}
+              >
+                {task.assignedMember?.firstName?.charAt(0)}
+                {task.assignedMember?.lastName?.charAt(0)}
+              </Avatar>
+              {!isXs && (
+                <div>
+                  <Text
+                    style={{
+                      fontSize: "12px",
+                      display: "block",
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {task.assignedMember?.firstName || "Unassigned"}
+                  </Text>
+                  <Text type="secondary" style={{ fontSize: "10px" }}>
+                    {task.assignedMember?.role || "Member"}
+                  </Text>
+                </div>
+              )}
+            </Space>
+          </Tooltip>
+
+          <Space size={8}>
+            {task.comments && task.comments.length > 0 && (
+              <Tag style={{ margin: 0, fontSize: "10px" }}>
+                💬 {task.comments.length}
+              </Tag>
+            )}
+            <Link
+              to={`tasks/${task.id}`}
+              onClick={(e) => e.stopPropagation()}
+              style={{ fontSize: "11px", color: "#1890ff" }}
+            >
+              Details →
+            </Link>
           </Space>
         </div>
       </div>
