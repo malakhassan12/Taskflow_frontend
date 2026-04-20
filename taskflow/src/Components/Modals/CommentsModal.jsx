@@ -1,20 +1,18 @@
 import { useState } from "react";
-// ==================== Ant Design   ====================
-
+// ==================== Ant Design ====================
 import {
   Modal,
-  Card,
   Input,
   Button,
   Avatar,
   Space,
-  Badge,
   Tabs,
   message,
   Typography,
-  Divider,
   Tag,
   Empty,
+  Spin,
+  List,
 } from "antd";
 import {
   SendOutlined,
@@ -23,53 +21,28 @@ import {
   ClockCircleOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
-// ==================== Constants  ====================
-
+// ==================== Constants ====================
 import { green, primaryColor } from "../../Constants/Colors";
-// ==================== Functions  ====================
-
-import getUserColor from "../../Functions/Manager/GetUserColor";
+// ==================== Hooks ====================
+import { useAuth } from "../../Context/AuthContext";
+import useGetCommentsById from "../../Hooks/Comment/useGetCommentsById";
+import useCommentMutations from "../../Hooks/Comment/useCommentMutations";
 
 const { TextArea } = Input;
 const { Text } = Typography;
 
-const CommentsModal = ({
-  open,
-  setOpen,
-  taskTitle = "Task",
-  currentUser = { name: "Ahmed Manager", role: "manager", roleName: "Manager" },
-}) => {
+const CommentsModal = ({ open, setOpen, memberId, taskId }) => {
   const [messageApi, contextHolder] = message.useMessage();
-
-  const [comments, setComments] = useState([]);
+  const { user } = useAuth();
   const [newComment, setNewComment] = useState("");
-  const [replyText, setReplyText] = useState({});
   const [activeTab, setActiveTab] = useState("all");
 
-  const myTabs = [
-    {
-      key: "all",
-      label: "All",
-      children: <></>,
-    },
-    {
-      key: "manager",
-      label: "My Comments",
-      children: <></>,
-    },
-    {
-      key: "member",
-      label: "Member Replies",
-      children: <></>,
-    },
-  ];
+  // Get all comments for this task
+  const { data: allComments = [], isLoading,  } = useGetCommentsById(memberId);
+  const { pushCommentMutation } = useCommentMutations();
 
-  const isManager = currentUser.role === "manager";
+  const isManager = user?.role === "projectmanager";
   const currentUserColor = isManager ? primaryColor : green;
-
-  const unreadCount = comments.filter(
-    (c) => !c.read && c.type !== currentUser.role,
-  ).length;
 
   const handleSendComment = () => {
     if (!newComment.trim()) {
@@ -77,256 +50,111 @@ const CommentsModal = ({
       return;
     }
 
-    const comment = {
-      id: Date.now(),
-      text: newComment,
-      sender: currentUser.roleName,
-      senderName: currentUser.name,
-      timestamp: dayjs().format("YYYY-MM-DD HH:mm:ss"),
-      type: currentUser.role,
-      read: true,
-      replies: [],
-    };
-
-    setComments([comment, ...comments]);
-    setNewComment("");
-    messageApi.success("Comment sent successfully");
-  };
-
-  const handleSendReply = (commentId) => {
-    const reply = replyText[commentId];
-    if (!reply || !reply.trim()) {
-      messageApi.warning("Please enter a reply");
-      return;
-    }
-
-    setComments(
-      comments.map((comment) => {
-        if (comment.id === commentId) {
-          const newReply = {
-            id: Date.now(),
-            text: reply,
-            sender: currentUser.roleName,
-            senderName: currentUser.name,
-            timestamp: dayjs().format("YYYY-MM-DD HH:mm:ss"),
-            type: currentUser.role,
-          };
-          return {
-            ...comment,
-            replies: [...comment.replies, newReply],
-            read: false,
-          };
-        }
-        return comment;
-      }),
-    );
-
-    setReplyText({ ...replyText, [commentId]: "" });
-    messageApi.success("Reply sent successfully");
-  };
-
-  const markAsRead = (commentId) => {
-    setComments(
-      comments.map((comment) => {
-        if (comment.id === commentId && comment.type !== currentUser.role) {
-          return { ...comment, read: true };
-        }
-        return comment;
-      }),
+    pushCommentMutation.mutate(
+      {
+        comment: newComment,
+        taskId: taskId ,
+        userId: memberId,
+      }
     );
   };
 
   const getFilteredComments = () => {
-    if (activeTab === "manager") {
-      return comments.filter((c) => c.type === "manager");
+    if (activeTab === "mine") {
+      return allComments.filter((c) => c.userId === user?.userId);
     }
-    if (activeTab === "member") {
-      return comments.filter(
-        (c) =>
-          c.type === "member" || c.replies.some((r) => r.type === "member"),
-      );
-    }
-    return comments;
+    return allComments;
   };
 
-  
+  const tabItems = [
+    { key: "all", label: `All (${allComments.length})` },
+    { key: "mine", label: `Mine (${allComments.filter(c => c.userId === user?.userId).length})` },
+  ];
+
   return (
     <Modal
       title={
         <Space>
           <MessageOutlined />
-          <span>{taskTitle} Comments</span>
-          <Badge count={unreadCount} />
+          <span>Comments</span>
         </Space>
       }
       open={open}
       onCancel={() => setOpen(false)}
       footer={null}
-      width={700}
+      width={600}
     >
       {contextHolder}
 
-      {/* Comment Input */}
-      <Card size="small" style={{ marginBottom: 16 }}>
-        <Space orientation="vertical" style={{ width: "100%" }}>
+      {/* Input Area */}
+      <div style={{ marginBottom: 16 }}>
+        <Space direction="vertical" style={{ width: "100%" }} size={12}>
           <Space>
-            <Avatar
-              icon={<UserOutlined />}
-              style={{ backgroundColor: currentUserColor }}
-            />
-            <Text strong>{currentUser.name}</Text>
-            <Tag color={isManager ? "blue" : "green"}>
-              {currentUser.roleName}
-            </Tag>
+            <Avatar icon={<UserOutlined />} style={{ backgroundColor: currentUserColor }} />
+            <Text strong>{user?.name || "You"}</Text>
+            <Tag color={isManager ? "blue" : "green"}>{isManager ? "Manager" : "Member"}</Tag>
           </Space>
           <TextArea
             rows={3}
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            placeholder={`Write a comment as ${currentUser.roleName}...`}
+            placeholder="Write a comment..."
           />
           <Button
             type="primary"
             icon={<SendOutlined />}
             onClick={handleSendComment}
+            loading={pushCommentMutation?.isPending}
             block
           >
-            Send Comment
+            Send
           </Button>
         </Space>
-      </Card>
+      </div>
 
       {/* Tabs */}
-      <Tabs
-        activeKey={activeTab}
-        onChange={setActiveTab}
-        size="small"
-        items={myTabs}
-      />
+      <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} />
 
       {/* Comments List */}
-      <div style={{ maxHeight: 450, overflowY: "auto" }}>
-        {getFilteredComments().length === 0 ? (
-          <Empty
-            description="No comments yet"
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-          />
-        ) : (
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "12px" }}
-          >
-            {getFilteredComments().map((comment, i) => (
-              <Card
-                key={i}
-                size="small"
-                style={{
-                  marginBottom: 12,
-                  backgroundColor:
-                    !comment.read && comment.type !== currentUser.role
-                      ? "#f0f7ff"
-                      : "white",
-                  borderLeft: `3px solid ${getUserColor(comment.type)}`,
-                }}
-                onMouseEnter={() => markAsRead(comment.id)}
-              >
-                {/* Comment Header */}
-                <Space style={{ marginBottom: 8 }}>
-                  <Avatar
-                    size="small"
-                    icon={<UserOutlined />}
-                    style={{ backgroundColor: getUserColor(comment.type) }}
-                  />
-                  <Text strong>{comment.senderName}</Text>
-                  <Tag color={comment.type === "manager" ? "blue" : "green"}>
-                    {comment.sender}
-                  </Tag>
-                  {!comment.read && comment.type !== currentUser.role && (
-                    <Badge status="processing" text="New" />
-                  )}
-                  <Text type="secondary" style={{ fontSize: 11 }}>
-                    <ClockCircleOutlined /> {comment.timestamp}
-                  </Text>
-                </Space>
-
-                <Typography.Paragraph
-                  style={{ marginLeft: 32, marginBottom: 8 }}
-                >
-                  {comment.text}
-                </Typography.Paragraph>
-
-                {/* Replies */}
-                {comment.replies.length > 0 && (
-                  <div style={{ marginLeft: 32, marginTop: 8 }}>
-                    <Divider style={{ margin: "8px 0" }} />
-                    <Text type="secondary" style={{ fontSize: 11 }}>
-                      Replies ({comment.replies.length})
-                    </Text>
-                    {comment.replies.map((reply) => (
-                      <Card
-                        key={reply.id}
-                        size="small"
-                        style={{
-                          marginTop: 8,
-                          backgroundColor: "#fafafa",
-                          borderLeft: `3px solid ${getUserColor(reply.type)}`,
-                        }}
-                      >
-                        <Space style={{ marginBottom: 4 }}>
-                          <Avatar
-                            size="small"
-                            icon={<UserOutlined />}
-                            style={{
-                              backgroundColor: getUserColor(reply.type),
-                            }}
-                          />
-                          <Text strong>{reply.senderName}</Text>
-                          <Tag
-                            color={reply.type === "manager" ? "blue" : "green"}
-                            size="small"
-                          >
-                            {reply.sender}
-                          </Tag>
-                          <Text type="secondary" style={{ fontSize: 11 }}>
-                            <ClockCircleOutlined /> {reply.timestamp}
-                          </Text>
-                        </Space>
-                        <Typography.Paragraph
-                          style={{ marginLeft: 32, marginBottom: 0 }}
-                        >
-                          {reply.text}
-                        </Typography.Paragraph>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-
-                {/* Reply Input */}
-                <div style={{ marginLeft: 32, marginTop: 8 }}>
-                  <Input.TextArea
-                    rows={2}
-                    value={replyText[comment.id] || ""}
-                    onChange={(e) =>
-                      setReplyText({
-                        ...replyText,
-                        [comment.id]: e.target.value,
-                      })
-                    }
-                    placeholder={`Reply as ${currentUser.roleName}...`}
-                    size="small"
-                  />
-                  <Button
-                    size="small"
-                    type="link"
-                    icon={<SendOutlined />}
-                    onClick={() => handleSendReply(comment.id)}
-                    style={{ padding: 0, marginTop: 4 }}
-                  >
-                    Send Reply
-                  </Button>
-                </div>
-              </Card>
-            ))}
+      <div style={{ maxHeight: 400, overflowY: "auto" }}>
+        {isLoading ? (
+          <div style={{ textAlign: "center", padding: 40 }}>
+            <Spin />
           </div>
+        ) : getFilteredComments().length === 0 ? (
+          <Empty description="No comments yet" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+        ) : (
+          <List
+            dataSource={getFilteredComments()}
+            renderItem={(comment) => {
+              const isOwn = comment.userId === user?.userId;
+              return (
+                <div
+                  style={{
+                    padding: "12px",
+                    marginBottom: "12px",
+                    borderRadius: "8px",
+                    backgroundColor: isOwn ? "#f0f7ff" : "#fafafa",
+                    borderLeft: `3px solid ${isOwn ? primaryColor : "#d9d9d9"}`,
+                  }}
+                >
+                  <Space direction="vertical" size={4} style={{ width: "100%" }}>
+                    <Space wrap>
+                      <Avatar size="small" icon={<UserOutlined />} />
+                      <Text strong>{isOwn ? "You" : "Team Member"}</Text>
+                      <Tag color={isOwn ? "blue" : "green"} style={{ margin: 0 }}>
+                        {isOwn ? (isManager ? "Manager" : "Member") : "Member"}
+                      </Tag>
+                      <Text type="secondary" style={{ fontSize: 11 }}>
+                        <ClockCircleOutlined /> {dayjs(comment.createdAt).format("MM-DD HH:mm")}
+                      </Text>
+                    </Space>
+                    <Text style={{ marginLeft: 32 }}>{comment.comment}</Text>
+                  </Space>
+                </div>
+              );
+            }}
+          />
         )}
       </div>
     </Modal>

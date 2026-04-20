@@ -1,7 +1,4 @@
 import React, { useState } from "react";
-// ==================== Ant Design ====================
-import dayjs from "dayjs";
-
 import {
   Card,
   Input,
@@ -13,217 +10,138 @@ import {
   Flex,
   Empty,
   Form,
-  message,
   Grid,
+  Spin,
+  Select,
 } from "antd";
 import {
   SearchOutlined,
-  FilterOutlined,
-  SortAscendingOutlined,
+  UserOutlined,
+  CalendarOutlined,
+  PlusOutlined,
 } from "@ant-design/icons";
-// ==================== Constants ====================
-
 import { primaryColor } from "../../../Constants/Colors";
-// ==================== Compoennets ====================
-
 import DeleteTaskBtn from "../../Buttons/Task/DeleteTaskBtn";
 import EditTaskBtn from "../../Buttons/Task/EditTaskBtn";
 import TaskModal from "../../Modals/TaskModal";
+import useGetTasksPerProject from "../../../Hooks/Manager/useGetTasksPerProject";
+import { useParams } from "react-router-dom";
+import AddNewTaskBtn from "../../Buttons/Task/AddNewTaskBtn";
 
 const { Text } = Typography;
 const { useBreakpoint } = Grid;
 
 const TasksTab = () => {
+  const { projectId } = useParams();
   const screens = useBreakpoint();
+  const isMobile = !screens.md;
+
+  const { data: projectData, isLoading } = useGetTasksPerProject(projectId);
+
   const [searchText, setSearchText] = useState("");
-  const [tasks, _] = useState([
-    {
-      id: 1,
-      name: "Design Database Schema",
-      assignedTo: "Malak",
-      avatar: "M",
-      role: "Developer",
-    },
-    {
-      id: 2,
-      name: "Create API Endpoints",
-      assignedTo: "Rawan",
-      avatar: "R",
-      role: "Backend",
-    },
-    {
-      id: 3,
-      name: "Build UI Components",
-      assignedTo: "Ahmed",
-      avatar: "A",
-      role: "Frontend",
-    },
-    {
-      id: 4,
-      name: "Write Documentation",
-      assignedTo: "Sara",
-      avatar: "S",
-      role: "Writer",
-    },
-  ]);
+  const [filterPriority, setFilterPriority] = useState("all");
 
-  const filteredTasks = tasks.filter(
-    (task) =>
-      task.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      task.assignedTo.toLowerCase().includes(searchText.toLowerCase()),
-  );
+  const tasks = projectData?.tasks || [];
 
-  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
-
-  const [form] = Form.useForm();
-
-  const [messageApi, contextHolder] = message.useMessage();
-
-  const handleEditTask = (task) => {
-    //   setEditingTask(task);
-    form.setFieldsValue({
-      title: task.title,
-      description: task.description,
-      dueDate: dayjs(task.dueDate),
-      priority: task.priority,
-    });
-    setIsTaskModalOpen(true);
-    console.log(task);
+  const getPriorityColor = (priority) => {
+    const colors = { 1: "green", 2: "blue", 3: "orange", 4: "red" };
+    return colors[priority] || "default";
   };
-  const handleSaveTask = () => {
-    form.validateFields().then((values) => {
-      const newTask = {
-        id: Date.now(),
-        title: values.title,
-        description: values.description,
-        status: "pending",
-        approved: false,
-        createdAt: dayjs().format("YYYY-MM-DD"),
-        dueDate: values.dueDate.format("YYYY-MM-DD"),
-        completedAt: null,
-        priority: values.priority,
-      };
-      console.log(newTask);
-      messageApi.success("Task added successfully");
-      setIsTaskModalOpen(false);
-      form.resetFields();
-    });
+
+  const getPriorityText = (priority) => {
+    const texts = { 1: "Low", 2: "Medium", 3: "High", 4: "Urgent" };
+    return texts[priority] || "None";
   };
+
+  const filteredTasks = tasks.filter((task) => {
+    const matchesSearch = task.title
+      ?.toLowerCase()
+      .includes(searchText.toLowerCase());
+    const matchesPriority =
+      filterPriority === "all" || task.priority === parseInt(filterPriority);
+    return matchesSearch && matchesPriority;
+  });
+
+  if (isLoading) {
+    return (
+      <Flex justify="center" style={{ padding: 40 }}>
+        <Spin />
+      </Flex>
+    );
+  }
 
   return (
-    <div style={{ padding: screens.xs ? "8px" : "4px" }}>
-      {contextHolder}
-      {isTaskModalOpen && (
-        <TaskModal
-          isTaskModalOpen={isTaskModalOpen}
-          setIsTaskModalOpen={setIsTaskModalOpen}
-          task={{
-            id: "1",
-            title: "Malak",
-            description: "Hassan",
-            status: "pending",
-            approved: false,
-            createdAt: dayjs().format("YYYY-MM-DD"),
-            dueDate: "",
-            completedAt: null,
-            priority: 1,
-          }}
-          handleSaveTask={handleSaveTask}
-          form={form}
-        />
-      )}
-      {/* Search Bar Area */}
-      <Flex
-        justify={screens.xs ? "flex-start" : "space-between"}
-        align="center"
-        style={{ marginBottom: 24 }}
-        gap="middle"
-        wrap="wrap"
-      >
-        <Input
-          placeholder="Filter tasks..."
-          prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
-          allowClear
-          size="large"
-          onChange={(e) => setSearchText(e.target.value)}
-          style={{
-            maxWidth: screens.xs ? "100%" : 320,
-            width: screens.xs ? "100%" : "auto",
-            borderRadius: "20px",
-            border: "none",
-          }}
-        />
-
-        <Space size="middle" wrap>
-          <Button icon={<FilterOutlined />}>Filters</Button>
-          <Button icon={<SortAscendingOutlined />}>Sort</Button>
-        </Space>
+    <div style={{ padding: isMobile ? 8 : 4 }}>
+      {/* Header */}
+      <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
+        <Text strong>Tasks ({tasks.length})</Text>
+        <AddNewTaskBtn projectId={projectId} />
       </Flex>
 
-      {/* Task Container */}
-      <Flex vertical gap="middle">
+      {/* Search & Filter */}
+      <Flex gap="small" style={{ marginBottom: 16 }} wrap>
+        <Input
+          placeholder="Search tasks..."
+          prefix={<SearchOutlined />}
+          allowClear
+          onChange={(e) => setSearchText(e.target.value)}
+          style={{ width: isMobile ? "100%" : 250 }}
+        />
+        <Select
+          style={{ width: 120 }}
+          value={filterPriority}
+          onChange={setFilterPriority}
+          options={[
+            { label: "All", value: "all" },
+            { label: "Urgent", value: "4" },
+            { label: "High", value: "3" },
+            { label: "Medium", value: "2" },
+            { label: "Low", value: "1" },
+          ]}
+        />
+      </Flex>
+
+      {/* Task List */}
+      <Flex vertical gap={12}>
         {filteredTasks.length === 0 ? (
-          <Card style={{ borderRadius: "12px" }}>
-            <Empty description="No tasks found matching your search" />
+          <Card>
+            <Empty description="No tasks" />
           </Card>
         ) : (
           filteredTasks.map((task) => (
-            <Card
-              key={task.id}
-              hoverable
-              styles={{
-                body: { padding: screens.xs ? "12px 16px" : "16px 24px" },
-              }}
-              style={{ borderRadius: "12px" }}
-            >
-              <Flex
-                justify="space-between"
-                align={screens.xs ? "flex-start" : "center"}
-                wrap="wrap"
-                gap="middle"
-              >
-                {/* Left: Task Info */}
-                <Flex
-                  align={screens.xs ? "flex-start" : "center"}
-                  gap={screens.xs ? "small" : "large"}
-                  style={{ flex: 1 }}
-                  wrap="wrap"
-                  vertical={screens.xs}
-                >
-                  <div style={{ minWidth: screens.xs ? "100%" : "200px" }}>
-                    <Text
-                      strong
-                      style={{
-                        fontSize: screens.xs ? "14px" : "16px",
-                        display: "block",
-                      }}
-                    >
-                      {task.name}
-                    </Text>
-                    <Text type="secondary" style={{ fontSize: "12px" }}>
-                      Task ID: #{task.id}
-                    </Text>
-                  </div>
+            <Card key={task.id} size="small" hoverable>
+              <Flex justify="space-between" align="center" wrap="wrap" gap={12}>
+                <Flex vertical gap={4} style={{ flex: 1 }}>
+                  {/* Title & Status */}
+                  <Flex align="center" gap={8} wrap="wrap">
+                    <Text strong>{task.title}</Text>
+                    <Tag color={getPriorityColor(task.priority)}>
+                      {getPriorityText(task.priority)}
+                    </Tag>
+                    {task.dueTime && (
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        <CalendarOutlined />{" "}
+                        {new Date(task.dueTime).toLocaleDateString()}
+                      </Text>
+                    )}
+                  </Flex>
 
-                  {/* Middle: Assignee */}
-                  <Flex align="center" gap="small" wrap="wrap">
+                  {/* Assignee */}
+                  <Flex align="center" gap={8}>
                     <Avatar
                       size="small"
+                      icon={<UserOutlined />}
                       style={{ backgroundColor: primaryColor }}
-                    >
-                      {task.avatar}
-                    </Avatar>
-                    <Text style={{ fontWeight: 500 }}>{task.assignedTo}</Text>
-                    <Tag color="blue" variant="filled">
-                      {task.role}
-                    </Tag>
+                    />
+                    <Text style={{ fontSize: 13 }}>
+                      {task.assignedMember?.firstName || "Unassigned"}
+                    </Text>
                   </Flex>
                 </Flex>
 
-                {/* Right: Actions */}
-                <Space size="middle" wrap>
-                  <EditTaskBtn handleEditTask={handleEditTask} record={task} />
-
+                {/* Actions */}
+                <Space>
+                  <EditTaskBtn task={task} />
                   <DeleteTaskBtn id={task.id} />
                 </Space>
               </Flex>

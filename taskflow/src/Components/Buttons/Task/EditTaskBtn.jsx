@@ -1,14 +1,25 @@
 import { Button } from "antd";
-import { EditOutlined,  } from "@ant-design/icons";
+import { EditOutlined } from "@ant-design/icons";
+import { useState } from "react";
+import TaskModal from "../../Modals/TaskModal";
 
-const EditTaskBtn = ({ record  , handleEditTask}) => {
+const EditTaskBtn = ({ task }) => {
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
+  console.log(task);
   return (
-    <Button
-      icon={<EditOutlined />}
-      size="small"
-      onClick={() => handleEditTask(record)}
-    />
+    <>
+      <TaskModal
+        isTaskModalOpen={isTaskModalOpen}
+        setIsTaskModalOpen={setIsTaskModalOpen}
+        task={task}
+      />
+      <Button
+        icon={<EditOutlined />}
+        size="small"
+        onClick={setIsTaskModalOpen}
+      />
+    </>
   );
 };
 

@@ -49,10 +49,12 @@ const createTask = async (data) => {
     throw { err };
   }
 };
-
-const updateTask = async () => {
+const updateTask = async (taskData) => {
   try {
-    const res = await managerClient.put(`/Task`);
+    const res = await managerClient.put(
+      `/Task?taskID=${taskData.id}`,
+      taskData,
+    );
     console.log(res);
     return res?.data;
   } catch (err) {
@@ -72,7 +74,9 @@ const getTasksPerProject = async (projectId) => {
 
 const getAllMembers = async () => {
   try {
-    const res = await managerClient.get(`http://taskflowproject1.runasp.net/allteammember`);
+    const res = await managerClient.get(
+      `http://taskflowproject1.runasp.net/allteammember`,
+    );
     console.log(res);
     return res?.data;
   } catch (err) {
@@ -80,7 +84,27 @@ const getAllMembers = async () => {
   }
 };
 
+const getAllMembersPerProject = async (projectId) => {
+  try {
+    const res = await managerClient.get(
+      `http://taskflowproject1.runasp.net/api/User/allTeamMemberByProjectID?id=${projectId}`,
+    );
+    console.log(res);
+    return res?.data;
+  } catch (err) {
+    throw { err };
+  }
+};
 
+const getTeams = async () => {
+  try {
+    const res = await managerClient.get(`/Project/projects`);
+    console.log(res);
+    return res?.data;
+  } catch (err) {
+    throw { err };
+  }
+};
 export {
   createProject,
   getProjects,
@@ -90,4 +114,6 @@ export {
   updateTask,
   getTasksPerProject,
   getAllMembers,
+  getAllMembersPerProject,
+  getTeams,
 };

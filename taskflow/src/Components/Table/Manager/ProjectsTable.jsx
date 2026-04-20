@@ -13,12 +13,14 @@ import DeleteProjectModal from "../../Modals/DeleteProjectModal";
 import useGetProjects from "../../../Hooks/Manager/useGetProjects";
 import { formatRegistrationDate } from "../../../Utils/TimeFormatt";
 
+import TableSkelton from "../../Skelton/TableSkelton";
 // ==================== Components  ====================
 
 const ProjectsTable = () => {
   const navigate = useNavigate();
-  const { data: temp } = useGetProjects();
+  const { data: temp  , isPending} = useGetProjects();
   console.log(temp);
+
   //   {
   //   key: "1",
   //   project_id: "PRJ-001",
@@ -391,15 +393,19 @@ const ProjectsTable = () => {
         />
       )}
       <div data-aos="zoom-in">
-        <Table
-          columns={columns}
-          dataSource={moko || []}
-          scroll={{ x: 1000 }}
-          pagination={{
-            pageSize: 10,
-            showTotal: (total) => `Total ${total} items`,
-          }}
-        />
+        {moko ? (
+          <Table
+            columns={columns}
+            dataSource={moko || []}
+            scroll={{ x: 1000 }}
+            pagination={{
+              pageSize: 10,
+              showTotal: (total) => `Total ${total} items`,
+            }}
+          />
+        ) : (
+          <TableSkelton />
+        )}
       </div>
     </div>
   );

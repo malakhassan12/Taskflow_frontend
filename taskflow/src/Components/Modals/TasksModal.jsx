@@ -1,216 +1,92 @@
-// In View = Will appear all tasks for this member can add, delete, edit task,
-// show the status of the task, approved or reject task, download the complete task and finally,
-// Show the performance in this project for member
-
 // ==================== Ant Design ====================
-
 import { useState } from "react";
-import { Modal, Table, Button, Space, Tag, message, Form, Tooltip } from "antd";
-import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
+import {
+  Modal,
+  Table,
+  Button,
+  Space,
+  Tag,
+  Tooltip,
+  Card,
+  Row,
+  Col,
+  Statistic,
+} from "antd";
+import {
+  CheckOutlined,
+  CloseOutlined,
+  CommentOutlined,
+  PlusOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  DownloadOutlined,
+} from "@ant-design/icons";
 import dayjs from "dayjs";
 // ==================== Components ====================
-
 import TaskModal from "./TaskModal";
-import PerformanceTasksPerMember from "../Analytics/Task/PerformanceTasksPerMember";
-// ==================== Functions ====================
-import getStatusText from "../../Functions/Tasks/GetStatusText";
-import getStatusColor from "../../Functions/Tasks/GetStatusColor.jsx";
-
+import CommentsModal from "./CommentsModal";
 // ==================== Constants ====================
-
-import { green } from "../../Constants/Colors";
 import AddNewTaskBtn from "../Buttons/Task/AddNewTaskBtn.jsx";
 import DownloadTaskBtn from "../Buttons/Task/DownloadTaskBtn.jsx";
 import DeleteTaskBtn from "../Buttons/Task/DeleteTaskBtn.jsx";
 import EditTaskBtn from "../Buttons/Task/EditTaskBtn.jsx";
+import useGetTasksPerMemberAndProject from "../../Hooks/Task/useGetTasksPerMemberAndProject.js";
+import PerformanceTasksPerMember from "../Analytics/Task/PerformanceTasksPerMember";
+const TasksModal = ({ modalOpen, setModalOpen, memberId, projectId }) => {
+  const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
+  const [taskId, setTaskId] = useState(null);
 
-const TasksModal = ({ modalOpen, setModalOpen, memberName = "Malak", projectName="Front end" }) => {
-  const [messageApi, contextHolder] = message.useMessage();
+  // Get tasks from API
+  const { data: tasks = [], isLoading } = useGetTasksPerMemberAndProject(
+    memberId,
+    projectId,
+  );
 
-  //  memberName, projectName = Will replace wiith member obj from API
+  console.log(tasks);
 
-  // Update When the task is completed I can Approve or not !!! Not in another status
-  // ============ STATIC VALUES - Replace with API data later ============
-  const [tasks, setTasks] = useState([
-    {
-      id: 1,
-      title: "Sample Task 1",
-      description: "Task description here",
-      status: "pending", // pending, in-progress, completed, rejected
-      approved: false,
-      createdAt: "2024-01-01",
-      dueDate: "2024-01-15",
-      completedAt: null,
-      priority: 0,
-    },
-    {
-      id: 2,
-      title: "Sample Task 2",
-      description: "Task description here",
-      status: "in-progress",
-      approved: false,
-      createdAt: "2024-01-01",
-      dueDate: "2024-01-20",
-      completedAt: null,
-      priority: 0,
-    },
-    {
-      id: 3,
-      title: "Sample Task 3",
-      description: "Task description here",
-      status: "completed",
-      approved: false,
-      createdAt: "2024-01-01",
-      dueDate: "2024-01-20",
-      completedAt: null,
-      priority: 0,
-    },
-  ]);
-
-  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState(null);
-
-  const [form] = Form.useForm();
-
-  // ============ CRUD OPERATIONS ============
-
-
-  const handleEditTask = (task) => {
-    setEditingTask(task);
-    form.setFieldsValue({
-      title: task.title,
-      description: task.description,
-      dueDate: dayjs(task.dueDate),
-      priority: task.priority,
-    });
-    setIsTaskModalOpen(true);
-    console.log(task);
-  };
-
- 
-
-  const handleApproveTask = (taskId) => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === taskId
-          ? {
-              ...task,
-              approved: true,
-              status: "completed",
-              completedAt: dayjs().format("YYYY-MM-DD"),
-            }
-          : task,
-      ),
-    );
-    messageApi.success("Task approved successfully");
-  };
-
-  const handleRejectTask = (taskId) => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === taskId
-          ? { ...task, approved: false, status: "Try again" }
-          : task,
-      ),
-    );
-    messageApi.error("Task rejected");
-  };
-
-  // ============ TABLE COLUMNS ============
   const columns = [
     {
-      title: "Task Title",
+      title: "Title",
       dataIndex: "title",
       key: "title",
       width: 200,
     },
     {
-      title: "Description",
-      dataIndex: "description",
-      key: "description",
-      ellipsis: true,
-      width: 250,
-    },
-    {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      width: 120,
-      render: (status) => (
-        <Tag
-          color={getStatusColor(status).status}
-          icon={getStatusColor(status).icon}
-        >
-          {getStatusText(status)}
-        </Tag>
-      ),
-    },
-    {
-      title: "Approval",
-      dataIndex: "approved",
-      key: "approved",
-      width: 120,
-      render: (approved, record) => (
-        <Space>
-          {record.status === "completed" && !approved && (
-            <>
-              <Tooltip title="Approve Task">
-                <Button
-                  type="primary"
-                  icon={<CheckOutlined />}
-                  size="small"
-                  onClick={() => handleApproveTask(record.id)}
-                  style={{ backgroundColor: green }}
-                />
-              </Tooltip>
-              <Tooltip title="Reject Task">
-                <Button
-                  danger
-                  icon={<CloseOutlined />}
-                  size="small"
-                  onClick={() => handleRejectTask(record.id)}
-                />
-              </Tooltip>
-            </>
-          )}
-          {approved && <Tag color="success">Approved ✓</Tag>}
-          {!approved && record.status === "rejected" && (
-            <Tag color="error">Rejected ✗</Tag>
-          )}
-          {record.status !== "completed" && !approved && (
-            <Tag color="default">Pending Approval</Tag>
-          )}
-          {record.status === "completed" && !approved && approved && (
-            <Tag color="warning">Waiting Approval</Tag>
-          )}
-        </Space>
-      ),
-    },
-    {
-      title: "Due Date",
-      dataIndex: "dueDate",
-      key: "dueDate",
-      width: 110,
-    },
-    {
-      title: "priority",
+      title: "Priority",
       dataIndex: "priority",
       key: "priority",
       width: 80,
-      render: (priority) => <Tag color="blue">{priority} pts</Tag>,
+      render: (priority) => {
+        const color =
+          priority >= 4 ? "red" : priority >= 2 ? "orange" : "green";
+        return <Tag color={color}>{priority}</Tag>;
+      },
+    },
+    {
+      title: "Due Date",
+      dataIndex: "dueTime",
+      key: "dueTime",
+      width: 120,
+      render: (date) => (date ? dayjs(date).format("YYYY-MM-DD") : "-"),
     },
     {
       title: "Actions",
       key: "actions",
-      width: 150,
+      width: 180,
       render: (_, record) => (
         <Space size="small">
-          <Tooltip title="Edit">
-            <EditTaskBtn record={record} handleEditTask={handleEditTask} />
-          </Tooltip>
-          <DeleteTaskBtn id={record.id} />
-          <Tooltip title="Download">
-            <DownloadTaskBtn record={record} />
+          <EditTaskBtn task={record} />
+          <DeleteTaskBtn id={record?.id} />
+          <DownloadTaskBtn />
+          <Tooltip title="Comments">
+            <Button
+              size="small"
+              icon={<CommentOutlined />}
+              onClick={() => {
+                setIsCommentsModalOpen(true);
+                setTaskId(record.id);
+              }}
+            />
           </Tooltip>
         </Space>
       ),
@@ -219,41 +95,38 @@ const TasksModal = ({ modalOpen, setModalOpen, memberName = "Malak", projectName
 
   return (
     <>
-      {contextHolder}
+      <CommentsModal
+        open={isCommentsModalOpen}
+        setOpen={setIsCommentsModalOpen}
+        taskId={taskId}
+        memberId={memberId}
+      />
 
       <Modal
-        title={`Tasks Management - ${memberName || "Member"} (${projectName || "Project"})`}
         open={modalOpen}
         onCancel={() => setModalOpen(false)}
         footer={null}
-        width={1200}
-        style={{ top: 20 }}
+        width={1000}
+        title="Tasks Management"
       >
-        {/* Performance Section */}
-
         {/* Will Send the Member ID To take the performace */}
-        <PerformanceTasksPerMember />
+        <PerformanceTasksPerMember Tasks={tasks} />
 
-        {/* Add Task Button */}
-        {/* <AddNewTaskBtn projectId={projectId}/> */}
+        {/* Add Button */}
+        <div style={{ marginBottom: 16, textAlign: "right" }}>
+          <AddNewTaskBtn projectId={projectId} />
+        </div>
 
         {/* Tasks Table */}
         <Table
           columns={columns}
           dataSource={tasks}
           rowKey="id"
+          loading={isLoading}
           pagination={{ pageSize: 5 }}
-          scroll={{ x: 1000 }}
+          scroll={{ x: 800 }}
         />
       </Modal>
-
-      {/* Add/Edit Task Modal */}
-
-      <TaskModal
-        isTaskModalOpen={isTaskModalOpen}
-        setIsTaskModalOpen={setIsTaskModalOpen}
-        task={editingTask !== null ? editingTask : {}}
-      />
     </>
   );
 };
