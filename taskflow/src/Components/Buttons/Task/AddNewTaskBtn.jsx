@@ -3,7 +3,7 @@ import { PlusOutlined } from "@ant-design/icons";
 import TaskModal from "../../Modals/TaskModal";
 import { useState } from "react";
 
-const AddNewTaskBtn = ({projectId}) => {
+const AddNewTaskBtn = ({ projectId }) => {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
   return (
@@ -11,7 +11,6 @@ const AddNewTaskBtn = ({projectId}) => {
       <TaskModal
         isTaskModalOpen={isTaskModalOpen}
         setIsTaskModalOpen={setIsTaskModalOpen}
-        task={{}}
         projectId={projectId}
       />
       <Button

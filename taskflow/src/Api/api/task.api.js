@@ -20,4 +20,14 @@ const deleteTask = async (taskId) => {
   }
 };
 
-export { getTask, deleteTask };
+const getTasksPerMemberAndProject = async (memberId, projectId) => {
+  try {
+    const res = await taskClient.get(`/GetTasksForOneMember`, {
+      params: { userId : memberId, projectId : projectId },
+    });
+    return res?.data;
+  } catch (err) {
+    throw { err };
+  }
+};
+export { getTask, deleteTask, getTasksPerMemberAndProject };

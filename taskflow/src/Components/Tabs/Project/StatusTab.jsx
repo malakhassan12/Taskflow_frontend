@@ -38,7 +38,7 @@ const StatusTab = () => {
           <Col xs={24} xl={12} key={i}>
             <TasksCard 
               status={statusItem} 
-              allTasks={tasks || []} // Pass all tasks to filter
+              allTasks={tasks || []} 
             />
           </Col>
         ))}

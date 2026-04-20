@@ -12,6 +12,8 @@ const { Title, Text } = Typography;
 
 const TasksCard = ({ status, allTasks = [] }) => {
   // Filter tasks based on status
+
+  console.log(allTasks)
   const getTasksByStatus = () => {
     if (!allTasks.length) return [];
     

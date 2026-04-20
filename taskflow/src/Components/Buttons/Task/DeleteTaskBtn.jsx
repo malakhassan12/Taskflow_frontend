@@ -1,17 +1,17 @@
 import { Button, Popconfirm, Tooltip } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
 import useTaskMutations from "../../../Hooks/Task/useTaskMutations";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 
 const DeleteTaskBtn = ({ id }) => {
   const { deleteTaskMutation } = useTaskMutations();
 
-  const navigate = useNavigate()
+  // const navigate = useNavigate()
   // From API
   const handleDeleteTask = (id) => {
     console.log("Id from delete task", id)
     deleteTaskMutation.mutate(id);
-    navigate(-1)
+    // navigate(-1)
   };
   return (
     <Popconfirm

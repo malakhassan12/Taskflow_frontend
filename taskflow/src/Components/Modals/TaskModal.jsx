@@ -10,10 +10,10 @@ const { TextArea } = Input;
 const TaskModal = ({
   isTaskModalOpen,
   setIsTaskModalOpen,
-  task,
-  projectId,
+  task = {},
+  projectId = null,
 }) => {
-  const { createTaskMutation } = useManagerMutations();
+  const { createTaskMutation, updateTaskMuatation } = useManagerMutations();
   const [form] = Form.useForm();
   console.log(form);
   console.log(task);
@@ -26,6 +26,17 @@ const TaskModal = ({
         console.log("Validation passed:", values); // Add this log
         if (task && Object.keys(task).length !== 0) {
           // Update Task
+          const finalTask = {
+            ...values,
+            id: task?.id,
+          };
+
+          console.log(finalTask)
+          updateTaskMuatation.mutate(finalTask);
+          form.resetFields();
+          setIsTaskModalOpen(false);
+
+          console.log(values);
         } else {
           // Make task
 
@@ -63,20 +74,26 @@ const TaskModal = ({
       }
       cancelText="Cancel"
       width={600}
-      confirmLoading={createTaskMutation.isPending} // This disables OK button and shows loading
-      cancelButtonProps={{ disabled: createTaskMutation.isPending }} // Disable cancel button
-      closable={!createTaskMutation.isPending} // Prevent closing by X button
-      maskClosable={!createTaskMutation.isPending} // Prevent closing by clicking outside
+      confirmLoading={
+        createTaskMutation.isPending || updateTaskMuatation.isPending
+      } // This disables OK button and shows loading
+      cancelButtonProps={{
+        disabled: createTaskMutation.isPending || updateTaskMuatation.isPending,
+      }} // Disable cancel button
+      closable={!createTaskMutation.isPending || !updateTaskMuatation.isPending} // Prevent closing by X button
+      maskClosable={
+        !createTaskMutation.isPending || !updateTaskMuatation.isPending
+      } // Prevent closing by clicking outside
     >
       <Form
         form={form}
         layout="vertical"
         initialValues={{
-          title: "",
-          description: "",
-          dueDate: dayjs(),
-          priority: 0,
-          assignedMemberId: undefined,
+          title: task?.title || "",
+          description: task?.description || "Not exist",
+          dueTime: task?.dueTime ? dayjs(task?.dueTime) : dayjs(), // Convert to dayjs
+          priority: task?.priority,
+          assignedMemberId: task?.assignedMemberId,
         }}
       >
         <Form.Item

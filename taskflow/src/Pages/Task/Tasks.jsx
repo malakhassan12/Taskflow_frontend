@@ -192,7 +192,7 @@ const Tasks = () => {
               <Col xs={24} lg={12} xl={8} key={task.id}>
                 <TaskCard 
                   task={task} 
-                   
+                    
                 />
               </Col>
             ))}
