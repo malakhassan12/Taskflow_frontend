@@ -13,7 +13,7 @@ export const AuthProvider = ({ children }) => {
   // Lazy initializer for user state
   const initializeUser = () => {
     try {
-      if (typeof window === 'undefined') return null;
+      if (typeof window === "undefined") return null;
       const storedToken = localStorage.getItem("token");
 
       if (storedToken) {
@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
       }
     } catch {
       // If token is invalid, clear it
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
       }
@@ -57,7 +57,7 @@ export const AuthProvider = ({ children }) => {
   // Lazy initializer for token state
   const initializeToken = () => {
     try {
-      if (typeof window === 'undefined') return null;
+      if (typeof window === "undefined") return null;
       const storedToken = localStorage.getItem("token");
       return storedToken;
     } catch {

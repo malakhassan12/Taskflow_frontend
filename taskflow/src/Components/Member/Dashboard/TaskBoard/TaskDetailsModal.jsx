@@ -3,6 +3,7 @@ import {
   FiCalendar,
   FiCheck,
   FiClock,
+  FiDownload,
   FiEdit2,
   FiFile,
   FiMessageCircle,
@@ -75,6 +76,58 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
   const [editingText, setEditingText] = useState("");
   const fileInputRef = useRef(null);
 
+  // Fetch attachments from API
+  const fetchAttachments = async (taskId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${API_BASE}/api/Attachment/task/${taskId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const mapped = response.data.map((att) => ({
+        id: att.fileId || att.id || att.attachmentId || att.Id || att.AttachmentId,
+        name: att.fileName || att.name || att.FileName || "Attachment",
+        size: att.size ? `${(att.size / 1024).toFixed(1)} KB` : "Unknown",
+        url: att.filePath || att.url || att.FilePath || "",
+      }));
+
+      return mapped;
+    } catch (error) {
+      console.error("Error fetching attachments:", error);
+      return [];
+    }
+  };
+
+  // Fetch comments from API
+  const fetchComments = async (taskId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${API_BASE}/api/Comment`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // Filter comments by taskId
+      const filtered = response.data.filter((c) => c.taskId === taskId);
+
+      const mapped = filtered.map((c) => ({
+        id: String(c.id || c.commentId || c.Id || c.CommentId),
+        apiId: c.id || c.commentId || c.Id || c.CommentId,
+        text: c.comment || c.text || c.Comment || c.Text || "",
+        author: c.userName || c.author || c.userId || "User",
+        createdAt: c.createdAt || c.CreatedAt || c.uploadDate || new Date().toISOString(),
+      }));
+
+      return mapped;
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      return [];
+    }
+  };
+
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!task) {
@@ -84,6 +137,28 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
       setEditingText("");
       return;
     }
+
+    const loadAttachments = async () => {
+      const taskId = task.originalTask?.id;
+      if (taskId) {
+        const attachments = await fetchAttachments(taskId);
+        setDraft((prev) => ({
+          ...prev,
+          attachments,
+        }));
+      }
+    };
+
+    const loadComments = async () => {
+      const taskId = task.originalTask?.id;
+      if (taskId) {
+        const comments = await fetchComments(taskId);
+        setDraft((prev) => ({
+          ...prev,
+          comments,
+        }));
+      }
+    };
 
     setDraft({
       title: task.title || "",
@@ -97,6 +172,9 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
       attachments: task.attachments || [],
       comments: task.comments || [],
     });
+
+    loadAttachments();
+    loadComments();
     setNewComment("");
     setEditingCommentId(null);
     setEditingText("");
@@ -108,40 +186,130 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
   }
 
   const canSave = !!(
-    draft.title.trim() &&
-    draft.description.trim() &&
-    draft.dueDate.trim()
+    draft.title.trim()
   );
 
   const handleFieldChange = (field, value) => {
     setDraft((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleFileSelect = (event) => {
+  const handleFileSelect = async (event) => {
     const files = Array.from(event.target.files || []);
     if (!files.length) {
       return;
     }
 
-    const mapped = files.map((file) => ({
-      id: `${file.name}-${file.lastModified}-${Math.random().toString(36).slice(2, 7)}`,
-      name: file.name,
-      size: `${(file.size / 1024).toFixed(1)} KB`,
-    }));
+    const taskId = task.originalTask?.id;
+    if (taskId == null) {
+      message.error("Cannot upload attachment: task is missing an id.");
+      return;
+    }
 
-    setDraft((prev) => ({
-      ...prev,
-      attachments: [...prev.attachments, ...mapped],
-    }));
+    const token = localStorage.getItem("token");
+
+    try {
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const response = await axios.post(
+          `${API_BASE}/api/Attachment/upload/${taskId}`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+
+        const mapped = {
+          id: response.data?.id || response.data?.attachmentId || response.data?.Id || response.data?.AttachmentId || `${file.name}-${file.lastModified}-${Math.random().toString(36).slice(2, 7)}`,
+          name: file.name,
+          size: `${(file.size / 1024).toFixed(1)} KB`,
+          url: response.data?.url || response.data?.filePath || response.data?.FilePath || "",
+        };
+
+        setDraft((prev) => ({
+          ...prev,
+          attachments: [...prev.attachments, mapped],
+        }));
+      }
+
+      message.success("Attachment uploaded successfully");
+    } catch (error) {
+      console.error("Error uploading attachment:", error);
+      const detail =
+        error.response?.data?.message ||
+        error.response?.data?.title ||
+        (typeof error.response?.data === "string"
+          ? error.response.data
+          : null);
+      message.error(detail || "Failed to upload attachment");
+    }
 
     event.target.value = "";
   };
 
-  const removeAttachment = (attachmentId) => {
-    setDraft((prev) => ({
-      ...prev,
-      attachments: prev.attachments.filter((item) => item.id !== attachmentId),
-    }));
+  const removeAttachment = async (attachmentId) => {
+    if (!attachmentId) {
+      message.error("Cannot remove attachment: missing attachment ID");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+
+    try {
+      await axios.delete(`${API_BASE}/api/Attachment/${attachmentId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setDraft((prev) => ({
+        ...prev,
+        attachments: prev.attachments.filter((item) => item.id !== attachmentId),
+      }));
+
+      message.success("Attachment removed successfully");
+    } catch (error) {
+      console.error("Error removing attachment:", error);
+      // Fallback to local removal if API fails
+      setDraft((prev) => ({
+        ...prev,
+        attachments: prev.attachments.filter((item) => item.id !== attachmentId),
+      }));
+    }
+  };
+
+  const downloadAttachment = async (attachmentId, fileName) => {
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await axios.get(
+        `${API_BASE}/api/Attachment/download/${attachmentId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          responseType: "blob",
+        }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", fileName || "attachment");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      message.success("Attachment downloaded successfully");
+    } catch (error) {
+      console.error("Error downloading attachment:", error);
+      message.error("Failed to download attachment");
+    }
   };
 
   const addComment = async () => {
@@ -320,15 +488,65 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!canSave) {
       return;
     }
-    onSave?.({
-      ...task,
-      ...draft,
-      lastUpdated: "just now",
-    });
+
+    const taskId = task.originalTask?.id;
+    if (taskId == null) {
+      message.error("Cannot save task: task is missing an id.");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+
+    try {
+      const priorityMap = {
+        low: 0,
+        medium: 1,
+        high: 2,
+      };
+
+      const statusMap = {
+        "Todo": "todo",
+        "In progress": "in_progress",
+        "Done": "done",
+      };
+
+      const payload = {
+        id: taskId,
+        title: draft.title,
+        discription: draft.description,
+        projectID: task.originalTask?.projectID || 0,
+        priority: draft.priority === "low" ? 0 : draft.priority === "medium" ? 2 : draft.priority === "high" ? 3 : 0,
+        dueTime: draft.dueDate ? new Date(draft.dueDate).toISOString() : null,
+        status: statusMap[draft.statusLabel] || "todo",
+      };
+
+      await axios.put(`${API_BASE}/api/Task`, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      message.success("Task updated successfully");
+      onSave?.({
+        ...task,
+        ...draft,
+        lastUpdated: "just now",
+      });
+    } catch (error) {
+      console.error("Error saving task:", error);
+      const detail =
+        error.response?.data?.message ||
+        error.response?.data?.title ||
+        (typeof error.response?.data === "string"
+          ? error.response.data
+          : null);
+      message.error(detail || "Failed to save task");
+    }
   };
 
   return (
@@ -447,14 +665,24 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
                     <FiFile className="h-3.5 w-3.5" />
                     {file.name} ({file.size})
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => removeAttachment(file.id)}
-                    className="rounded p-1 text-rose-500 hover:bg-rose-50"
-                    aria-label="Remove attachment"
-                  >
-                    <FiTrash2 className="h-3.5 w-3.5" />
-                  </button>
+                  <div className="flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => downloadAttachment(file.id, file.name)}
+                      className="rounded p-1 text-blue-500 hover:bg-blue-50"
+                      aria-label="Download attachment"
+                    >
+                      <FiDownload className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeAttachment(file.id)}
+                      className="rounded p-1 text-rose-500 hover:bg-rose-50"
+                      aria-label="Remove attachment"
+                    >
+                      <FiTrash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -486,11 +714,11 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
           </div>
           {draft.comments.length > 0 && (
             <div className="mt-2 space-y-2">
-              {draft.comments.map((comment) => {
+              {draft.comments.map((comment, index) => {
                 const isEditing = editingCommentId === comment.id;
                 return (
                   <div
-                    key={comment.id}
+                    key={comment.id || index}
                     className={`flex items-start justify-between gap-2 rounded-md px-2 py-1.5 ${
                       isDarkMode ? "bg-slate-800" : "bg-slate-50"
                     }`}
@@ -518,7 +746,6 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
                         />
                       ) : (
                         <p className="break-words text-xs leading-relaxed">
-                          <span className="font-medium">{comment.author}: </span>
                           {comment.text}
                         </p>
                       )}

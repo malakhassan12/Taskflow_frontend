@@ -7,7 +7,6 @@ import { useTheme } from "../../../Context/DarkModeProvider";
 
 const links = [
   { to: "/member", label: "My Tasks", icon: FiHome, end: true },
-  { to: "/member/projects", label: "Projects", icon: FiFolder },
   { to: "/member/view-requests", label: "View Requests", icon: FiInbox },
   { to: "/member/settings", label: "Settings", icon: FiSettings },
 ];

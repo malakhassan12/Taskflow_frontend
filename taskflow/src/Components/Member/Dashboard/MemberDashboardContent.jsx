@@ -3,7 +3,6 @@ import AnalyticsTab from "./Tabs/AnalyticsTab";
 import DashboardTabs from "./DashboardTabs";
 import OverdueAlert from "./OverdueAlert";
 import StatCard from "./StatCard";
-import MyProjectsTab from "./Tabs/MyProjectsTab";
 import MyTasksTab from "./Tabs/MyTasksTab";
 import { useTheme } from "../../../Context/DarkModeProvider";
 
@@ -17,7 +16,6 @@ const statsData = [
 
 const tabs = [
   { id: "tasks", label: "My Tasks" },
-  { id: "projects", label: "My Projects" },
   { id: "analytics", label: "Analytics" },
 ];
 
@@ -47,7 +45,6 @@ const MemberDashboardContent = () => {
       <DashboardTabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
 
       {activeTab === "tasks" && <MyTasksTab />}
-      {activeTab === "projects" && <MyProjectsTab />}
       {activeTab === "analytics" && <AnalyticsTab />}
     </section>
   );
