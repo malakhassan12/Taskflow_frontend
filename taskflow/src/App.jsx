@@ -41,7 +41,6 @@ import PendingProjects from "./Pages/Manager/PendingProjects";
 const MemberDashboard = lazy(() => import("./Pages/Member/MemberDashboard"));
 const ViewRequests = lazy(() => import("./Pages/Member/ViewRequests"));
 // const MemberSettings = lazy(() => import("./Pages/Member/MemberSettings"));
-const MemberProjects = lazy(() => import("./Pages/Member/MemberProjects"));
 const NewUser = lazy(() => import("./Pages/NewUser/NewUser"));
 
 // ==================== Ant Design ====================
@@ -138,13 +137,6 @@ function App() {
 
             {/* View Requests from Project Manager */}
             <Route path="view-requests" element={<ViewRequests />} />
-
-            {/* My Projects */}
-            <Route path="projects" element={<MemberProjects />}>
-              <Route path=":projectId" element={<ManageProject />}>
-                {/* Task Details with Update Status + Upload */}
-              </Route>
-            </Route>
 
             {/* Settings & Notifications */}
             <Route path="notifications" element={<Notifications />} />
