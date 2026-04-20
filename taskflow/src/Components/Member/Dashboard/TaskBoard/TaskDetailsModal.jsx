@@ -100,6 +100,34 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
     }
   };
 
+  // Fetch comments from API
+  const fetchComments = async (taskId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${API_BASE}/api/Comment`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // Filter comments by taskId
+      const filtered = response.data.filter((c) => c.taskId === taskId);
+
+      const mapped = filtered.map((c) => ({
+        id: String(c.id || c.commentId || c.Id || c.CommentId),
+        apiId: c.id || c.commentId || c.Id || c.CommentId,
+        text: c.comment || c.text || c.Comment || c.Text || "",
+        author: c.userName || c.author || c.userId || "User",
+        createdAt: c.createdAt || c.CreatedAt || c.uploadDate || new Date().toISOString(),
+      }));
+
+      return mapped;
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      return [];
+    }
+  };
+
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!task) {
@@ -121,6 +149,17 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
       }
     };
 
+    const loadComments = async () => {
+      const taskId = task.originalTask?.id;
+      if (taskId) {
+        const comments = await fetchComments(taskId);
+        setDraft((prev) => ({
+          ...prev,
+          comments,
+        }));
+      }
+    };
+
     setDraft({
       title: task.title || "",
       statusLabel: task.statusLabel || "Todo",
@@ -135,6 +174,7 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
     });
 
     loadAttachments();
+    loadComments();
     setNewComment("");
     setEditingCommentId(null);
     setEditingText("");
@@ -448,15 +488,65 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!canSave) {
       return;
     }
-    onSave?.({
-      ...task,
-      ...draft,
-      lastUpdated: "just now",
-    });
+
+    const taskId = task.originalTask?.id;
+    if (taskId == null) {
+      message.error("Cannot save task: task is missing an id.");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+
+    try {
+      const priorityMap = {
+        low: 0,
+        medium: 1,
+        high: 2,
+      };
+
+      const statusMap = {
+        "Todo": "todo",
+        "In progress": "in_progress",
+        "Done": "done",
+      };
+
+      const payload = {
+        id: taskId,
+        title: draft.title,
+        discription: draft.description,
+        projectID: task.originalTask?.projectID || 0,
+        priority: draft.priority === "low" ? 0 : draft.priority === "medium" ? 2 : draft.priority === "high" ? 3 : 0,
+        dueTime: draft.dueDate ? new Date(draft.dueDate).toISOString() : null,
+        status: statusMap[draft.statusLabel] || "todo",
+      };
+
+      await axios.put(`${API_BASE}/api/Task`, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      message.success("Task updated successfully");
+      onSave?.({
+        ...task,
+        ...draft,
+        lastUpdated: "just now",
+      });
+    } catch (error) {
+      console.error("Error saving task:", error);
+      const detail =
+        error.response?.data?.message ||
+        error.response?.data?.title ||
+        (typeof error.response?.data === "string"
+          ? error.response.data
+          : null);
+      message.error(detail || "Failed to save task");
+    }
   };
 
   return (
@@ -656,7 +746,6 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
                         />
                       ) : (
                         <p className="break-words text-xs leading-relaxed">
-                          <span className="font-medium">{comment.author}: </span>
                           {comment.text}
                         </p>
                       )}
