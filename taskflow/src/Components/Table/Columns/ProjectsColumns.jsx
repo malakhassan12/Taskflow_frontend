@@ -12,6 +12,8 @@ import { Link } from "react-router-dom";
 const ProjectsColumns = (
   handleViewProjectDetails,
   handleViewManagerDetails,
+  handleApprove,
+  handleReject,
 ) => [
   {
     title: "Project ID",
@@ -130,10 +132,16 @@ const ProjectsColumns = (
                 icon={<CheckCircleOutlined />}
                 size="small"
                 style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
+                onClick={() => handleApprove && handleApprove(record.id)}
               />
             </Tooltip>
             <Tooltip title="Reject">
-              <Button danger icon={<CloseCircleOutlined />} size="small" />
+              <Button
+                danger
+                icon={<CloseCircleOutlined />}
+                size="small"
+                onClick={() => handleReject && handleReject(record.id)}
+              />
             </Tooltip>
           </>
         )}

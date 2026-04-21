@@ -260,11 +260,14 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
     const token = localStorage.getItem("token");
 
     try {
-      await axios.delete(`${API_BASE}/api/Attachment/${attachmentId}`, {
+      console.log("Deleting attachment:", attachmentId);
+      await axios.delete(`${API_BASE}/api/Attachment/Delete`, {
+        params: { attachmentId: attachmentId },
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+      console.log("Attachment deleted successfully:", attachmentId);
 
       setDraft((prev) => ({
         ...prev,
@@ -274,6 +277,7 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
       message.success("Attachment removed successfully");
     } catch (error) {
       console.error("Error removing attachment:", error);
+      console.error("Error response:", error.response?.data);
       // Fallback to local removal if API fails
       setDraft((prev) => ({
         ...prev,
@@ -515,7 +519,7 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
       };
 
       const payload = {
-        id: taskId,
+        id: 0,
         title: draft.title,
         discription: draft.description,
         projectID: task.originalTask?.projectID || 0,
@@ -524,7 +528,10 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
         status: statusMap[draft.statusLabel] || "todo",
       };
 
+      console.log("PUT payload:", payload);
+
       await axios.put(`${API_BASE}/api/Task`, payload, {
+        params: { taskID: taskId },
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -539,6 +546,7 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
       });
     } catch (error) {
       console.error("Error saving task:", error);
+      console.error("Error response:", error.response?.data);
       const detail =
         error.response?.data?.message ||
         error.response?.data?.title ||

@@ -1,46 +1,79 @@
 import { message, Table } from "antd";
+import { useState, useEffect } from "react";
 
 import Managerscolumns from "../Columns/ManagersColumns";
-import useGetAllManagersByStatus from "../../../Hooks/Admin/useGetAllManagersByStatus";
+import { getAllUsers } from "../../../Api/api/admin.api";
+import { approveUser, rejectUser } from "../../../Api/api/manager.api";
 import TableSkelton from "../../Skelton/TableSkelton";
-import useAdminMutations from "../../../Hooks/Admin/useAdminMutations";
+
 const AllManagersTable = ({ handleViewDetails }) => {
-  const { data: approvedData, isLoading: isLoadingApproved } =
-    useGetAllManagersByStatus(true);
-
-  const { data: rejectedData, isLoading: isLoadingRejected } =
-    useGetAllManagersByStatus(false);
-
-  const data =
-    approvedData && rejectedData ? [...approvedData, ...rejectedData] : [];
-  const { approveManagerMutation, rejectManagerMutation } = useAdminMutations();
+  const [data, setData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [messageApi, contextHolder] = message.useMessage();
 
-  const handleApprove = (id) => {
-    console.log(id);
-    if (!id)
-      messageApi.open({
-        type: "warning",
-        content: "Dont Exist Userid",
-      });
+  useEffect(() => {
+    fetchAllUsers();
+  }, []);
 
-    approveManagerMutation.mutate(id, {});
+  const fetchAllUsers = async () => {
+    try {
+      setIsLoading(true);
+      const res = await getAllUsers();
+      const mappedData = Array.isArray(res) ? res.map((user) => ({
+        id: user.id,
+        name: `${user.firstName} ${user.lastName}`,
+        email: user.email,
+        company: "",
+        role: user.role,
+        status: user.isApproved ? "approved" : "pending",
+        registeredDate: user.createdAT ? new Date(user.createdAT).toISOString().split('T')[0] : "",
+      })) : [];
+      setData(mappedData);
+    } catch (error) {
+      console.error("Error fetching all users:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleReject = (id) => {
-    if (!id)
+  const handleApprove = async (id) => {
+    try {
+      await approveUser(id);
       messageApi.open({
-        type: "warning",
-        content: "Dont Exist Userid",
+        type: "success",
+        content: "Manager approved successfully",
       });
-
-    rejectManagerMutation.mutate(id, {});
+      fetchAllUsers();
+    } catch (error) {
+      console.error("Error approving manager:", error);
+      messageApi.open({
+        type: "error",
+        content: "Failed to approve manager",
+      });
+    }
   };
 
-  if (isLoadingApproved || isLoadingRejected) {
+  const handleReject = async (id) => {
+    try {
+      await rejectUser(id);
+      messageApi.open({
+        type: "warning",
+        content: "Manager rejected successfully",
+      });
+      fetchAllUsers();
+    } catch (error) {
+      console.error("Error rejecting manager:", error);
+      messageApi.open({
+        type: "error",
+        content: "Failed to reject manager",
+      });
+    }
+  };
+
+  if (isLoading) {
     return <TableSkelton />;
   }
-  console.log(data);
+
   return (
     <>
       {contextHolder}

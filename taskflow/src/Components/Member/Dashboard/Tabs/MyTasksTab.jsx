@@ -177,7 +177,7 @@ const MyTasksTab = () => {
       return [];
     }
 
-    const response = await axios.get(`http://taskflowproject1.runasp.net/api/Task/MyTasks/${currentUserId}`, {
+    const response = await axios.get(`http://taskflowproject1.runasp.net/api/User/${currentUserId}`, {
 
       headers: {
 
@@ -187,7 +187,7 @@ const MyTasksTab = () => {
 
     });
 
-
+    const tasksData = response.data.tasks || [];
 
     let overrides = loadStatusOverrides();
 
@@ -197,7 +197,7 @@ const MyTasksTab = () => {
 
     let overridesChanged = false;
 
-    for (const task of response.data) {
+    for (const task of tasksData) {
 
       const raw = getRawStatusFromTask(task);
 
@@ -222,7 +222,7 @@ const MyTasksTab = () => {
 
 
     // Convert API response to UI format
-    return response.data.map((task) => {
+    return tasksData.map((task) => {
 
       const raw = getRawStatusFromTask(task);
 

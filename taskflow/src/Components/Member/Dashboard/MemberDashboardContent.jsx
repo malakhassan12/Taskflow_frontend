@@ -1,18 +1,44 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import axios from "axios";
 import AnalyticsTab from "./Tabs/AnalyticsTab";
 import DashboardTabs from "./DashboardTabs";
-import OverdueAlert from "./OverdueAlert";
 import StatCard from "./StatCard";
 import MyTasksTab from "./Tabs/MyTasksTab";
 import { useTheme } from "../../../Context/DarkModeProvider";
 
-const statsData = [
-  { title: "Total Tasks", value: "3", subtitle: "33% completion", iconName: "tasks", colorTheme: "primary" },
-  { title: "Completed", value: "1", subtitle: "Task finished", iconName: "completed", colorTheme: "green" },
-  { title: "In Progress", value: "1", subtitle: "Active work", iconName: "inprogress", colorTheme: "orange" },
-  { title: "To Do", value: "1", subtitle: "Pending tasks", iconName: "todo", colorTheme: "purple" },
-  { title: "Overdue", value: "2", subtitle: "Needs attention", iconName: "overdue", colorTheme: "red" },
-];
+const API_BASE = "http://taskflowproject1.runasp.net";
+const STATUS_OVERRIDES_KEY = "taskflow_task_status_overrides";
+
+const loadStatusOverrides = () => {
+  try {
+    const raw = sessionStorage.getItem(STATUS_OVERRIDES_KEY);
+    if (!raw) {
+      return {};
+    }
+    return JSON.parse(raw);
+  } catch {
+    return {};
+  }
+};
+
+const mapApiStatusToUi = (status) => {
+  if (typeof status === "number") {
+    if (status === 0) return "Todo";
+    if (status === 1) return "In progress";
+    if (status === 2) return "Done";
+    if (status === 3) return "Done";
+  }
+
+  const s = String(status ?? "").trim().toLowerCase();
+  if (s === "todo" || s === "to_do" || s === "to-do") return "Todo";
+  if (s === "in_progress" || s === "inprogress" || s === "in progress") return "In progress";
+  if (s === "done" || s === "completed" || s === "complete") return "Done";
+  if (s === "approved") return "Todo";
+  return "Todo";
+};
+
+const getRawStatusFromTask = (task) =>
+  task?.status ?? task?.Status ?? task?.state ?? task?.State;
 
 const tabs = [
   { id: "tasks", label: "My Tasks" },
@@ -22,8 +48,56 @@ const tabs = [
 const MemberDashboardContent = () => {
   const [activeTab, setActiveTab] = useState("tasks");
   const { isDarkMode } = useTheme();
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const overdueCount = useMemo(() => statsData.find((item) => item.title === "Overdue")?.value || 0, []);
+  const currentUserId = JSON.parse(localStorage.getItem("user"))?.userId;
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(`${API_BASE}/api/User/${currentUserId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setTasks(response.data.tasks || []);
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (currentUserId) {
+      fetchTasks();
+    }
+  }, [currentUserId]);
+
+  const statsData = useMemo(() => {
+    const overrides = loadStatusOverrides();
+
+    const tasksWithStatus = tasks.map((task) => {
+      const raw = getRawStatusFromTask(task);
+      const idKey = String(task.id);
+      const fallbackApiStatus = overrides[idKey];
+      const effectiveRaw = raw != null && raw !== "" ? raw : fallbackApiStatus ?? raw;
+      const statusLabel = mapApiStatusToUi(effectiveRaw);
+      return { ...task, statusLabel };
+    });
+
+    const total = tasksWithStatus.length;
+    const completed = tasksWithStatus.filter((t) => t.statusLabel === "Done").length;
+    const inProgress = tasksWithStatus.filter((t) => t.statusLabel === "In progress").length;
+    const todo = tasksWithStatus.filter((t) => t.statusLabel === "Todo").length;
+    const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    return [
+      { title: "Total Tasks", value: String(total), subtitle: `${completionRate}% completion`, iconName: "tasks", colorTheme: "primary" },
+      { title: "Completed", value: String(completed), subtitle: "Task finished", iconName: "completed", colorTheme: "green" },
+      { title: "In Progress", value: String(inProgress), subtitle: "Active work", iconName: "inprogress", colorTheme: "orange" },
+      { title: "To Do", value: String(todo), subtitle: "Pending tasks", iconName: "todo", colorTheme: "purple" },
+    ];
+  }, [tasks]);
 
   return (
     <section className="space-y-6">
@@ -34,13 +108,11 @@ const MemberDashboardContent = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {statsData.map((stat) => (
           <StatCard key={stat.title} {...stat} />
         ))}
       </div>
-
-      <OverdueAlert overdueCount={overdueCount} />
 
       <DashboardTabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
 

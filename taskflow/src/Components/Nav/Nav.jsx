@@ -33,7 +33,9 @@ const Nav = () => {
 
   const navigate = useNavigate();
 
-  const role = "manager";
+  const user = JSON.parse(localStorage.getItem("user")) || {};
+  const userName = user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : "User";
+  const userRole = user.role || "Team Member";
 
   return (
     <Header
@@ -66,10 +68,10 @@ const Nav = () => {
               strong
               style={{ display: "block", fontSize: "14px", color: "white" }}
             >
-              Sarah Jenkins
+              {userName}
             </Text>
             <Text type="secondary" style={{ fontSize: "12px", color: "white" }}>
-              Project Manager
+              {userRole}
             </Text>
           </div>
         )}
@@ -105,6 +107,7 @@ const Nav = () => {
                 cursor: "pointer",
                 boxShadow: `0 2px 8px ${token.colorPrimary}40`,
               }}
+              onClick={() => navigate("/admin/settings")}
             />
           </Tooltip>
         </Flex>

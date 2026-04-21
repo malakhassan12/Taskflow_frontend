@@ -73,50 +73,33 @@ const ViewRequests = () => {
     const token = localStorage.getItem('token');
     const currentUserId = getCurrentUserId();
 
-    // For reject, only use userId (task is assigned to user)
-    // For accept, try both userId and currentUserId
-    let candidateUserIds;
-    if (!isAccepted) {
-      // Reject: only use userId
-      candidateUserIds = [userId].filter(Boolean);
-    } else {
-      // Accept: try both
-      candidateUserIds = [userId, currentUserId].filter(Boolean);
-    }
+    // Use the correct userId for the endpoint
+    const effectiveUserId = userId || currentUserId;
 
-    const uniqueUserIds = [...new Set(candidateUserIds)];
-
-    if (!uniqueUserIds.length) {
+    if (!effectiveUserId) {
       throw new Error('Could not detect current user id. Please login again.');
     }
 
-    let lastError = null;
-    for (const uId of uniqueUserIds) {
-      const requestData = {
-        taskId: Number(taskId),
-        userId: String(uId),
-        isAccepted: isAccepted,  // Send as boolean, not string
-      };
+    const endpoint = isAccepted
+      ? `http://taskflowproject1.runasp.net/api/Task/Accept`
+      : `http://taskflowproject1.runasp.net/api/Task/Reject`;
 
-      try {
-        await axios({
-          method: 'post',
-          url: 'http://taskflowproject1.runasp.net/api/Task/respond',
-          params: requestData,
-          // Endpoint expects query params only (no JSON body).
-          data: undefined,
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: '*/*',
-          },
-        });
-        return;
-      } catch (error) {
-        lastError = error;
-      }
+    try {
+      await axios({
+        method: 'post',
+        url: endpoint,
+        params: {
+          taskId: Number(taskId),
+          userId: String(effectiveUserId),
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: '*/*',
+        },
+      });
+    } catch (error) {
+      throw error;
     }
-
-    throw lastError || new Error('Failed to process task response');
   };
 
   // Accept request
