@@ -1,10 +1,70 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { FiMail, FiPhone, FiSave } from "react-icons/fi";
 import { useTheme } from "../../Context/DarkModeProvider";
 import { primaryColor } from "../../Constants/Colors";
+import { getUserProfile, updateUserProfile } from "../../Api/api/manager.api";
 
 const ProfileForm = () => {
   const { isDarkMode } = useTheme();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [profile, setProfile] = useState({
+    firstName: "",
+    lastName: "",
+    age: "",
+  });
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await getUserProfile();
+        setProfile({
+          firstName: response.firstName || "",
+          lastName: response.lastName || "",
+          age: response.age || "",
+        });
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await updateUserProfile({
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        age: parseInt(profile.age) || 0,
+      });
+
+      // Update localStorage with new profile data
+      const user = JSON.parse(localStorage.getItem("user")) || {};
+      user.firstName = profile.firstName;
+      user.lastName = profile.lastName;
+      user.age = profile.age;
+      localStorage.setItem("user", JSON.stringify(user));
+
+      console.log("Updated localStorage user:", JSON.parse(localStorage.getItem("user")));
+
+      // Force re-render of MemberNavbar by triggering a page reload or using context
+      window.location.reload();
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert("Failed to update profile");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="text-center text-sm text-slate-500">Loading profile...</div>;
+  }
 
   return (
     <div className="space-y-4">
@@ -12,30 +72,28 @@ const ProfileForm = () => {
         <h3 className={`text-lg font-semibold ${isDarkMode ? "text-slate-100" : "text-slate-800"}`}>Personal Information</h3>
         <p className={`text-sm ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>Update your personal details and profile information</p>
 
-        <div className="mt-5 flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full text-lg font-semibold text-white" style={{ backgroundColor: primaryColor }}>
-            E
-          </div>
-          <div>
-            <button
-              type="button"
-              className={`rounded-lg border px-3 py-1.5 text-xs font-medium ${isDarkMode ? "border-slate-600 bg-slate-800 text-slate-200" : "border-slate-300 bg-white text-slate-700"}`}
-            >
-              Change Photo
-            </button>
-            <p className="mt-1 text-xs text-slate-400">JPG, PNG or GIF. Max size 2MB</p>
-          </div>
-        </div>
+        <form className="mt-5 space-y-4" onSubmit={handleSave}>
+          <div className="grid grid-cols-2 gap-4">
+            <label className="block">
+              <span className="mb-1 block text-sm font-medium text-slate-700">First Name</span>
+              <input
+                type="text"
+                value={profile.firstName}
+                onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-indigo-400"
+              />
+            </label>
 
-        <form className="mt-5 space-y-4">
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-700">Full Name</span>
-            <input
-              type="text"
-              defaultValue="Emma Wilson"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-indigo-400"
-            />
-          </label>
+            <label className="block">
+              <span className="mb-1 block text-sm font-medium text-slate-700">Last Name</span>
+              <input
+                type="text"
+                value={profile.lastName}
+                onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-indigo-400"
+              />
+            </label>
+          </div>
 
           <label className="block">
             <span className="mb-1 flex items-center gap-2 text-sm font-medium text-slate-700">
@@ -44,39 +102,32 @@ const ProfileForm = () => {
             </span>
             <input
               type="email"
-              defaultValue="dev1@taskflow.com"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-indigo-400"
+              value={JSON.parse(localStorage.getItem("user"))?.email || ""}
+              disabled
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-indigo-400 bg-slate-50"
             />
           </label>
 
           <label className="block">
             <span className="mb-1 flex items-center gap-2 text-sm font-medium text-slate-700">
-              <FiPhone className="h-3.5 w-3.5" />
-              Phone Number
+              Age
             </span>
             <input
-              type="text"
-              defaultValue="+1 (555) 123-4567"
+              type="number"
+              value={profile.age}
+              onChange={(e) => setProfile({ ...profile, age: e.target.value })}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-indigo-400"
             />
           </label>
 
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-700">Bio</span>
-            <textarea
-              rows={4}
-              defaultValue="Team member focused on delivering high-quality work."
-              className="w-full resize-none rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-indigo-400"
-            />
-          </label>
-
           <button
-            type="button"
-            className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white shadow-sm"
+            type="submit"
+            disabled={saving}
+            className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ backgroundColor: primaryColor }}
           >
             <FiSave className="h-4 w-4" />
-            Save Changes
+            {saving ? "Saving..." : "Save Changes"}
           </button>
         </form>
       </article>
@@ -92,16 +143,8 @@ const ProfileForm = () => {
               <p className="text-xs text-slate-500">Your current role</p>
             </div>
             <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-600">
-              Team Member
+              {JSON.parse(localStorage.getItem("user"))?.role || "Team Member"}
             </span>
-          </div>
-
-          <div className="flex items-start justify-between py-3">
-            <div>
-              <p className="text-sm font-medium text-slate-700">Member Since</p>
-              <p className="text-xs text-slate-500">Account creation date</p>
-            </div>
-            <span className="text-sm text-slate-700">January 15, 2024</span>
           </div>
 
           <div className="flex items-start justify-between py-3">

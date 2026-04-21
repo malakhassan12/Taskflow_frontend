@@ -1,4 +1,5 @@
 import adminClient from "../client/admin.client";
+import managerClient from "../client/manager.client";
 
 const getPendingRequests = async (page = 1, limit = 10) => {
   try {
@@ -38,9 +39,19 @@ const getAllManagersByStatus = async (status, page = 1, limit = 10) => {
   }
 };
 
+const getAllUsers = async () => {
+  try {
+    const res = await managerClient.get("/User");
+    return res?.data;
+  } catch (err) {
+    throw { err };
+  }
+};
+
 export {
   getPendingRequests,
   approveManager,
   rejectManager,
   getAllManagersByStatus,
+  getAllUsers,
 };

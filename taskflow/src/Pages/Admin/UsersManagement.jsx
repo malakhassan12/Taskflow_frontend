@@ -1,5 +1,4 @@
 import { Table, Card, Space, Typography } from "antd";
-import SearchBar from "../../Components/Search/SearchBar";
 import UsersTabs from "../../Components/Tabs/Admin/UsersTabs";
 import PerformanceUsers from "../../Components/Analytics/Admin/PerformanceUsers";
 
@@ -51,7 +50,6 @@ const UsersManagement = () => {
                   Manage all users in the system (Managers & Members)
                 </Text>
               </Space>
-              <SearchBar />
             </div>
           </div>
 

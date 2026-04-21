@@ -6,6 +6,8 @@ import { useTheme } from "../Context/DarkModeProvider";
 
 const MemberLayout = () => {
   const { isDarkMode } = useTheme();
+  const user = JSON.parse(localStorage.getItem("user")) || {};
+  const memberName = user.firstName || user.name || "User";
 
   return (
     <div
@@ -14,7 +16,7 @@ const MemberLayout = () => {
       <MemberSidebar />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <MemberNavbar memberName="Emma" />
+        <MemberNavbar memberName={memberName} />
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
           <Outlet />
         </main>

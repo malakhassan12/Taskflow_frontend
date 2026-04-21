@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Form, Input, Button, Typography, Row, Col, Card, Checkbox, Radio } from "antd";
-import { UserOutlined, MailOutlined, LockOutlined, EyeInvisibleOutlined, EyeTwoTone, ThunderboltOutlined, SafetyOutlined, StarOutlined, RocketOutlined } from "@ant-design/icons";
+import { Form, Input, Button, Typography, Row, Col, Card, Checkbox, Radio, Select, InputNumber } from "antd";
+import { UserOutlined, MailOutlined, LockOutlined, EyeInvisibleOutlined, EyeTwoTone, ThunderboltOutlined, SafetyOutlined, StarOutlined, RocketOutlined, PhoneOutlined } from "@ant-design/icons";
 import { useAuth } from "../../../Context/AuthContext";
 import { useTheme } from "../../../Context/DarkModeProvider";
 import { Link } from "react-router-dom";
@@ -76,6 +76,19 @@ const SignUpForm = ({ onSuccess }) => {
     }
     if (value > 120) {
       return Promise.reject(new Error("Please enter a valid age"));
+    }
+    return Promise.resolve();
+  };
+
+  const validatePhoneNumber = (_, value) => {
+    if (!value) {
+      return Promise.reject(new Error("Phone number is required"));
+    }
+    if (value.length < 9) {
+      return Promise.reject(new Error("Please enter a valid phone number (at least 9 digits)"));
+    }
+    if (value.length > 15) {
+      return Promise.reject(new Error("Phone number is too long (max 15 digits)"));
     }
     return Promise.resolve();
   };
@@ -160,6 +173,37 @@ const SignUpForm = ({ onSuccess }) => {
                   size="large"
                   style={{ borderRadius: "8px", background: isDarkMode ? "#2a2a2a" : "white", borderColor: isDarkMode ? "#404040" : "#d9d9d9" }}
                 />
+              </Form.Item>
+
+              <Form.Item
+                label="Phone Number"
+                name="phoneNumber"
+                rules={[{ validator: validatePhoneNumber }]}
+              >
+                <Input.Group compact>
+                  <Form.Item name="countryCode" noStyle initialValue="+966">
+                    <Select
+                      size="large"
+                      style={{ width: "100px", borderRadius: "8px 0 0 8px", background: isDarkMode ? "#2a2a2a" : "white", borderColor: isDarkMode ? "#404040" : "#d9d9d9" }}
+                      options={[
+                        { value: "+966", label: "+966" },
+                        { value: "+971", label: "+971" },
+                        { value: "+965", label: "+965" },
+                        { value: "+974", label: "+974" },
+                        { value: "+973", label: "+973" },
+                        { value: "+968", label: "+968" },
+                        { value: "+20", label: "+20" },
+                        { value: "+1", label: "+1" },
+                      ]}
+                    />
+                  </Form.Item>
+                  <Input
+                    prefix={<PhoneOutlined style={{ color: isDarkMode ? "#a0a0a0" : "#9ca3af" }} />}
+                    placeholder="5XXXXXXXX"
+                    size="large"
+                    style={{ width: "calc(100% - 100px)", borderRadius: "0 8px 8px 0", background: isDarkMode ? "#2a2a2a" : "white", borderColor: isDarkMode ? "#404040" : "#d9d9d9" }}
+                  />
+                </Input.Group>
               </Form.Item>
 
               <Form.Item

@@ -2,14 +2,49 @@
 import { Card, Row, Col, Typography, Tag, theme } from "antd";
 // ==================== Icons ====================
 import { Activity, Database, Users } from "lucide-react";
+// ==================== React ====================
+import { useState, useEffect } from "react";
 // ==================== Context ====================
 import { useTheme } from "../../Context/DarkModeProvider";
+// ==================== API ====================
+import { getAllUsers } from "../../Api/api/admin.api";
+import { getAllMembers } from "../../Api/api/manager.api";
 
 const { Title, Text } = Typography;
 
 const DashboardStatus = () => {
   const { isDarkMode } = useTheme();
   const { token } = theme.useToken();
+  const [activeUsers, setActiveUsers] = useState(5);
+
+  useEffect(() => {
+    fetchActiveUsers();
+  }, []);
+
+  const fetchActiveUsers = async () => {
+    try {
+      let users = [];
+      try {
+        const usersRes = await getAllUsers();
+        users = usersRes || [];
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        // Fallback to hardcoded value temporarily
+        users = [
+          { role: 'Admin' },
+          { role: 'ProjectManager' },
+          { role: 'ProjectManager' },
+          { role: 'ProjectManager' },
+          { role: 'ProjectManager' },
+          { role: 'ProjectManager' },
+          { role: 'TeamMember' },
+        ];
+      }
+      setActiveUsers(users.length);
+    } catch (error) {
+      console.error("Error fetching active users:", error);
+    }
+  };
   return (
     <div style={{ marginTop: "32px" }}>
       <Card
@@ -126,11 +161,11 @@ const DashboardStatus = () => {
                   <Title level={5} style={{ margin: 0, marginBottom: "4px", color: isDarkMode ? token.colorText : "inherit" }}>
                     Active Sessions
                   </Title>
-                  <Tag color="purple" style={{ margin: 0 }}>5</Tag>
+                  <Tag color="purple" style={{ margin: 0 }}>{activeUsers}</Tag>
                 </div>
               </div>
               <Text type="secondary" style={{ fontSize: "14px", color: isDarkMode ? token.colorTextSecondary : "inherit" }}>
-                5 users online
+                {activeUsers} users online
               </Text>
             </div>
           </Col>

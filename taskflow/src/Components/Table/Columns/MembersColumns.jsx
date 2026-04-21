@@ -28,12 +28,7 @@ const MemberColumns = (handleViewDetails) => [
         <Avatar size={40} style={{ backgroundColor: record.avatarColor }}>
           {record.name.charAt(0)}
         </Avatar>
-        <Space orientation="vertical" size={0}>
-          <Text strong>{record.name}</Text>
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            ID: {record.id}
-          </Text>
-        </Space>
+        <Text strong>{record.name}</Text>
       </Space>
     ),
   },
@@ -111,23 +106,6 @@ const MemberColumns = (handleViewDetails) => [
       </Space>
     ),
     sorter: (a, b) => new Date(a.registeredDate) - new Date(b.registeredDate),
-  },
-  {
-    title: "Actions",
-    key: "actions",
-    width: 150,
-    render: (_, record) => (
-      <Space size="small">
-        <Tooltip title="View Details">
-          <Button
-            type="text"
-            icon={<EyeOutlined />}
-            onClick={() => handleViewDetails(record)}
-            style={{ color: "#6366f1" }}
-          />
-        </Tooltip>
-      </Space>
-    ),
   },
 ];
 

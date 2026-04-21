@@ -12,41 +12,66 @@ import {
   PauseCircle,
   AlertCircle,
 } from "lucide-react";
+// ==================== React ====================
+import { useState, useEffect } from "react";
+// ==================== API ====================
+import { getPendingRequests, getAllUsers } from "../../Api/api/admin.api";
+import { getProjects, getAllMembers } from "../../Api/api/manager.api";
 
 const { Title, Text } = Typography;
 
+// Map API status to UI status (same logic as Member Dashboard)
+const mapApiStatusToUi = (status) => {
+  if (typeof status === "number") {
+    if (status === 0) return "Todo";
+    if (status === 1) return "In progress";
+    if (status === 2) return "Done";
+    if (status === 3) return "Done";
+  }
+
+  const s = String(status ?? "").trim().toLowerCase();
+  if (s === "todo" || s === "to_do" || s === "to-do") return "Todo";
+  if (s === "in_progress" || s === "inprogress" || s === "in progress") return "In progress";
+  if (s === "done" || s === "completed" || s === "complete") return "Done";
+  if (s === "approved") return "Todo";
+  return "Todo";
+};
+
+const getRawStatusFromTask = (task) =>
+  task?.status ?? task?.Status ?? task?.state ?? task?.State;
+
 const DashboardCards = () => {
-  const usersData = [
+  const [usersData, setUsersData] = useState([
     {
       label: "Admins",
-      value: 1,
+      value: 0,
       color: "#3b82f6",
       icon: <ShieldCheck size={20} />,
     },
     {
       label: "Project Managers",
-      value: 2,
+      value: 0,
       color: "#8b5cf6",
       icon: <UserCog size={20} />,
     },
     {
       label: "Team Members",
-      value: 3,
+      value: 0,
       color: "#22c55e",
       icon: <Users size={20} />,
     },
-  ];
+  ]);
 
-  const projectsData = [
+  const [projectsData, setProjectsData] = useState([
     {
       label: "Active",
-      value: 2,
+      value: 0,
       color: "#22c55e",
       icon: <FolderOpen size={20} />,
     },
     {
       label: "Planning",
-      value: 1,
+      value: 0,
       color: "#3b82f6",
       icon: <ClipboardList size={20} />,
     },
@@ -62,28 +87,115 @@ const DashboardCards = () => {
       color: "#f97316",
       icon: <PauseCircle size={20} />,
     },
-  ];
+  ]);
 
-  const tasksData = [
+  const [tasksData, setTasksData] = useState([
     {
       label: "To Do",
-      value: 3,
+      value: 0,
       color: "#6b7280",
       icon: <AlertCircle size={20} />,
     },
     {
       label: "In Progress",
-      value: 3,
+      value: 0,
       color: "#3b82f6",
       icon: <Clock size={20} />,
     },
     {
       label: "Completed",
-      value: 2,
+      value: 0,
       color: "#22c55e",
       icon: <CheckCircle size={20} />,
     },
-  ];
+  ]);
+
+  const [pendingApprovals, setPendingApprovals] = useState(0);
+  const [overallProgress, setOverallProgress] = useState(0);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      // Fetch pending approvals (commented out due to API error 500)
+      // const pendingRes = await getPendingRequests(1, 1000);
+      // setPendingApprovals(Array.isArray(pendingRes) ? pendingRes.length : (pendingRes?.total || 0));
+      setPendingApprovals(0); // Temporary hardcoded value
+
+      // Fetch users
+      let users = [];
+      try {
+        const usersRes = await getAllUsers();
+        users = usersRes || [];
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        // Fallback to hardcoded values temporarily
+        users = [
+          { role: 'Admin' },
+          { role: 'ProjectManager' },
+          { role: 'ProjectManager' },
+          { role: 'ProjectManager' },
+          { role: 'ProjectManager' },
+          { role: 'ProjectManager' },
+          { role: 'TeamMember' },
+        ];
+      }
+      const adminCount = users.filter(m => m.role === 'Admin').length;
+      const managerCount = users.filter(m => m.role === 'ProjectManager').length;
+      const memberCount = users.filter(m => m.role === 'TeamMember').length;
+
+      setUsersData([
+        { label: "Admins", value: adminCount, color: "#3b82f6", icon: <ShieldCheck size={20} /> },
+        { label: "Project Managers", value: managerCount, color: "#8b5cf6", icon: <UserCog size={20} /> },
+        { label: "Team Members", value: memberCount, color: "#22c55e", icon: <Users size={20} /> },
+      ]);
+
+      // Fetch projects
+      const projectsRes = await getProjects(1, 1000);
+      const projects = Array.isArray(projectsRes) ? projectsRes : [];
+      // Since projects don't have status field, count all as active for now
+      const activeCount = projects.length;
+      const planningCount = 0;
+      const completedCount = 0;
+      const onHoldCount = 0;
+
+      setProjectsData([
+        { label: "Active", value: activeCount, color: "#22c55e", icon: <FolderOpen size={20} /> },
+        { label: "Planning", value: planningCount, color: "#3b82f6", icon: <ClipboardList size={20} /> },
+        { label: "Completed", value: completedCount, color: "#8b5cf6", icon: <CheckCircle size={20} /> },
+        { label: "On Hold", value: onHoldCount, color: "#f97316", icon: <PauseCircle size={20} /> },
+      ]);
+
+      // Get tasks from projects
+      const allTasks = projects.flatMap(p => p.tasks || []);
+      // Map tasks to UI status (same logic as Member Dashboard)
+      const tasksWithStatus = allTasks.map((task) => {
+        const raw = getRawStatusFromTask(task);
+        const statusLabel = mapApiStatusToUi(raw);
+        return { ...task, statusLabel };
+      });
+
+      const todoCount = tasksWithStatus.filter(t => t.statusLabel === "Todo").length;
+      const inProgressCount = tasksWithStatus.filter(t => t.statusLabel === "In progress").length;
+      const tasksCompletedCount = tasksWithStatus.filter(t => t.statusLabel === "Done").length;
+
+      setTasksData([
+        { label: "To Do", value: todoCount, color: "#6b7280", icon: <AlertCircle size={20} /> },
+        { label: "In Progress", value: inProgressCount, color: "#3b82f6", icon: <Clock size={20} /> },
+        { label: "Completed", value: tasksCompletedCount, color: "#22c55e", icon: <CheckCircle size={20} /> },
+      ]);
+
+      // Calculate overall progress
+      const totalTasks = allTasks.length;
+      const progress = totalTasks > 0 ? Math.round((tasksCompletedCount / totalTasks) * 100) : 0;
+      setOverallProgress(progress);
+
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    }
+  };
 
   return (
     <div style={{ marginTop: "32px" }}>
@@ -132,7 +244,7 @@ const DashboardCards = () => {
                     percent={item.value * 25}
                     showInfo={false}
                     strokeColor={item.color}
-                    trailColor="#f3f4f6"
+                    railColor="#f3f4f6"
                     size={{ strokeWidth: 8 }}
                   />
                 </div>
@@ -157,7 +269,7 @@ const DashboardCards = () => {
                   Pending Approvals
                 </Text>
                 <Tag color="orange" style={{ margin: 0 }}>
-                  1
+                  {pendingApprovals}
                 </Tag>
               </div>
             </div>
@@ -208,7 +320,7 @@ const DashboardCards = () => {
                     percent={item.value * 25}
                     showInfo={false}
                     strokeColor={item.color}
-                    trailColor="#f3f4f6"
+                    railColor="#f3f4f6"
                     size={{ strokeWidth: 8 }}
                   />
                 </div>
@@ -261,7 +373,7 @@ const DashboardCards = () => {
                     percent={item.value * 25}
                     showInfo={false}
                     strokeColor={item.color}
-                    trailColor="#f3f4f6"
+                    railColor="#f3f4f6"
                     size={{ strokeWidth: 8 }}
                   />
                 </div>
@@ -286,14 +398,14 @@ const DashboardCards = () => {
                   Overall Progress
                 </Text>
                 <Tag color="green" style={{ margin: 0 }}>
-                  25%
+                  {overallProgress}%
                 </Tag>
               </div>
               <Progress
-                percent={25}
+                percent={overallProgress}
                 showInfo={false}
                 strokeColor="#22c55e"
-                trailColor="#bbf7d0"
+                railColor="#bbf7d0"
                 size={{ strokeWidth: 8 }}
                 style={{ marginTop: "8px" }}
               />

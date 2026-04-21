@@ -1,7 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
- 
-  Badge,
   message,
   Tabs,
 } from "antd";
@@ -9,8 +7,7 @@ import {
 import ProjectModal from "../../../Components/Modals/ProjectModal";
 import ManagerModal from "../../../Components/Modals/Admin/ManagerModal";
 import ProjectsRequestTable from "../../Table/Admin/ProjectsRequestTable";
-import AllProjectsTable from "../../Table/Admin/AllProjectsTable";
-
+import { getPendingProjects, updateProjectStatus } from "../../../Api/api/manager.api";
 
 // ===== STATIC DATA =====
 
@@ -83,6 +80,20 @@ const RequestProjectsTabs = () => {
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [selectedManager, setSelectedManager] = useState(null);
+  const [pendingProjects, setPendingProjects] = useState([]);
+
+  useEffect(() => {
+    fetchPendingProjects();
+  }, []);
+
+  const fetchPendingProjects = async () => {
+    try {
+      const res = await getPendingProjects();
+      setPendingProjects(Array.isArray(res) ? res : []);
+    } catch (error) {
+      console.error("Error fetching pending projects:", error);
+    }
+  };
 
   const handleViewProjectDetails = (record) => {
     setSelectedProject(record);
@@ -100,29 +111,40 @@ const RequestProjectsTabs = () => {
     }
   };
 
+  const handleApprove = async (projectId) => {
+    try {
+      await updateProjectStatus(parseInt(projectId), "APPROVED");
+      message.success("Project approved successfully");
+      fetchPendingProjects();
+    } catch (error) {
+      console.error("Error approving project:", error);
+      message.error("Failed to approve project");
+    }
+  };
+
+  const handleReject = async (projectId) => {
+    try {
+      await updateProjectStatus(parseInt(projectId), "REJECTED");
+      message.warning("Project rejected successfully");
+      fetchPendingProjects();
+    } catch (error) {
+      console.error("Error rejecting project:", error);
+      message.error("Failed to reject project");
+    }
+  };
+
 
   const tabItems = [
     {
       key: "pending",
-      label: (
-        <span>
-          Pending Approval <Badge count={2} offset={[10, -2]} size="small" />
-        </span>
-      ),
+      label: "Pending Approval",
       children: (
         <ProjectsRequestTable
+          data={pendingProjects}
           handleViewProjectDetails={handleViewProjectDetails}
           handleViewManagerDetails={handleViewManagerDetails}
-        />
-      ),
-    },
-    {
-      key: "all",
-      label: "All Managers",
-      children: (
-        <AllProjectsTable
-          handleViewProjectDetails={handleViewProjectDetails}
-          handleViewManagerDetails={handleViewManagerDetails}
+          handleApprove={handleApprove}
+          handleReject={handleReject}
         />
       ),
     },

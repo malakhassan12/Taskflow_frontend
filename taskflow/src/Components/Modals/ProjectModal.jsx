@@ -15,13 +15,13 @@ const { Title, Text, Paragraph } = Typography;
 
 const ProjectModal = ({ open, setOpen, project }) => {
   project = {
-    name: project?.projectName || "Taskflow Project",
+    name: project?.name || "Taskflow Project",
     desc:
-      project?.projectDescription ||
+      project?.desc || project?.description ||
       "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Quisquam, sequi excepturi? Soluta nemo laboriosam, nulla accusantium amet, ex, ad libero doloribus quod impedit rem ab nostrum quo suscipit fugit eum!",
-    startTime: project?.dateRange?.start || "2024-01-15",
-    endTime: project?.dateRange?.end || "2024-04-30",
-    members: ["Malak", "Rawan", "Hassan"],
+    startTime: project?.startTime || project?.startDate || "2024-01-15",
+    endTime: project?.endTime || project?.endDate || "2024-04-30",
+    members: project?.members || project?.users?.map((u) => u.firstName) || [],
   };
 
   
