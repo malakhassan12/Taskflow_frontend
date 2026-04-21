@@ -53,11 +53,6 @@ function App() {
     });
   }, []);
 
-  const user = {
-    name: "Malak",
-    role: "admin",
-  };
-
   return (
     <Suspense fallback={<LoadingPage />}>
       <Routes>
@@ -145,23 +140,7 @@ function App() {
         </Route>
 
         {/* Default Redirect */}
-
-        <Route
-          path="/"
-          element={
-            user ? (
-              user.role === "admin" ? (
-                <Navigate to="/admin" />
-              ) : user.role === "manager" ? (
-                <Navigate to="/manager" />
-              ) : (
-                <Navigate to="/member" />
-              )
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
+        <Route path="/" element={<Navigate to="/login" replace />} />
 
         {/* 404 Not Found */}
         <Route path="*" element={<NotFound />} />

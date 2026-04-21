@@ -1,209 +1,113 @@
 import { useState } from "react";
 
-// ==================== Ant Design   ====================
-
-import { Table, Card, Input, Typography } from "antd";
-import { Avatar, Button, Space, Tag } from "antd";
+// ==================== Ant Design ====================
+import { Table, Card, Input, Typography, Avatar, Button, Space, Tag, Spin, Empty, Tooltip } from "antd";
 import { primaryColor } from "../../../Constants/Colors";
-
 import {
   EyeOutlined,
   DeleteOutlined,
   CommentOutlined,
+  SearchOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 
-// ==================== React-router-dom  ====================
-
+// ==================== React-router-dom ====================
 import { Link } from "react-router-dom";
 
-// ==================== Components  ====================
-
+// ==================== Components ====================
 import TasksModal from "../../Modals/TasksModal";
 import CommentsModal from "../../Modals/CommentsModal";
 import DeleteMemberModal from "../../Modals/Manager/DeleteMemeberModal";
+import useGetTeams from "../../../Hooks/Manager/useGetTeams.js";
+import { useAuth } from "../../../Context/AuthContext.jsx";
 
-const { Title } = Typography;
+const { Title , Text } = Typography;
 const { Search } = Input;
 
 const TeamTable = () => {
+  const { user } = useAuth();
+  const [searchText, setSearchText] = useState("");
   const [openTasksModal, setOpenTasksModal] = useState(false);
+  const [projectId, setProjectId] = useState(null);
+  const [memberId, setMemberId] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState(null);
 
-  const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
-  // From API
-  const data = [
-    {
-      key: "1",
-      project_id: "PRJ-001",
-      project_name: "TaskFlow Pro",
-      name: "John Brown",
-      email: "john.brown@example.com",
-      phone: "+1 234-567-8900",
-      number_of_tasks: 12,
-      completed_tasks: 8,
-      tags: ["nice", "developer"],
-      status: "in-progress",
-    },
-    {
-      key: "2",
-      project_id: "PRJ-002",
-      project_name: "E-Commerce Platform",
-      name: "Jim Green",
-      email: "jim.green@example.com",
-      phone: "+1 234-567-8901",
-      number_of_tasks: 8,
-      completed_tasks: 8,
-      tags: ["kawaii"],
-      status: "completed",
-    },
-    {
-      key: "3",
-      project_id: "PRJ-003",
-      project_name: "Mobile App Development",
-      name: "Joe Black",
-      email: "joe.black@example.com",
-      phone: "+1 234-567-8902",
-      number_of_tasks: 15,
-      completed_tasks: 5,
-      tags: ["cool", "teacher"],
-      status: "in-progress",
-    },
-    {
-      key: "4",
-      project_id: "PRJ-004",
-      project_name: "CRM System",
-      name: "Sarah Johnson",
-      email: "sarah.j@example.com",
-      phone: "+1 234-567-8903",
-      number_of_tasks: 10,
-      completed_tasks: 3,
-      tags: ["urgent", "priority"],
-      status: "pending",
-    },
-    {
-      key: "5",
-      project_id: "PRJ-005",
-      project_name: "AI Chatbot",
-      name: "Michael Lee",
-      email: "michael.lee@example.com",
-      phone: "+1 234-567-8904",
-      number_of_tasks: 20,
-      completed_tasks: 12,
-      tags: ["ai", "machine-learning"],
-      status: "in-progress",
-    },
-    {
-      key: "6",
-      project_id: "PRJ-006",
-      project_name: "Dashboard Analytics",
-      name: "Emily Davis",
-      email: "emily.d@example.com",
-      phone: "+1 234-567-8905",
-      number_of_tasks: 6,
-      completed_tasks: 6,
-      tags: ["analytics", "dashboard"],
-      status: "completed",
-    },
-    {
-      key: "7",
-      project_id: "PRJ-007",
-      project_name: "API Gateway",
-      name: "David Wilson",
-      email: "david.w@example.com",
-      phone: "+1 234-567-8906",
-      number_of_tasks: 14,
-      completed_tasks: 9,
-      tags: ["backend", "api"],
-      status: "in-progress",
-    },
-    {
-      key: "8",
-      project_id: "PRJ-008",
-      project_name: "Cloud Migration",
-      name: "Lisa Anderson",
-      email: "lisa.a@example.com",
-      phone: "+1 234-567-8907",
-      number_of_tasks: 9,
-      completed_tasks: 2,
-      tags: ["cloud", "devops"],
-      status: "pending",
-    },
-    {
-      key: "9",
-      project_id: "PRJ-009",
-      project_name: "Security Audit",
-      name: "Robert Taylor",
-      email: "robert.t@example.com",
-      phone: "+1 234-567-8908",
-      number_of_tasks: 5,
-      completed_tasks: 5,
-      tags: ["security", "audit"],
-      status: "completed",
-    },
-    {
-      key: "10",
-      project_id: "PRJ-010",
-      project_name: "UI Redesign",
-      name: "Jennifer Martin",
-      email: "jennifer.m@example.com",
-      phone: "+1 234-567-8909",
-      number_of_tasks: 18,
-      completed_tasks: 14,
-      tags: ["design", "ui-ux"],
-      status: "in-progress",
-    },
-    {
-      key: "11",
-      project_id: "PRJ-011",
-      project_name: "Database Optimization",
-      name: "James White",
-      email: "james.w@example.com",
-      phone: "+1 234-567-8910",
-      number_of_tasks: 7,
-      completed_tasks: 4,
-      tags: ["database", "performance"],
-      status: "in-progress",
-    },
-    {
-      key: "12",
-      project_id: "PRJ-012",
-      project_name: "Testing Automation",
-      name: "Patricia Clark",
-      email: "patricia.c@example.com",
-      phone: "+1 234-567-8911",
-      number_of_tasks: 11,
-      completed_tasks: 11,
-      tags: ["testing", "automation"],
-      status: "completed",
-    },
-  ];
+  const { data: teamsData, isLoading, error } = useGetTeams(user?.id);
+
+  // Transform API data to table format
+  const transformedData = teamsData?.map((item, index) => ({
+    key: item.teamMemberId || index,
+    project_id: item.projectCode,
+    project_name: item.projectName,
+    name: item.teamMemberName,
+    teamMemberId: item.teamMemberId,
+    phone: item.phone || "Not provided",
+    number_of_tasks: item.tasksCount,
+    completed_tasks: item.completedTasks || 0,
+    tags: item.tags || ["team-member"],
+    status: item.status || "active",
+  })) || [];
+
+  // Filter data based on search
+  const filteredData = transformedData.filter((item) =>
+    item.name?.toLowerCase().includes(searchText.toLowerCase()) ||
+    item.project_name?.toLowerCase().includes(searchText.toLowerCase()) ||
+    item.project_id?.toLowerCase().includes(searchText.toLowerCase())
+  );
+
+  const handleViewTasks = (record) => {
+    // Extract project ID from project_code (e.g., "PRJ-4" -> 4)
+    const extractedProjectId = record.project_id?.split('-')[1];
+    setProjectId(extractedProjectId);
+    setMemberId(record.teamMemberId);
+    setSelectedMember(record);
+    setOpenTasksModal(true);
+  };
+
+  
 
   const columns = [
     {
-      title: "Project ID",
+      title: "Project Code",
       dataIndex: "project_id",
       key: "project_id",
       width: 100,
-      render: (text) => <Tag color="blue">#{text}</Tag>,
+      fixed: "left",
+      render: (text) => (
+        <Tag color="blue" style={{ fontWeight: 500 }}>
+          {text}
+        </Tag>
+      ),
+      sorter: (a, b) => a.project_id.localeCompare(b.project_id),
     },
     {
       title: "Project Name",
       dataIndex: "project_name",
       key: "project_name",
-      width: 150,
+      width: 180,
       sorter: true,
+      ellipsis: true,
+      render: (text) => (
+        <Tooltip title={text}>
+          <span style={{ fontWeight: 500 }}>{text}</span>
+        </Tooltip>
+      ),
     },
     {
       title: "Team Member",
       dataIndex: "name",
       key: "name",
-      width: 180,
-      render: (text) => (
+      width: 200,
+      sorter: (a, b) => a.name.localeCompare(b.name),
+      render: (text, record) => (
         <Space>
           <Avatar size="small" style={{ backgroundColor: primaryColor }}>
-            {text.charAt(0)}
+            {text?.charAt(0)?.toUpperCase()}
           </Avatar>
-          <Link>{text}</Link>
+          <Link to={`/manager/members/${record.teamMemberId}`}>
+            {text}
+          </Link>
         </Space>
       ),
     },
@@ -212,6 +116,11 @@ const TeamTable = () => {
       dataIndex: "phone",
       key: "phone",
       width: 130,
+      render: (text) => (
+        <Text type="secondary" style={{ fontSize: 13 }}>
+          {text || "—"}
+        </Text>
+      ),
     },
     {
       title: "Tasks",
@@ -219,79 +128,97 @@ const TeamTable = () => {
       key: "number_of_tasks",
       width: 80,
       align: "center",
+      sorter: (a, b) => a.number_of_tasks - b.number_of_tasks,
+      render: (count) => (
+        <Tag color={count > 10 ? "orange" : count > 5 ? "blue" : "green"}>
+          {count} tasks
+        </Tag>
+      ),
     },
     {
-      title: "Tags",
-      key: "tags",
-      dataIndex: "tags",
-      width: 150,
-      render: (tags) => (
-        <Space size="small" wrap>
-          {tags?.map((tag) => (
-            <Tag key={tag} color="geekblue">
-              {tag}
-            </Tag>
-          ))}
-        </Space>
-      ),
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      width: 100,
+      align: "center",
+      render: (status) => {
+        const statusConfig = {
+          active: { color: "green", text: "Active" },
+          "in-progress": { color: "blue", text: "In Progress" },
+          completed: { color: "success", text: "Completed" },
+          pending: { color: "warning", text: "Pending" },
+        };
+        const config = statusConfig[status] || { color: "default", text: status };
+        return <Tag color={config.color}>{config.text}</Tag>;
+      },
     },
     {
       title: "Actions",
       key: "action",
-      width: 150,
+      width: 140,
       fixed: window.innerWidth >= 768 ? "right" : false,
-      render: () => (
+      render: (_, record) => (
         <Space size="small">
-          <Button
-            type="link"
-            icon={<EyeOutlined />}
-            size="small"
-            onClick={setOpenTasksModal}
-          >
-            View
-          </Button>
-          <Button
-            type="link"
-            icon={<CommentOutlined />}
-            size="small"
-            onClick={setIsCommentsModalOpen}
-          />
-
-          <Button
-            type="link"
-            icon={<DeleteOutlined />}
-            size="small"
-            danger
-            onClick={setIsDeleteModalOpen}
-          />
+          <Tooltip title="View Tasks">
+            <Button
+              type="link"
+              icon={<EyeOutlined />}
+              size="small"
+              onClick={() => handleViewTasks(record)}
+            />
+          </Tooltip>
+         
+        
         </Space>
       ),
     },
   ];
 
-  // In View =  Will appear all tasks for this member can add , delete , edit task ,  show the status of the task , appproved or reject task , dowload the complete task and filally , Show the performace in this peoject for member
+  if (isLoading) {
+    return (
+      <Card style={{ borderRadius: "12px", textAlign: "center", padding: 40 }}>
+        <Spin size="large" tip="Loading team data..." />
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card style={{ borderRadius: "12px", textAlign: "center", padding: 40 }}>
+        <Empty description="Failed to load team data" />
+      </Card>
+    );
+  }
 
   return (
     <div>
-      <TasksModal modalOpen={openTasksModal} setModalOpen={setOpenTasksModal} />
-      <CommentsModal
-        open={isCommentsModalOpen}
-        setOpen={setIsCommentsModalOpen}
+      <TasksModal
+        modalOpen={openTasksModal}
+        setModalOpen={setOpenTasksModal}
+        memberId={memberId}
+        projectId={projectId}
+        memberName={selectedMember?.name}
+        projectName={selectedMember?.project_name}
       />
+
+      
 
       <DeleteMemberModal
         open={isDeleteModalOpen}
         setOpen={setIsDeleteModalOpen}
-        memberName="John Doe"
+        memberName={selectedMember?.name}
+        projectName={selectedMember?.project_name}
         onConfirm={() => {
-          // Handle delete logic here
-          console.log("Member deleted");
+          console.log("Member deleted:", selectedMember);
+          // Add delete logic here
+          setIsDeleteModalOpen(false);
         }}
       />
-      <Card style={{ borderRadius: "12px" }}>
+
+      <Card style={{ borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
         <div
           style={{
-            marginBottom: "16px",
+            marginBottom: "20px",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
@@ -299,20 +226,37 @@ const TeamTable = () => {
             gap: "1rem",
           }}
         >
-          <Title level={4} style={{ margin: 0 }}>
-            Team Projects
-          </Title>
-          <Search placeholder="Search..." style={{ width: 250 }} />
+          <div>
+            <Title level={4} style={{ margin: 0 }}>
+              Team Projects
+            </Title>
+            <Text type="secondary">
+              Total members: {transformedData.length}
+            </Text>
+          </div>
+          
+          <Search
+            placeholder="Search by name or project..."
+            prefix={<SearchOutlined />}
+            allowClear
+            onChange={(e) => setSearchText(e.target.value)}
+            style={{ width: 280 }}
+            size="middle"
+          />
         </div>
 
         <Table
           columns={columns}
-          dataSource={data}
+          dataSource={filteredData}
           scroll={{ x: 1000 }}
           pagination={{
             pageSize: 10,
             showTotal: (total) => `Total ${total} items`,
+            showSizeChanger: true,
+            showQuickJumper: true,
           }}
+          loading={isLoading}
+          rowKey="key"
         />
       </Card>
     </div>

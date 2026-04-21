@@ -44,10 +44,17 @@ const createTask = async (data) => {
     throw { err };
   }
 };
-
-const updateTask = async () => {
+const updateTask = async (taskData) => {
   try {
+<<<<<<< HEAD
     const res = await managerClient.put(`/Task`);
+=======
+    const res = await managerClient.put(
+      `/Task?taskID=${taskData.id}`,
+      taskData,
+    );
+    console.log(res);
+>>>>>>> 36f729118b9c1affeb159234cb46150ba40bc3b8
     return res?.data;
   } catch (err) {
     throw { err };
@@ -65,13 +72,21 @@ const getTasksPerProject = async (projectId) => {
 
 const getAllMembers = async () => {
   try {
+<<<<<<< HEAD
     const res = await managerClient.get(`http://taskflowproject1.runasp.net/allteammember`);
+=======
+    const res = await managerClient.get(
+      `http://taskflowproject1.runasp.net/allteammember`,
+    );
+    console.log(res);
+>>>>>>> 36f729118b9c1affeb159234cb46150ba40bc3b8
     return res?.data;
   } catch (err) {
     throw { err };
   }
 };
 
+<<<<<<< HEAD
 const getPendingProjects = async () => {
   try {
     const res = await managerClient.get("/Project/GetPendingProjects");
@@ -138,12 +153,29 @@ const updateUserProfile = async (data) => {
 const updateProjectStatus = async (projectId, newStatus) => {
   try {
     const res = await managerClient.patch(`/Project/ProjectStatus?projectId=${projectId}&newStatus=${newStatus}`);
+=======
+const getAllMembersPerProject = async (projectId) => {
+  try {
+    const res = await managerClient.get(
+      `http://taskflowproject1.runasp.net/api/User/allTeamMemberByProjectID?id=${projectId}`,
+    );
+    console.log(res);
+>>>>>>> 36f729118b9c1affeb159234cb46150ba40bc3b8
     return res?.data;
   } catch (err) {
     throw { err };
   }
 };
 
+const getTeams = async () => {
+  try {
+    const res = await managerClient.get(`/Project/projects`);
+    console.log(res);
+    return res?.data;
+  } catch (err) {
+    throw { err };
+  }
+};
 export {
   createProject,
   getProjects,
@@ -153,6 +185,7 @@ export {
   updateTask,
   getTasksPerProject,
   getAllMembers,
+<<<<<<< HEAD
   getPendingProjects,
   getUserWithStatus,
   approveUser,
@@ -161,4 +194,8 @@ export {
   getUserProfile,
   updateUserProfile,
   updateProjectStatus,
+=======
+  getAllMembersPerProject,
+  getTeams,
+>>>>>>> 36f729118b9c1affeb159234cb46150ba40bc3b8
 };

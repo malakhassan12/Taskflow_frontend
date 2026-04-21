@@ -1,33 +1,34 @@
-import { Button, Typography, Flex, Row, Col } from "antd";
-import { UserAddOutlined } from "@ant-design/icons";
-// ==================== Cards  ====================
-
+import { Button, Typography, Flex, Row, Col, Spin, Empty } from "antd";
+import { UserAddOutlined, TeamOutlined } from "@ant-design/icons";
 import MemberCard from "../../Cards/MemberCard";
+import { useParams } from "react-router-dom";
+import useGetAllMembersPerProject from "../../../Hooks/Manager/useGetAllMembersPerProject";
 
 const { Title, Text } = Typography;
 
 const TeamTab = () => {
-  // Sample data - replace with your actual state/props
-  const members = [
-    {
-      id: 1,
-      name: "Emma Wilson",
-      email: "dev1@taskflow.com",
-      tasks: 1,
-      done: 0,
-      rate: 0,
-      completion: 0,
-    },
-       {
-      id: 2,
-      name: "Emma Wilson",
-      email: "dev1@taskflow.com",
-      tasks: 1,
-      done: 0,
-      rate: 0,
-      completion: 0,
-    },
-  ];
+  const { projectId } = useParams();
+  const {
+    data: members,
+    isLoading,
+    error,
+  } = useGetAllMembersPerProject(projectId);
+
+  if (isLoading) {
+    return (
+      <Flex justify="center" align="center" style={{ minHeight: 400 }}>
+        <Spin size="large" tip="Loading team members..." />
+      </Flex>
+    );
+  }
+
+  if (error) {
+    return (
+      <Flex justify="center" align="center" style={{ minHeight: 400 }}>
+        <Empty description="Failed to load team members" />
+      </Flex>
+    );
+  }
 
   return (
     <div style={{ padding: "24px" }}>
@@ -39,31 +40,26 @@ const TeamTab = () => {
       >
         <div>
           <Title level={4} style={{ margin: 0 }}>
-            Team Members
+            <TeamOutlined /> Team Members ({members?.length || 0})
           </Title>
           <Text type="secondary">
             Manage team members and their assignments
           </Text>
         </div>
-        <Button
-          type="primary"
-          icon={<UserAddOutlined />}
-          size="large"
-          style={{ borderRadius: "8px" }}
-        >
-          Add Member
-        </Button>
       </Flex>
 
       {/* Grid of Cards */}
-
-      <Row gutter={[16, 16]} >
-        {members.map((member, i) => (
-          <Col xs={24} sm={12} xl={6} key={i}>
-            <MemberCard member={member} />
-          </Col>
-        ))}
-      </Row>
+      {members?.length === 0 ? (
+        <Empty description="No team members found" />
+      ) : (
+        <Row gutter={[16, 16]}>
+          {members?.map((member) => (
+            <Col xs={24} sm={12} lg={8} xl={6} key={member.id}>
+              <MemberCard member={member} projectId={projectId} />
+            </Col>
+          ))}
+        </Row>
+      )}
     </div>
   );
 };

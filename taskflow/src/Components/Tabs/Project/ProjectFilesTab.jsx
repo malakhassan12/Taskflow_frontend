@@ -1,7 +1,12 @@
 import { Flex } from "antd";
 import FileCard from "../../Cards/FileCard";
+import useGetAllAttachmentPerProject from "../../../Hooks/Attachment/useGetAllAttachmentPerProject";
+import { useParams } from "react-router-dom";
 
 const ProjectFilesTab = () => {
+  const { projectId } = useParams();
+  const { data = [] } = useGetAllAttachmentPerProject(projectId);
+  console.log(data);
   const files = [
     {
       id: 1,

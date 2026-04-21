@@ -53,10 +53,10 @@ const useManagerMutations = (projectId) => {
       /// Comment here !!!
       queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
 
-      message.success("Task Created successfully!");
+      message.success("Task Update successfully!");
     },
     onError: (err) => {
-      message.error(err?.message || "Failed to Create  Task");
+      message.error(err?.message || "Failed to Update  Task");
     },
   });
 
