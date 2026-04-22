@@ -13,7 +13,7 @@ const useCommentMutations = () => {
   const pushCommentMutation = useMutation({
     mutationFn: pushComment,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["comments"] });
+      queryClient.refetchQueries({ queryKey: ["comments"] });
 
       message.success("Comment created successfully!");
     },
@@ -25,7 +25,7 @@ const useCommentMutations = () => {
   const deleteCommentMutation = useMutation({
     mutationFn: deleteComment,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["comments"] });
+      queryClient.refetchQueries({ queryKey: ["comments"] });
 
       message.success("comment deleted successfully!");
     },
@@ -38,7 +38,7 @@ const useCommentMutations = () => {
     mutationFn: editComment,
     onSuccess: () => {
       /// Comment here !!!
-      queryClient.invalidateQueries({ queryKey: ["comments"] });
+      queryClient.refetchQueries({ queryKey: ["comments"] });
 
       message.success("comment Update successfully!");
     },
