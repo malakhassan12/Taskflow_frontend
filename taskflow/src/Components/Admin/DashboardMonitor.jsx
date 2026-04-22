@@ -1,7 +1,14 @@
 // ==================== Ant Design ====================
 import { Col, Row, Typography } from "antd";
 // ==================== Icons ====================
-import { Users, UserCog, UsersRound, FolderKanban, CheckSquare, TrendingUp } from "lucide-react";
+import {
+  Users,
+  UserCog,
+  UsersRound,
+  FolderKanban,
+  CheckSquare,
+  TrendingUp,
+} from "lucide-react";
 // ==================== React ====================
 import { useState, useEffect } from "react";
 // ==================== API ====================
@@ -71,9 +78,12 @@ const DashboardMonitor = () => {
       if (status === 3) return "Done";
     }
 
-    const s = String(status ?? "").trim().toLowerCase();
+    const s = String(status ?? "")
+      .trim()
+      .toLowerCase();
     if (s === "todo" || s === "to_do" || s === "to-do") return "Todo";
-    if (s === "in_progress" || s === "inprogress" || s === "in progress") return "In progress";
+    if (s === "in_progress" || s === "inprogress" || s === "in progress")
+      return "In progress";
     if (s === "done" || s === "completed" || s === "complete") return "Done";
     if (s === "approved") return "Todo";
     return "Todo";
@@ -97,34 +107,41 @@ const DashboardMonitor = () => {
         console.error("Error fetching users:", error);
         // Fallback to hardcoded values temporarily
         users = [
-          { role: 'Admin' },
-          { role: 'ProjectManager' },
-          { role: 'ProjectManager' },
-          { role: 'ProjectManager' },
-          { role: 'ProjectManager' },
-          { role: 'ProjectManager' },
-          { role: 'TeamMember' },
+          { role: "Admin" },
+          { role: "ProjectManager" },
+          { role: "ProjectManager" },
+          { role: "ProjectManager" },
+          { role: "ProjectManager" },
+          { role: "ProjectManager" },
+          { role: "TeamMember" },
         ];
       }
-      const adminCount = users.filter(m => m.role === 'Admin').length;
-      const managerCount = users.filter(m => m.role === 'ProjectManager').length;
-      const memberCount = users.filter(m => m.role === 'TeamMember').length;
+      const adminCount = users.filter((m) => m.role === "Admin").length;
+      const managerCount = users.filter(
+        (m) => m.role === "ProjectManager",
+      ).length;
+      const memberCount = users.filter((m) => m.role === "TeamMember").length;
 
       // Fetch projects
       const projectsRes = await getProjects(1, 1000);
       const projects = Array.isArray(projectsRes) ? projectsRes : [];
 
       // Get tasks from projects
-      const allTasks = projects.flatMap(p => p.tasks || []);
+      const allTasks = projects.flatMap((p) => p.tasks || []);
       const tasksWithStatus = allTasks.map((task) => {
         const raw = getRawStatusFromTask(task);
         const statusLabel = mapApiStatusToUi(raw);
         return { ...task, statusLabel };
       });
 
-      const tasksCompletedCount = tasksWithStatus.filter(t => t.statusLabel === "Done").length;
+      const tasksCompletedCount = tasksWithStatus.filter(
+        (t) => t.statusLabel === "Done",
+      ).length;
       const totalTasks = allTasks.length;
-      const progress = totalTasks > 0 ? Math.round((tasksCompletedCount / totalTasks) * 100) : 0;
+      const progress =
+        totalTasks > 0
+          ? Math.round((tasksCompletedCount / totalTasks) * 100)
+          : 0;
 
       // Update stats
       setStats([
@@ -177,7 +194,6 @@ const DashboardMonitor = () => {
           bgColor: "#fce7f3",
         },
       ]);
-
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
     }

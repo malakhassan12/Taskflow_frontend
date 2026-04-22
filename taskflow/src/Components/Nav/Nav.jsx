@@ -21,6 +21,10 @@ import { IoIosNotificationsOutline } from "react-icons/io";
 // ==================== React-router-dom ====================
 
 import { useNavigate } from "react-router-dom";
+// ==================== React ====================
+import { useState, useEffect } from "react";
+// ==================== Context ====================
+import { useNotifications } from "../../Context/NotificationsProvider";
 
 const { Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -32,6 +36,8 @@ const Nav = () => {
   const isMobile = !screens.md;
 
   const navigate = useNavigate();
+
+  const { notifications } = useNotifications();
 
   const user = JSON.parse(localStorage.getItem("user")) || {};
   const userName = user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : "User";
@@ -78,7 +84,7 @@ const Nav = () => {
 
         <Flex align="center" gap={8}>
           <Tooltip title="Notifications">
-            <Badge dot color={token.colorPrimary} offset={[-2, 4]}>
+            <Badge count={notifications.length} color={token.colorPrimary} offset={[-2, 4]}>
               <Button
                 type="text"
                 shape="circle"
@@ -92,7 +98,10 @@ const Nav = () => {
                     style={{ fontSize: 22, color: "white" }}
                   />
                 }
-                onClick={() => navigate(`/${role}/notifications`)}
+                onClick={() => {
+                  const rolePath = userRole.toLowerCase().replace(' ', '');
+                  navigate(`/${rolePath}/notifications`);
+                }}
               />
             </Badge>
           </Tooltip>
@@ -107,7 +116,10 @@ const Nav = () => {
                 cursor: "pointer",
                 boxShadow: `0 2px 8px ${token.colorPrimary}40`,
               }}
-              onClick={() => navigate("/admin/settings")}
+              onClick={() => {
+                const rolePath = userRole.toLowerCase().replace(' ', '');
+                navigate(`/${rolePath}/settings`);
+              }}
             />
           </Tooltip>
         </Flex>

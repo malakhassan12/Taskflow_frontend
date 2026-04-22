@@ -1,12 +1,10 @@
 import React, { useState } from "react";
-import { FiLock, FiUser } from "react-icons/fi";
+import { FiUser } from "react-icons/fi";
 import ProfileForm from "../Components/Settings/ProfileForm";
-import SecuritySettings from "../Components/Settings/SecuritySettings";
 import { useTheme } from "../Context/DarkModeProvider";
 
 const tabs = [
   { id: "profile", label: "Profile", icon: <FiUser className="h-3.5 w-3.5"/> },
-  { id: "security", label: "Security", icon: <FiLock className="h-3.5 w-3.5"/> },
 ];
 
 const Settings = () => {
@@ -43,7 +41,6 @@ const Settings = () => {
       </div>
 
       {activeTab === "profile" && <ProfileForm />}
-      {activeTab === "security" && <SecuritySettings />}
     </section>
   );
 };
