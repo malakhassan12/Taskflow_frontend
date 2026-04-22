@@ -175,16 +175,12 @@ const SignUpForm = ({ onSuccess }) => {
                 />
               </Form.Item>
 
-              <Form.Item
-                label="Phone Number"
-                name="phoneNumber"
-                rules={[{ validator: validatePhoneNumber }]}
-              >
-                <Input.Group compact>
-                  <Form.Item name="countryCode" noStyle initialValue="+966">
+              <Row gutter={8}>
+                <Col span={6}>
+                  <Form.Item label="Country Code" name="countryCode" initialValue="+966">
                     <Select
                       size="large"
-                      style={{ width: "100px", borderRadius: "8px 0 0 8px", background: isDarkMode ? "#2a2a2a" : "white", borderColor: isDarkMode ? "#404040" : "#d9d9d9" }}
+                      style={{ width: "100%", borderRadius: "8px", background: isDarkMode ? "#2a2a2a" : "white", borderColor: isDarkMode ? "#404040" : "#d9d9d9" }}
                       options={[
                         { value: "+966", label: "+966" },
                         { value: "+971", label: "+971" },
@@ -197,14 +193,18 @@ const SignUpForm = ({ onSuccess }) => {
                       ]}
                     />
                   </Form.Item>
-                  <Input
-                    prefix={<PhoneOutlined style={{ color: isDarkMode ? "#a0a0a0" : "#9ca3af" }} />}
-                    placeholder="5XXXXXXXX"
-                    size="large"
-                    style={{ width: "calc(100% - 100px)", borderRadius: "0 8px 8px 0", background: isDarkMode ? "#2a2a2a" : "white", borderColor: isDarkMode ? "#404040" : "#d9d9d9" }}
-                  />
-                </Input.Group>
-              </Form.Item>
+                </Col>
+                <Col span={18}>
+                  <Form.Item label="Phone Number" name="phoneNumber" rules={[{ validator: validatePhoneNumber }]}>
+                    <Input
+                      prefix={<PhoneOutlined style={{ color: isDarkMode ? "#a0a0a0" : "#9ca3af" }} />}
+                      placeholder="5XXXXXXXX"
+                      size="large"
+                      style={{ borderRadius: "8px", background: isDarkMode ? "#2a2a2a" : "white", borderColor: isDarkMode ? "#404040" : "#d9d9d9" }}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
 
               <Form.Item
                 label="I want to sign up as"

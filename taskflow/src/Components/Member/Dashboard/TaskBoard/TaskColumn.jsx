@@ -8,7 +8,7 @@ const columnStyles = {
   done: "border-emerald-200 bg-emerald-50/40",
 };
 
-const TaskColumn = ({ title, count, items, tone, onTaskClick }) => {
+const TaskColumn = ({ title, count, items, tone, onTaskClick, onStatusChange }) => {
   const { isDarkMode } = useTheme();
 
   return (
@@ -25,7 +25,7 @@ const TaskColumn = ({ title, count, items, tone, onTaskClick }) => {
 
       <div className="space-y-3">
         {items.map((task) => (
-          <TaskCard key={task.id} {...task} onClick={() => onTaskClick?.(task)} />
+          <TaskCard key={task.id} {...task} onClick={() => onTaskClick?.(task)} onStatusChange={onStatusChange} />
         ))}
       </div>
     </section>

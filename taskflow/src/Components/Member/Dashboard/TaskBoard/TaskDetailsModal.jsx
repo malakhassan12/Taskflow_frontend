@@ -75,6 +75,7 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editingText, setEditingText] = useState("");
   const fileInputRef = useRef(null);
+  const [managerId, setManagerId] = useState("");
 
   // Fetch attachments from API
   const fetchAttachments = async (taskId) => {
@@ -128,6 +129,23 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
     }
   };
 
+  // Fetch manager ID from project
+  const fetchManagerId = async (projectId) => {
+    if (!projectId) return;
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${API_BASE}/api/Project/${projectId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log("Project data:", response.data);
+      const managerId = response.data?.managerId || response.data?.ManagerId || response.data?.createdBy || response.data?.CreatedBy || "";
+      console.log("Fetched managerId:", managerId);
+      setManagerId(managerId);
+    } catch (error) {
+      console.error("Error fetching manager ID:", error);
+    }
+  };
+
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!task) {
@@ -135,6 +153,7 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
       setNewComment("");
       setEditingCommentId(null);
       setEditingText("");
+      setManagerId("");
       return;
     }
 
@@ -160,6 +179,13 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
       }
     };
 
+    const loadManagerId = async () => {
+      const projectId = task.originalTask?.projectID;
+      if (projectId) {
+        await fetchManagerId(projectId);
+      }
+    };
+
     setDraft({
       title: task.title || "",
       statusLabel: task.statusLabel || "Todo",
@@ -175,6 +201,7 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
 
     loadAttachments();
     loadComments();
+    loadManagerId();
     setNewComment("");
     setEditingCommentId(null);
     setEditingText("");
@@ -245,7 +272,7 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
         (typeof error.response?.data === "string"
           ? error.response.data
           : null);
-      message.error(detail || "Failed to upload attachment");
+      message.error(detail || "Failed to upload attachment (Backend error: Foreign Key constraint)");
     }
 
     event.target.value = "";
@@ -337,13 +364,22 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
     try {
       const token = localStorage.getItem("token");
 
+      // Use managerId fetched from project as receiverId
+      const receiverId = managerId || "";
+
+      if (!receiverId) {
+        message.error("Cannot add comment: manager ID not found");
+        return;
+      }
+
       const response = await axios.post(
         `${API_BASE}/api/Comment`,
         {
           id: 0,
           comment: trimmed,
           taskId,
-          userId,
+          senderId: userId,
+          receiverId: receiverId,
         },
         {
           headers: {

@@ -2,18 +2,8 @@ import React, { createContext, useContext, useMemo, useState } from "react";
 
 const NotificationsContext = createContext(null);
 
-const starterNotifications = [
-  {
-    id: "seed-1",
-    type: "assigned",
-    title: "Task assigned to you",
-    message: 'You have been assigned to "Set up contact form".',
-    createdAt: Date.now() - 10 * 60 * 1000,
-  },
-];
-
 export const NotificationsProvider = ({ children }) => {
-  const [notifications, setNotifications] = useState(starterNotifications);
+  const [notifications, setNotifications] = useState([]);
 
   const addNotification = ({ type = "updated", title, message }) => {
     const item = {

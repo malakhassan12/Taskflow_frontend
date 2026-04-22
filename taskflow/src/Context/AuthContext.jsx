@@ -198,6 +198,7 @@ export const AuthProvider = ({ children }) => {
         email: formData.email.trim().toLowerCase(),
         role: formData.role === "manager" ? "ProjectManager" : "TeamMember",
         password: formData.password,
+        phone: `${formData.countryCode}${formData.phoneNumber}`,
       };
 
       // Real API call
