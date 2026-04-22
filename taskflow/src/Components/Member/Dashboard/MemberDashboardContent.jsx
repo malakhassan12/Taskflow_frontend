@@ -5,6 +5,7 @@ import DashboardTabs from "./DashboardTabs";
 import StatCard from "./StatCard";
 import MyTasksTab from "./Tabs/MyTasksTab";
 import { useTheme } from "../../../Context/DarkModeProvider";
+import { getTaskStatus } from "../../../Api/api/task.api";
 
 const API_BASE = "http://taskflowproject1.runasp.net";
 const STATUS_OVERRIDES_KEY = "taskflow_task_status_overrides";
@@ -50,6 +51,7 @@ const MemberDashboardContent = () => {
   const { isDarkMode } = useTheme();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [taskStatuses, setTaskStatuses] = useState({});
 
   const currentUserId = JSON.parse(localStorage.getItem("user"))?.userId;
 
@@ -73,11 +75,37 @@ const MemberDashboardContent = () => {
     }
   }, [currentUserId]);
 
+  // Fetch status for each task when tasks change
+  useEffect(() => {
+    const fetchTaskStatuses = async () => {
+      if (!tasks.length) return;
+
+      const statusMap = {};
+      const promises = tasks.map(async (task) => {
+        try {
+          const statusData = await getTaskStatus(task.id, task.projectID);
+          if (statusData && statusData.status && statusData.status.length > 0) {
+            statusMap[task.id] = statusData.status[0];
+          }
+        } catch (error) {
+          console.error(`Error fetching status for task ${task.id}:`, error);
+        }
+      });
+
+      await Promise.all(promises);
+      setTaskStatuses(statusMap);
+    };
+
+    fetchTaskStatuses();
+  }, [tasks]);
+
   const statsData = useMemo(() => {
     const overrides = loadStatusOverrides();
 
     const tasksWithStatus = tasks.map((task) => {
-      const raw = getRawStatusFromTask(task);
+      // Use fetched status from GetTaskStatus endpoint, fallback to task.status, then overrides
+      const fetchedStatus = taskStatuses[task.id];
+      const raw = fetchedStatus ?? getRawStatusFromTask(task);
       const idKey = String(task.id);
       const fallbackApiStatus = overrides[idKey];
       const effectiveRaw = raw != null && raw !== "" ? raw : fallbackApiStatus ?? raw;
@@ -97,7 +125,7 @@ const MemberDashboardContent = () => {
       { title: "In Progress", value: String(inProgress), subtitle: "Active work", iconName: "inprogress", colorTheme: "orange" },
       { title: "To Do", value: String(todo), subtitle: "Pending tasks", iconName: "todo", colorTheme: "purple" },
     ];
-  }, [tasks]);
+  }, [tasks, taskStatuses]);
 
   return (
     <section className="space-y-6">
