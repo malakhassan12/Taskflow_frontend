@@ -12,9 +12,9 @@ const getAllAttachmentPerProject = async (projectId) => {
   }
 };
 
-const getAttachment = async (taskId) => {
+const downloadAttachment = async (attachmentId) => {
   try {
-    const res = await attachmentClient.get(`/download/${taskId}`);
+    const res = await attachmentClient.get(`/download/${attachmentId}`);
     console.log(res);
     return res?.data;
   } catch (err) {
@@ -22,7 +22,7 @@ const getAttachment = async (taskId) => {
   }
 };
 
-const downloadAttachment = async (taskId) => {
+const getAttachment = async (taskId) => {
   try {
     const res = await attachmentClient.get(`/task/${taskId}`);
     console.log(res);

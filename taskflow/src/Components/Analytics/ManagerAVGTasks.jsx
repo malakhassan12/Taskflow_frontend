@@ -1,7 +1,4 @@
-// ==================== Ant Design  ====================
-import { Typography, Card } from "antd";
-// ==================== recharts  ====================
-
+import { Typography, Card, Spin, Empty, Row, Col, Progress } from "antd";
 import {
   ComposedChart,
   Line,
@@ -13,107 +10,136 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-// ==================== Constants  ====================
-
 import { purple } from "../../Constants/Colors";
+import useGetStatisticsForManager from "../../Hooks/Manager/useGetStatisticsForManager";
+import DataLoad from "../Loaders/DataLoad";
+import DataError from "../Error/DataError";
 
 const { Title, Text } = Typography;
 
-const avgProgressData = [
-  {
-    status: "To Do",
-    range: [0, 5], // Mostly 0, maybe some tiny prep work
-    avg: 2,
-  },
-  {
-    status: "In Progress",
-    range: [10, 90], // Wide range of progress
-    avg: 54, // The actual average
-  },
-  {
-    status: "Completed",
-    range: [100, 100], // Always 100
-    avg: 100,
-  },
-];
-
-const CustomTooltip = ({ active, payload, label }) => {
-  if (active && payload && payload.length) {
-    return (
-      <div
-        style={{
-          backgroundColor: "#fff",
-          padding: "10px",
-          border: "1px solid #ccc",
-          borderRadius: "8px",
-        }}
-      >
-        <p style={{ fontWeight: "bold", margin: 0 }}>{label}</p>
-        <p style={{ color: purple, margin: 0 }}>
-          Avg Progress: {payload[0].value}%
-        </p>
-        {payload[1] && (
-          <p style={{ color: "#999", fontSize: "12px" }}>
-            Range: {payload[1].value[0]}% - {payload[1].value[1]}%
-          </p>
-        )}
-      </div>
-    );
-  }
-  return null;
-};
-
 const ManagerAVGTasks = () => {
+  const { data, isLoading } = useGetStatisticsForManager();
+
+  const taskStatus = data?.taskStatusDistribution || {
+    toDo: 0,
+    inProgress: 0,
+    done: 0,
+  };
+
+  const totalTasks = data?.totalTasks || 0;
+
+  // More realistic progress calculations
+  const getAvgProgress = (status, count) => {
+    if (count === 0) return 0;
+    if (status === "done") return 100;
+    if (status === "inProgress") return 45; // Average progress for in-progress tasks
+    return 5; // To-do tasks have minimal progress
+  };
+
+  const getProgressRange = (status) => {
+    if (status === "done") return [100, 100];
+    if (status === "inProgress") return [15, 85];
+    return [0, 15];
+  };
+
+  const chartData = [
+    {
+      status: "To Do",
+      count: taskStatus.toDo,
+      range: getProgressRange("todo"),
+      avg: getAvgProgress("todo", taskStatus.toDo),
+      percentage: totalTasks ? (taskStatus.toDo / totalTasks) * 100 : 0,
+    },
+    {
+      status: "In Progress",
+      count: taskStatus.inProgress,
+      range: getProgressRange("inProgress"),
+      avg: getAvgProgress("inProgress", taskStatus.inProgress),
+      percentage: totalTasks ? (taskStatus.inProgress / totalTasks) * 100 : 0,
+    },
+    {
+      status: "Completed",
+      count: taskStatus.done,
+      range: getProgressRange("done"),
+      avg: getAvgProgress("done", taskStatus.done),
+      percentage: totalTasks ? (taskStatus.done / totalTasks) * 100 : 0,
+    },
+  ];
+
+  if (isLoading) {
+    return <DataLoad />;
+  }
 
   return (
     <Card style={{ borderRadius: "16px" }}>
-      <Title level={3}>Average Task Progress</Title>
-      <Text type="secondary">
-        Progression mean vs. range across task statuses
-      </Text>
+      <Title level={3}>Task Progress Analysis</Title>
+      <Text type="secondary">Average progress and distribution by status</Text>
+      {chartData[0]?.count ? (
+        <>
+          <ResponsiveContainer width="100%" height={350}>
+            <ComposedChart
+              data={chartData}
+              margin={{ top: 20, right: 30, bottom: 20, left: 0 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="status" />
+              <YAxis unit="%" domain={[0, 100]} />
+              <Tooltip />
+              <Legend />
+              <Area
+                type="monotone"
+                dataKey="range"
+                fill="#e0e7ff"
+                stroke="none"
+                name="Progress Range"
+              />
+              <Line
+                type="monotone"
+                dataKey="avg"
+                stroke={purple}
+                strokeWidth={3}
+                name="Average Progress"
+                dot={{ r: 6 }}
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
 
-      <div style={{ width: "100%", height: 350, marginTop: "20px" }}>
-        <ResponsiveContainer width="100%" height={300}>
-          <ComposedChart
-            data={avgProgressData}
-            margin={{ top: 20, right: 20, bottom: 20, left: 0 }}
-          >
-            <CartesianGrid
-              strokeDasharray="3 3"
-              vertical={false}
-              stroke="#f0f0f0"
-            />
-            <XAxis dataKey="status" axisLine={false} tickLine={false} />
-            <YAxis
-              unit="%"
-              domain={[0, 100]}
-              axisLine={false}
-              tickLine={false}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Legend verticalAlign="top" align="right" />
-
-            <Area
-              name="Progress Range"
-              type="monotone"
-              dataKey="range"
-              fill="#e0e7ff"
-              stroke="none"
-              connectNulls
-            />
-
-            <Line
-              name="Average Progress"
-              type="monotone"
-              dataKey="avg"
-              stroke={purple}
-              strokeWidth={3}
-              dot={{ r: 6, fill: purple }}
-              activeDot={{ r: 8 }}
-            />
-          </ComposedChart>
-        </ResponsiveContainer>
-      </div>
+          <Row gutter={16} style={{ marginTop: 20 }}>
+            <Col span={8} style={{ textAlign: "center" }}>
+              <Text type="secondary">📋 To Do</Text>
+              <Title level={4}>{taskStatus.toDo}</Title>
+              <Progress
+                percent={chartData[0].percentage}
+                size="small"
+                strokeColor="#f59e0b"
+                showInfo={false}
+              />
+            </Col>
+            <Col span={8} style={{ textAlign: "center" }}>
+              <Text type="secondary">⚡ In Progress</Text>
+              <Title level={4}>{taskStatus.inProgress}</Title>
+              <Progress
+                percent={chartData[1].percentage}
+                size="small"
+                strokeColor="#3b82f6"
+                showInfo={false}
+              />
+            </Col>
+            <Col span={8} style={{ textAlign: "center" }}>
+              <Text type="secondary">✅ Completed</Text>
+              <Title level={4}>{taskStatus.done}</Title>
+              <Progress
+                percent={chartData[2].percentage}
+                size="small"
+                strokeColor="#22c55e"
+                showInfo={false}
+              />
+            </Col>
+          </Row>
+        </>
+      ) : (
+        <DataError />
+      )}
     </Card>
   );
 };

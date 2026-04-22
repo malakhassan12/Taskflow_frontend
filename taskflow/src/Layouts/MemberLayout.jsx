@@ -1,27 +1,53 @@
 import React from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import MemberNavbar from "../Components/Member/Layout/MemberNavbar";
 import MemberSidebar from "../Components/Member/Layout/MemberSidebar";
-import { useTheme } from "../Context/DarkModeProvider";
+import SideBar from "../Components/SideBar/SideBar";
+import { memberMenu } from "../Constants/MemberConstants";
+import { Layout, theme } from "antd";
+import Nav from "../Components/Nav/Nav";
+import DynamicBreadcrumb from "../Components/DynamicBreadCrumb/DynamicBreadCrumb";
+import { Content } from "antd/es/layout/layout";
+import GetSelectedKeyMember from "../Functions/Member/GetSelectedKeyMember";
 
 const MemberLayout = () => {
-  const { isDarkMode } = useTheme();
-  const user = JSON.parse(localStorage.getItem("user")) || {};
-  const memberName = user.firstName || user.name || "User";
+  const {
+    token: { colorBgContainer, borderRadiusLG },
+  } = theme.useToken();
 
+  console.log(theme.useToken());
+
+  const location = useLocation();
+
+  const selectedKey = GetSelectedKeyMember(location.pathname) || "1";
   return (
-    <div
-      className={`flex min-h-screen ${isDarkMode ? "bg-slate-900" : "bg-slate-50"}`}
-    >
-      <MemberSidebar />
+    <Layout>
+      <Nav />
+      <Layout>
+        <SideBar
+          colorBgContainer={colorBgContainer}
+          items={memberMenu}
+          selectedKey={selectedKey}
+        />
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <MemberNavbar memberName={memberName} />
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
-          <Outlet />
-        </main>
-      </div>
-    </div>
+        <Layout style={{ padding: "0 24px 24px" }}>
+          <DynamicBreadcrumb />
+          <Content
+            style={{
+              padding: 24,
+              margin: 0,
+              minHeight: 280,
+              background: colorBgContainer,
+              borderRadius: borderRadiusLG,
+            }}
+          >
+            <div data-aos="fade-up" data-aos-anchor-placement="top-center">
+              <Outlet />
+            </div>
+          </Content>
+        </Layout>
+      </Layout>
+    </Layout>
   );
 };
 

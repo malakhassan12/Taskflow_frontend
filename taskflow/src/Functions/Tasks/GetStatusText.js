@@ -4,6 +4,7 @@ const getStatusText = (status) => {
       "in-progress": "In Progress",
       completed: "Completed",
       rejected: "Rejected",
+      todo : "todo"
     };
     return texts[status] || status;
   };

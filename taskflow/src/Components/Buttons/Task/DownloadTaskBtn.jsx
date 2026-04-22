@@ -1,14 +1,27 @@
-import { Button } from "antd";
-import handleDownloadTask from "../../../Functions/Tasks/DowloadTask";
+import { Button, Tooltip } from "antd";
+import handleDownloadFile from "../../../Functions/Tasks/DowloadTask";
 import { DownloadOutlined } from "@ant-design/icons";
 
-const DownloadTaskBtn = ({ record }) => {
+const DownloadTaskBtn = ({ file }) => {
+  const handleClick = () => {
+    if (file?.fileId && file?.fileName) {
+      handleDownloadFile(file.fileId, file.fileName);
+    } else if (file?.fileId) {
+      handleDownloadFile(file.fileId, `file_${file.fileId}`);
+    } else {
+      console.error("No file ID available");
+    }
+  };
+
   return (
-    <Button
-      icon={<DownloadOutlined />}
-      size="small"
-      onClick={() => handleDownloadTask(record)}
-    />
+    <Tooltip title="Download File">
+      <Button
+        icon={<DownloadOutlined />}
+        size="small"
+        onClick={handleClick}
+        type="text"
+      />
+    </Tooltip>
   );
 };
 

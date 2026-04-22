@@ -13,7 +13,8 @@ const SignUp = lazy(() => import("./Pages/Auth/SignUp/SignUp"));
 const NotFound = lazy(() => import("./Pages/NotFound"));
 const Notifications = lazy(() => import("./Pages/Notifications"));
 const Settings = lazy(() => import("./Pages/Settings"));
-const LoadingPage = lazy(() => import("./Pages/LoadingPage/LoadingPage"));
+import LoadingPage from "./Pages/LoadingPage/LoadingPage";
+
 
 // Layouts
 const AdminLayout = lazy(() => import("./Layouts/AdminLayout"));
@@ -140,7 +141,7 @@ function App() {
         </Route>
 
         {/* Default Redirect */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        {/* <Route path="/" element={<Navigate to="/login" replace />} /> */}
 
         {/* 404 Not Found */}
         <Route path="*" element={<NotFound />} />

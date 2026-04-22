@@ -2,10 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../../Context/AuthContext";
 import { getTeams } from "../../Api/api/manager.api";
 
-const useGetTeams = (managerId) => {
-  const { token } = useAuth();
+const useGetTeams = () => {
+  const { token , user } = useAuth();
+  
   return useQuery({
-    queryKey: ["teams", managerId],
+    queryKey: ["teams", user?.userId],
     queryFn: () => getTeams(),
     keepPreviousData: true,
     enabled: !!token,

@@ -8,7 +8,7 @@ const useAdminMutations = () => {
   const approveManagerMutation = useMutation({
     mutationFn: approveManager,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["pendingRequests"] });
+      queryClient.refetchQueries({ queryKey: ["pendingRequests"] });
       message.success("Manager approved successfully!");
     },
     onError: (err) => {
@@ -19,7 +19,7 @@ const useAdminMutations = () => {
   const rejectManagerMutation = useMutation({
     mutationFn: rejectManager,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["pendingRequests"] });
+      queryClient.refetchQueries({ queryKey: ["pendingRequests"] });
       message.success("Manager rejected successfully!");
     },
     onError: (err) => {
