@@ -8,7 +8,7 @@ import { useNotifications } from "../../../../Context/NotificationsProvider";
 
 import useGetTasksPerMemberAndProject from "../../../../Hooks/Task/useGetTasksPerMemberAndProject";
 import { getProjects } from "../../../../Api/api/manager.api";
-import { getTaskStatus } from "../../../../Api/api/task.api";
+import { getTasksStatus } from "../../../../Api/api/task.api";
 
 import { message } from "antd";
 
@@ -212,7 +212,7 @@ const MyTasksTab = () => {
       const statusMap = {};
       const promises = tasksData.map(async (task) => {
         try {
-          const statusData = await getTaskStatus(task.id, finalProjectId);
+          const statusData = await getTasksStatus(task.id, finalProjectId);
           if (statusData && statusData.status && statusData.status.length > 0) {
             statusMap[task.id] = statusData.status[0];
           }

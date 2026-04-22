@@ -5,7 +5,7 @@ import DashboardTabs from "./DashboardTabs";
 import StatCard from "./StatCard";
 import MyTasksTab from "./Tabs/MyTasksTab";
 import { useTheme } from "../../../Context/DarkModeProvider";
-import { getTaskStatus } from "../../../Api/api/task.api";
+import { getTasksStatus } from "../../../Api/api/task.api";
 
 const API_BASE = "http://taskflowproject1.runasp.net";
 const STATUS_OVERRIDES_KEY = "taskflow_task_status_overrides";
@@ -83,7 +83,7 @@ const MemberDashboardContent = () => {
       const statusMap = {};
       const promises = tasks.map(async (task) => {
         try {
-          const statusData = await getTaskStatus(task.id, task.projectID);
+          const statusData = await getTasksStatus(task.id, task.projectID);
           if (statusData && statusData.status && statusData.status.length > 0) {
             statusMap[task.id] = statusData.status[0];
           }
