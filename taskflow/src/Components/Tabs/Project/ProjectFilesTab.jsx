@@ -1,50 +1,51 @@
-import { Flex } from "antd";
+import { Flex, Empty, Spin, Typography } from "antd";
+import { FileOutlined } from "@ant-design/icons";
 import FileCard from "../../Cards/FileCard";
 import useGetAllAttachmentPerProject from "../../../Hooks/Attachment/useGetAllAttachmentPerProject";
 import { useParams } from "react-router-dom";
+import DataLoad from "../../Loaders/DataLoad";
+import DataError from "../../Error/DataError";
+
+const { Title, Text } = Typography;
 
 const ProjectFilesTab = () => {
   const { projectId } = useParams();
-  const { data = [] } = useGetAllAttachmentPerProject(projectId);
-  console.log(data);
-  const files = [
-    {
-      id: 1,
-      name: "project-requirements.pdf",
-      size: "2.4 MB",
-      uploadedBy: "Sarah Johnson",
-      date: "Apr 5",
-      type: "pdf",
-    },
-    {
-      id: 2,
-      name: "design-mockup.fig",
-      size: "5.1 MB",
-      uploadedBy: "Emma Wilson",
-      date: "Apr 6",
-      type: "fig",
-    },
-    {
-      id: 3,
-      name: "logo-variations.png",
-      size: "1.8 MB",
-      uploadedBy: "James Smith",
-      date: "Apr 7",
-      type: "image",
-    },
-  ];
+  const {
+    data: files,
+    isLoading,
+    error,
+  } = useGetAllAttachmentPerProject(projectId);
 
-  // Helper to get icon and color based on file type
+  console.log(files)
+  if (isLoading) {
+    return <DataLoad />;
+  }
+
+  if (error) {
+    return <DataError />;
+  }
+
   return (
-    <Flex vertical gap="middle" style={{ padding: "4px" }}>
-      {files.map((file, i) => {
-        return (
-          <div key={i}>
-            <FileCard file={file} />
-          </div>
-        );
-      })}
-    </Flex>
+    <div style={{ padding: "4px" }}>
+      {/* Header */}
+      <div style={{ marginBottom: 16 }}>
+        <Title level={4} style={{ margin: 0 }}>
+          Project Files
+        </Title>
+        <Text type="secondary">{files?.length || 0} files uploaded</Text>
+      </div>
+
+      {/* File List */}
+      {files?.length === 0 ? (
+        <Empty description="No files uploaded yet" />
+      ) : (
+        <Flex vertical gap="middle">
+          {files?.map((file) => (
+            <FileCard key={file.fileId} file={file} />
+          ))}
+        </Flex>
+      )}
+    </div>
   );
 };
 

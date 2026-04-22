@@ -4,10 +4,11 @@ const GetSelectedKeyManager = (pathname) => {
   if (pathname === "/manager") return "1";
   if (pathname.includes("/manager/teams")) return "2";
   if (pathname.includes("/manager/settings")) return "3";
+
+  if (pathname.includes("/manager/projects/pending-projects")) return "6";
   if (pathname.includes("/manager/projects/create-project")) return "5";
   if (pathname.includes("/manager/projects")) return "4";
-  if (pathname.includes("/manager/projects/pending-projects")) return "6";
-
+  
   return "1";
 };
 

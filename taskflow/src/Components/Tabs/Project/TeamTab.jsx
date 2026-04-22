@@ -3,6 +3,8 @@ import { UserAddOutlined, TeamOutlined } from "@ant-design/icons";
 import MemberCard from "../../Cards/MemberCard";
 import { useParams } from "react-router-dom";
 import useGetAllMembersPerProject from "../../../Hooks/Manager/useGetAllMembersPerProject";
+import DataError from "../../Error/DataError";
+import DataLoad from "../../Loaders/DataLoad";
 
 const { Title, Text } = Typography;
 
@@ -14,20 +16,15 @@ const TeamTab = () => {
     error,
   } = useGetAllMembersPerProject(projectId);
 
+
+
+  console.log(members)
   if (isLoading) {
-    return (
-      <Flex justify="center" align="center" style={{ minHeight: 400 }}>
-        <Spin size="large" tip="Loading team members..." />
-      </Flex>
-    );
+    return <DataLoad />;
   }
 
   if (error) {
-    return (
-      <Flex justify="center" align="center" style={{ minHeight: 400 }}>
-        <Empty description="Failed to load team members" />
-      </Flex>
-    );
+    return <DataError />;
   }
 
   return (
@@ -50,7 +47,7 @@ const TeamTab = () => {
 
       {/* Grid of Cards */}
       {members?.length === 0 ? (
-        <Empty description="No team members found" />
+        <DataError />
       ) : (
         <Row gutter={[16, 16]}>
           {members?.map((member) => (

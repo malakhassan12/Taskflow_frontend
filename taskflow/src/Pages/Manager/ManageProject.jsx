@@ -39,19 +39,12 @@ const { Title, Text } = Typography;
 const ManageProject = () => {
   const { projectId } = useParams();
 
+  console.log(projectId)
   const { data } = useGetProject(projectId);
 
   console.log(data);
 
-  // Static project data (will be replaced with API data)
-  // const data = {
-  //   name: "TaskFlow Project",
-  //   description:
-  //     "Lorem ipsum dolor sit amet consectetur adipisicing elit. Id magnam expedita hic dolorem doloremque! Atque minus ullam excepturi nam laborum.",
-  //   deadline: "2024-12-31",
-  //   members: 8,
-  //   tasks: 24,
-  // };
+ 
 
   return (
     <div style={{ minHeight: "100vh", paddingInline: 0 }}>
@@ -82,7 +75,7 @@ const ManageProject = () => {
         </Flex>
       </Card>
       {/* Should API */}
-      <PerformaceProject />
+      <PerformaceProject projectId={projectId} />
       {/* Tabs Section */}
       <Button
         type="primary"

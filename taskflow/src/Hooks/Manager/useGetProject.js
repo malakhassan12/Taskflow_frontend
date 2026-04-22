@@ -5,7 +5,7 @@ import { getProject } from "../../Api/api/manager.api";
 const useGetProject = (projectId) => {
   const { token } = useAuth();
   return useQuery({
-    queryKey: ["project"],
+    queryKey: ["project", projectId],
     queryFn: () => getProject(projectId),
     keepPreviousData: true,
     enabled: !!token,

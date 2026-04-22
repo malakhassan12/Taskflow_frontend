@@ -6,14 +6,19 @@ import {
   deleteProject,
   updateTask,
 } from "../../Api/api/manager.api";
+import { useAuth } from "../../Context/AuthContext";
 
 const useManagerMutations = (projectId) => {
   const queryClient = useQueryClient();
 
+  const { user } = useAuth();
   const createProjectMutation = useMutation({
     mutationFn: createProject,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["managerProjects"] });
+    onSuccess: (newProject) => {
+      queryClient.setQueryData(
+        ["managerProjects", user?.userId],
+        (oldData = []) => [...oldData, newProject],
+      );
 
       message.success("Project created successfully!");
     },
@@ -24,8 +29,11 @@ const useManagerMutations = (projectId) => {
 
   const deleteProjectMutation = useMutation({
     mutationFn: deleteProject,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["managerProjects"] });
+    onSuccess: (_, deletedId) => {
+      queryClient.setQueryData(
+        ["managerProjects", user?.userId],
+        (oldData = []) => oldData.filter((p) => p.id !== deletedId),
+      );
 
       message.success("Project deleted successfully!");
     },
@@ -38,8 +46,7 @@ const useManagerMutations = (projectId) => {
     mutationFn: createTask,
     onSuccess: () => {
       /// Comment here !!!
-      queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
-
+      queryClient.refetchQueries({ queryKey: ["tasks", projectId] });
       message.success("Task Created successfully!");
     },
     onError: (err) => {
@@ -51,8 +58,7 @@ const useManagerMutations = (projectId) => {
     mutationFn: updateTask,
     onSuccess: () => {
       /// Comment here !!!
-      queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
-
+      queryClient.refetchQueries({ queryKey: ["tasks", projectId] });
       message.success("Task Update successfully!");
     },
     onError: (err) => {
@@ -60,7 +66,6 @@ const useManagerMutations = (projectId) => {
     },
   });
 
-  
   return {
     createProjectMutation,
     deleteProjectMutation,

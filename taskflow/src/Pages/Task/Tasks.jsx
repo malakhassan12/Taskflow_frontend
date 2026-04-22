@@ -33,6 +33,7 @@ import TaskCard from "../../Components/Cards/TaskCard";
 import TaskModal from "../../Components/Modals/TaskModal";
 import { useParams } from "react-router-dom";
 import useGetTasksPerProject from "../../Hooks/Manager/useGetTasksPerProject";
+import DataLoad from "../../Components/Loaders/DataLoad";
 
 const { Title, Text } = Typography;
 const { Search } = Input;
@@ -93,9 +94,7 @@ const Tasks = () => {
   
   if (isLoading) {
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}>
-        <Spin size="large" tip="Loading tasks..." />
-      </div>
+     <DataLoad/>
     );
   }
   
