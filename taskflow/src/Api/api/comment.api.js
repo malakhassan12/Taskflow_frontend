@@ -1,9 +1,11 @@
 import commentClient from "../client/comment.client";
 import { createNotification } from "./notification.api";
 
-const getCommentsById = async (id) => {
+const getCommentsById = async (memberId, managerId) => {
   try {
-    const res = await commentClient.get(`/ById?Id=${id}`);
+    const res = await commentClient.get(`/ById`, {
+      params: { SenderId: managerId, ReciverID: memberId },
+    });
     console.log(res);
     return res?.data;
   } catch (err) {
@@ -13,13 +15,7 @@ const getCommentsById = async (id) => {
 
 // Update in the Back
 const pushComment = async (data) => {
-  //     {
-  //   "id": 0,
-  //   "comment": "string",
-  //   "taskId": 0,
-  //   "userId": "string",
-  //   "createdAt": "2026-04-20T18:00:20.094Z"
-  // }
+
   try {
     const res = await commentClient.post("", data);
     console.log(res);
@@ -49,7 +45,6 @@ const pushComment = async (data) => {
 };
 
 const editComment = async (commentId, data) => {
- 
   try {
     const res = await commentClient.put(`/${commentId}`, data);
     console.log(res);
