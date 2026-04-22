@@ -70,6 +70,16 @@ const getTasksStatus = async (taskId, projectId) => {
     throw { err };
   }
 };
+
+const getMyTasks = async (userId) => {
+  try {
+    const res = await taskClient.get(`/MyTasks/${userId}`);
+    return res?.data;
+  } catch (err) {
+    throw { err };
+  }
+};
+
 export {
   getTask,
   deleteTask,
@@ -78,4 +88,5 @@ export {
   approveTask,
   rejectTask,
   getTasksStatus,
+  getMyTasks,
 };

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { FiBell, FiCheckCircle, FiClock, FiEdit3, FiUserPlus } from "react-icons/fi";
+import { FiBell, FiCheckCircle, FiClock, FiEdit3, FiUserPlus, FiTrash2, FiCheck } from "react-icons/fi";
 
 import { useNotifications } from "../Context/NotificationsProvider";
 
@@ -50,7 +50,7 @@ const relativeTime = (createdAt) => {
 
 const Notifications = () => {
 
-  const { notifications, clearNotifications } = useNotifications();
+  const { notifications, clearNotifications, markAsRead, removeNotification, refetch } = useNotifications();
 
   const { isDarkMode } = useTheme();
 
@@ -60,6 +60,14 @@ const Notifications = () => {
     setLoading(true);
     clearNotifications();
     setLoading(false);
+  };
+
+  const handleMarkAsRead = async (notificationId) => {
+    await markAsRead(notificationId);
+  };
+
+  const handleDelete = async (notificationId) => {
+    await removeNotification(notificationId);
   };
 
 
@@ -90,25 +98,34 @@ const Notifications = () => {
 
           </div>
 
-          {notifications.length > 0 && (
-
+          <div className="flex items-center gap-2">
             <button
-
               type="button"
-
-              onClick={handleClearAll}
-
-              disabled={loading}
-
-              className={`rounded-md px-2 py-1 text-xs ${isDarkMode ? "text-slate-300 hover:bg-slate-800 disabled:opacity-50" : "text-slate-500 hover:bg-slate-100 disabled:opacity-50"}`}
-
+              onClick={refetch}
+              className={`rounded-md px-2 py-1 text-xs ${isDarkMode ? "text-slate-300 hover:bg-slate-800" : "text-slate-500 hover:bg-slate-100"}`}
             >
-
-              Clear all
-
+              Refresh
             </button>
+            {notifications.length > 0 && (
 
-          )}
+              <button
+
+                type="button"
+
+                onClick={handleClearAll}
+
+                disabled={loading}
+
+                className={`rounded-md px-2 py-1 text-xs ${isDarkMode ? "text-slate-300 hover:bg-slate-800 disabled:opacity-50" : "text-slate-500 hover:bg-slate-100 disabled:opacity-50"}`}
+
+              >
+
+                Clear all
+
+              </button>
+
+            )}
+          </div>
 
         </div>
 
@@ -156,6 +173,27 @@ const Notifications = () => {
 
                     </p>
 
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    {!item.isRead && (
+                      <button
+                        type="button"
+                        onClick={() => handleMarkAsRead(item.id)}
+                        className={`rounded p-1.5 ${isDarkMode ? "text-slate-400 hover:bg-slate-700" : "text-slate-500 hover:bg-slate-100"}`}
+                        title="Mark as read"
+                      >
+                        <FiCheck className="h-4 w-4" />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(item.id)}
+                      className={`rounded p-1.5 ${isDarkMode ? "text-slate-400 hover:bg-slate-700" : "text-slate-500 hover:bg-slate-100"}`}
+                      title="Delete"
+                    >
+                      <FiTrash2 className="h-4 w-4" />
+                    </button>
                   </div>
 
                 </article>

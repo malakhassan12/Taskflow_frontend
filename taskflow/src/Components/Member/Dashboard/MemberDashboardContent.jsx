@@ -5,7 +5,9 @@ import DashboardTabs from "./DashboardTabs";
 import StatCard from "./StatCard";
 import MyTasksTab from "./Tabs/MyTasksTab";
 import { useTheme } from "../../../Context/DarkModeProvider";
-import { getTasksStatus } from "../../../Api/api/task.api";
+import { getTasksStatus, getMyTasks } from "../../../Api/api/task.api";
+import useGetTasksPerMemberAndProject from "../../../Hooks/Task/useGetTasksPerMemberAndProject";
+import useGetMyTasks from "../../../Hooks/Task/useGetMyTasks";
 
 const API_BASE = "http://taskflowproject1.runasp.net";
 const STATUS_OVERRIDES_KEY = "taskflow_task_status_overrides";
@@ -54,26 +56,19 @@ const MemberDashboardContent = () => {
   const [taskStatuses, setTaskStatuses] = useState({});
 
   const currentUserId = JSON.parse(localStorage.getItem("user"))?.userId;
+  const storedProjectId = JSON.parse(localStorage.getItem("user"))?.projectId;
 
+  // Use React Query hook to fetch tasks
+  // If projectId is available, use GetTasksForOneMember, otherwise use MyTasks
+  const { data: tasksData = [], isLoading: tasksLoading } = storedProjectId
+    ? useGetTasksPerMemberAndProject(currentUserId, storedProjectId)
+    : useGetMyTasks(currentUserId);
+
+  // Update tasks state when tasksData changes
   useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await axios.get(`${API_BASE}/api/User/${currentUserId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setTasks(response.data.tasks || []);
-      } catch (error) {
-        console.error("Error fetching tasks:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (currentUserId) {
-      fetchTasks();
-    }
-  }, [currentUserId]);
+    setTasks(tasksData);
+    setLoading(tasksLoading);
+  }, [tasksData, tasksLoading]);
 
   // Fetch status for each task when tasks change
   useEffect(() => {
@@ -83,7 +78,11 @@ const MemberDashboardContent = () => {
       const statusMap = {};
       const promises = tasks.map(async (task) => {
         try {
-          const statusData = await getTasksStatus(task.id, task.projectID);
+          // Use task's own projectID if available
+          const taskProjectId = task.projectID || storedProjectId;
+          if (!taskProjectId) return;
+
+          const statusData = await getTasksStatus(task.id, taskProjectId);
           if (statusData && statusData.status && statusData.status.length > 0) {
             statusMap[task.id] = statusData.status[0];
           }
@@ -97,7 +96,7 @@ const MemberDashboardContent = () => {
     };
 
     fetchTaskStatuses();
-  }, [tasks]);
+  }, [tasks, storedProjectId]);
 
   const statsData = useMemo(() => {
     const overrides = loadStatusOverrides();
