@@ -48,10 +48,50 @@ const getAllUsers = async () => {
   }
 };
 
+const getAllNotifications = async () => {
+  try {
+    const res = await managerClient.get("/Notification");
+    return res?.data;
+  } catch (err) {
+    throw { err };
+  }
+};
+
+const getUserNotifications = async (userId) => {
+  try {
+    const res = await managerClient.get(`/Notification/user/${userId}`);
+    return res?.data;
+  } catch (err) {
+    throw { err };
+  }
+};
+
+const markNotificationAsRead = async (notificationId) => {
+  try {
+    const res = await managerClient.put(`/Notification/markAsRead/${notificationId}`);
+    return res?.data;
+  } catch (err) {
+    throw { err };
+  }
+};
+
+const deleteNotification = async (notificationId) => {
+  try {
+    const res = await managerClient.delete(`/Notification/${notificationId}`);
+    return res?.data;
+  } catch (err) {
+    throw { err };
+  }
+};
+
 export {
   getPendingRequests,
   approveManager,
   rejectManager,
   getAllManagersByStatus,
   getAllUsers,
+  getAllNotifications,
+  getUserNotifications,
+  markNotificationAsRead,
+  deleteNotification,
 };

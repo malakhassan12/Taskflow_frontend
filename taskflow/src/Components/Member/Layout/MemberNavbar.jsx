@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../../Context/DarkModeProvider";
 
 import { Header } from "antd/es/layout/layout";
-import { Grid, Avatar, Typography, Tooltip, Button, Flex } from "antd";
+import { Grid, Avatar, Typography, Tooltip, Button, Flex, Badge, theme } from "antd";
 
 // ==================== Components  ====================
 
@@ -13,11 +13,15 @@ import DarkModeBtn from "../../Buttons/DarkModeBtn";
 
 import { FaRegUser } from "react-icons/fa";
 import { IoIosNotificationsOutline } from "react-icons/io";
+// ==================== Context  ====================
+import { useNotifications } from "../../../Context/NotificationsProvider";
 // ==================== Constants  ====================
 
 const MemberNavbar = ({ memberName = "Emma" }) => {
   const navigate = useNavigate();
   const { isDarkMode } = useTheme();
+  const { token } = theme.useToken();
+  const { notifications } = useNotifications();
 
   return (
     <header
@@ -36,12 +40,14 @@ const MemberNavbar = ({ memberName = "Emma" }) => {
       <div className="flex items-center gap-2 md:gap-3">
         <Flex align="center" gap={20}>
           <Tooltip title="Notifications">
-            <Button
-              type="text"
-              shape="circle"
-              icon={<IoIosNotificationsOutline style={{ fontSize: 20 }} />}
-              onClick={() => navigate("/member/notifications")}
-            />
+            <Badge count={notifications.length} color={token.colorPrimary} offset={[-2, 4]}>
+              <Button
+                type="text"
+                shape="circle"
+                icon={<IoIosNotificationsOutline style={{ fontSize: 20 }} />}
+                onClick={() => navigate("/member/notifications")}
+              />
+            </Badge>
           </Tooltip>
 
           <Tooltip title="Profile">

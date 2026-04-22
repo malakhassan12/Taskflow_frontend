@@ -6,9 +6,12 @@ import TaskDetailsModal from "../TaskBoard/TaskDetailsModal";
 
 import { useNotifications } from "../../../../Context/NotificationsProvider";
 
-import axios from "axios";
+import { getTasksPerMemberAndProject } from "../../../../Api/api/task.api";
+import { getProjects } from "../../../../Api/api/manager.api";
 
 import { message } from "antd";
+
+import { useSearchParams } from "react-router-dom";
 
 
 
@@ -155,18 +158,28 @@ const MyTasksTab = () => {
 
   const { addNotification } = useNotifications();
 
+  const [searchParams] = useSearchParams();
+
 
 
   const fetchTasks = useCallback(async () => {
 
-    const token = localStorage.getItem("token");
-
     // Get current user ID
     let currentUserId = '';
+    let projectId = null;
     try {
       const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
       if (storedUser.userId) {
         currentUserId = storedUser.userId;
+      }
+      // Try to get projectId from URL params first
+      const urlProjectId = searchParams.get('projectId');
+      if (urlProjectId) {
+        projectId = parseInt(urlProjectId);
+      }
+      // Then try from user data or localStorage
+      else if (storedUser.projectId) {
+        projectId = storedUser.projectId;
       }
     } catch (e) {
       console.error('Error getting user ID:', e);
@@ -177,17 +190,30 @@ const MyTasksTab = () => {
       return [];
     }
 
-    const response = await axios.get(`http://taskflowproject1.runasp.net/api/User/${currentUserId}`, {
+    // If projectId is still null, try to get the first project
+    if (!projectId) {
+      try {
+        const projects = await getProjects(1, 1000);
+        if (projects && projects.length > 0) {
+          projectId = projects[0].id;
+          console.log('Using first project:', projectId);
+        }
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+      }
+    }
 
-      headers: {
+    console.log('Fetching tasks with userId:', currentUserId, 'projectId:', projectId);
 
-        Authorization: `Bearer ${token}`,
+    if (!projectId) {
+      console.error('No projectId found');
+      return [];
+    }
 
-      },
+    // Get tasks from new API endpoint
+    const tasksData = await getTasksPerMemberAndProject(currentUserId, projectId);
 
-    });
-
-    const tasksData = response.data.tasks || [];
+    console.log('Tasks data received:', tasksData);
 
     let overrides = loadStatusOverrides();
 
@@ -282,7 +308,7 @@ const MyTasksTab = () => {
 
     });
 
-  }, []);
+  }, [searchParams]);
 
 
 

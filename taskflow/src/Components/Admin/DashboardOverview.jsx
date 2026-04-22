@@ -14,13 +14,29 @@ import { useState, useEffect } from "react";
 
 import { getProjects } from "../../Api/api/manager.api";
 
-import managerClient from "../../Api/client/manager.client";
-
 
 
 const { Title, Text } = Typography;
 
+// Map API status to UI status (same logic as DashboardCards)
+const mapApiStatusToUi = (status) => {
+  if (typeof status === "number") {
+    if (status === 0) return "Todo";
+    if (status === 1) return "In progress";
+    if (status === 2) return "Done";
+    if (status === 3) return "Done";
+  }
 
+  const s = String(status ?? "").trim().toLowerCase();
+  if (s === "todo" || s === "to_do" || s === "to-do") return "Todo";
+  if (s === "in_progress" || s === "inprogress" || s === "in progress") return "In progress";
+  if (s === "done" || s === "completed" || s === "complete") return "Done";
+  if (s === "approved") return "Todo";
+  return "Todo";
+};
+
+const getRawStatusFromTask = (task) =>
+  task?.status ?? task?.Status ?? task?.state ?? task?.State;
 
 const DashboardOverview = () => {
 
@@ -92,15 +108,25 @@ const DashboardOverview = () => {
 
 
 
-      // TODO: Add TaskStatus API when available
+      // Get tasks from projects and calculate task status statistics
+      const allTasks = projects.flatMap(p => p.tasks || []);
+      const tasksWithStatus = allTasks.map((task) => {
+        const raw = getRawStatusFromTask(task);
+        const statusLabel = mapApiStatusToUi(raw);
+        return { ...task, statusLabel };
+      });
+
+      const todoCount = tasksWithStatus.filter(t => t.statusLabel === "Todo").length;
+      const inProgressCount = tasksWithStatus.filter(t => t.statusLabel === "In progress").length;
+      const tasksCompletedCount = tasksWithStatus.filter(t => t.statusLabel === "Done").length;
 
       setTaskStatusData([
 
-        { name: "To Do", value: 0, color: "#6b7280" },
+        { name: "To Do", value: todoCount, color: "#6b7280" },
 
-        { name: "In Progress", value: 0, color: "#3b82f6" },
+        { name: "In Progress", value: inProgressCount, color: "#3b82f6" },
 
-        { name: "Completed", value: 0, color: "#22c55e" },
+        { name: "Completed", value: tasksCompletedCount, color: "#22c55e" },
 
       ]);
 
