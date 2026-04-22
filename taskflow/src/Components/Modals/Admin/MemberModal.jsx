@@ -10,6 +10,8 @@ const { Title, Text, Paragraph } = Typography;
 const MemberModal = ({ viewModalOpen, setViewModalOpen, selectedMember }) => {
   const { token } = theme.useToken();
   
+
+  console.log(selectedMember)
   if (!selectedMember) return null;
 
   const memberProjects = selectedMember.projects || [];
@@ -35,7 +37,7 @@ const MemberModal = ({ viewModalOpen, setViewModalOpen, selectedMember }) => {
         <Row gutter={[24, 16]} align="middle">
           <Col xs={24} sm={6} style={{ textAlign: 'center' }}>
             <Avatar 
-              size={{ xs: 80, sm: 100, md: 110 }} // حجم بيتغير حسب الشاشة
+              size={{ xs: 80, sm: 100, md: 110 }} 
               style={{ backgroundColor: selectedMember.avatarColor || token.colorPrimary }}
             >
               {selectedMember.name?.charAt(0)}

@@ -1,124 +1,137 @@
-// ==================== Ant Design  ====================
-
-import { Card, Progress, Tag, Avatar, Space, Typography } from "antd";
-import {
-  FaRegCheckSquare,
-  FaUser,
-  FaRegCalendarAlt,
-} from "react-icons/fa";
-// ==================== Constants  ====================
-
+// ==================== Ant Design ====================
+import { Card, Tag, Avatar, Space, Typography, Flex, Progress } from "antd";
+import { FaRegCalendarAlt, FaUser, FaFolderOpen } from "react-icons/fa";
+import dayjs from "dayjs";
+// ==================== Constants ====================
 import { purple } from "../../Constants/Colors";
+import getTaskStatusColor from "../../Utils/StatusOfTasks/getTaskStatusColor";
+import getTaskStatusText from "../../Utils/StatusOfTasks/getTaskStatusText";
 
-const { Title, Text, Paragraph } = Typography;
-
-// From API
+const { Title, Text } = Typography;
 
 const ProjectCard = ({ project }) => {
+  // Format dates
+  const formatDate = (dateString) => {
+    if (!dateString) return "No date";
+    return dayjs(dateString).format("MMM DD, YYYY");
+  };
+
+  // Calculate days remaining
+  const getDaysRemaining = (endDate) => {
+    if (!endDate) return null;
+    const days = dayjs(endDate).diff(dayjs(), "day");
+    if (days < 0) return "Overdue";
+    if (days === 0) return "Due today";
+    return `${days} days left`;
+  };
+
+  
+
+  const daysRemaining = getDaysRemaining(project.endDate);
+  const totalTasks = project.tasks?.length || 0;
+  const completedTasks =
+    project.tasks?.filter((t) => t.status === "completed").length || 0;
+  const progress =
+    totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
   return (
     <Card
       hoverable
-      style={{ height: "100%" }}
-      styles={{ body: { padding: 24 } }}
+      style={{
+        height: "100%",
+        borderRadius: "12px",
+        border: "1px solid #f0f0f0",
+        transition: "all 0.3s ease",
+      }}
+      styles={{ body: { padding: "20px" } }}
     >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          marginBottom: "8px",
-        }}
+      {/* Header */}
+      <Flex
+        justify="space-between"
+        align="flex-start"
+        style={{ marginBottom: 12 }}
       >
-        <Title level={4} style={{ margin: 0 }}>
-          {project.title}
+        <Title
+          level={4}
+          style={{ margin: 0, fontSize: "16px", fontWeight: 600 }}
+        >
+          {project.name}
         </Title>
         <Tag
-          color="success"
-          style={{
-            borderRadius: "12px",
-            border: "none",
-            backgroundColor: "#f6ffed",
-            color: "#52c41a",
-            fontWeight: 500,
-          }}
+          color={getTaskStatusColor(project?.status)}
+          style={{ borderRadius: "12px", fontSize: "11px" }}
         >
-          {project.status}
+          {getTaskStatusText(project?.status)}
         </Tag>
-      </div>
+      </Flex>
 
       {/* Description */}
-      <Paragraph type="secondary" style={{ marginBottom: "24px" }}>
-        {project.description}
-      </Paragraph>
+      {project.description && (
+        <Text
+          type="secondary"
+          style={{ fontSize: "13px", display: "block", marginBottom: 16 }}
+        >
+          {project.discription}
+        </Text>
+      )}
+
+      {/* Project Info */}
+      <Flex vertical gap={12} style={{ marginBottom: 16 }}>
+        {/* Project ID */}
+        <Flex align="center" gap={8}>
+          <FaFolderOpen style={{ color: "#8c8c8c", fontSize: "12px" }} />
+          <Text type="secondary" style={{ fontSize: "12px" }}>
+            Project ID: #{project.id}
+          </Text>
+        </Flex>
+
+        {/* Manager */}
+        <Flex align="center" gap={8}>
+          <FaUser style={{ color: "#8c8c8c", fontSize: "12px" }} />
+          <Text type="secondary" style={{ fontSize: "12px" }}>
+            Manager: {project.manegerName || "Not assigned"}
+          </Text>
+        </Flex>
+
+        {/* Dates */}
+        <Flex align="center" gap={8}>
+          <FaRegCalendarAlt style={{ color: "#8c8c8c", fontSize: "12px" }} />
+          <Text type="secondary" style={{ fontSize: "12px" }}>
+            {formatDate(project.startDate)} - {formatDate(project.endDate)}
+          </Text>
+        </Flex>
+      </Flex>
+
+      {/* Tasks Count */}
+      <Flex justify="space-between" align="center" style={{ marginBottom: 8 }}>
+        <Text type="secondary" style={{ fontSize: "12px" }}>
+          Tasks
+        </Text>
+        <Text strong style={{ fontSize: "13px" }}>
+          {completedTasks}/{totalTasks} completed
+        </Text>
+      </Flex>
 
       {/* Progress Bar */}
-      <div style={{ marginBottom: "20px" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: "8px",
-          }}
-        >
-          <Text strong type="secondary">
-            Progress
-          </Text>
-          <Text strong>{project.progress}%</Text>
+      <Progress
+        percent={progress}
+        showInfo={false}
+        strokeColor={purple}
+        trailColor="#e0e7ff"
+        size="small"
+      />
+
+      {/* Days Remaining */}
+      {daysRemaining && (
+        <div style={{ marginTop: 12 }}>
+          <Tag
+            color={daysRemaining === "Overdue" ? "error" : "blue"}
+            style={{ fontSize: "11px", borderRadius: "12px" }}
+          >
+            {daysRemaining}
+          </Tag>
         </div>
-        <Progress
-          percent={project.progress}
-          showInfo={false}
-          strokeColor={purple}
-          trail="#e0e7ff"
-          size={{ strokeWidth: 20 }}
-        />
-      </div>
-
-      {/* Tasks Section */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: "16px",
-        }}
-      >
-        <Space>
-          <FaRegCheckSquare style={{ color: "#8c8c8c" }} />
-          <Text type="secondary">Tasks</Text>
-        </Space>
-        <Text strong>
-          {project.tasksCompleted}/{project.totalTasks}
-        </Text>
-      </div>
-
-      {/* Team Section */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "16px",
-        }}
-      >
-        <Space>
-          <FaUser style={{ color: "#8c8c8c" }} />
-          <Text type="secondary">Team</Text>
-        </Space>
-        <Avatar.Group max={{ count: 2 }} size="medium">
-          {project.team.map((member) => (
-            <Avatar key={member.id} style={{ backgroundColor: member.color }}>
-              {member.name}
-            </Avatar>
-          ))}
-        </Avatar.Group>
-
-      </div>
-
-      {/* Due Date Section */}
-      <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-        <FaRegCalendarAlt style={{ color: "#8c8c8c" }} />
-        <Text type="secondary">Due {project.dueDate}</Text>
-      </div>
+      )}
     </Card>
   );
 };

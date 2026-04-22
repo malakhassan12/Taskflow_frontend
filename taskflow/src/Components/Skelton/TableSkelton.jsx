@@ -1,78 +1,62 @@
-import { LikeOutlined, MessageOutlined, StarOutlined } from "@ant-design/icons";
-import { Avatar, List, Skeleton, Switch } from "antd";
+import { Skeleton, Table, Card } from "antd";
 import React from "react";
-const listData = Array.from({ length: 3 }).map((_, i) => ({
-  href: "https://ant.design",
-  title: `ant design part ${i + 1}`,
-  avatar: `https://api.dicebear.com/7.x/miniavs/svg?seed=${i}`,
-  description:
-    "Ant Design, a design language for background applications, is refined by Ant UED Team.",
-  content:
-    "We supply a series of design principles, practical patterns and high quality design resources (Sketch and Axure), to help people create their product prototypes beautifully and efficiently.",
-}));
-const IconText = ({ icon, text }) => (
-  <>
-    {React.createElement(icon, { style: { marginInlineEnd: 8 } })}
-    {text}
-  </>
-);
-const TableSkelton = () => {
+
+const TableSkeleton = ({ rows = 5 }) => {
+  const data = Array.from({ length: rows }).map((_, i) => ({ key: i }));
+
+  const columns = [
+    {
+      title: <Skeleton.Input active size="small" style={{ width: 60 }} />,
+      dataIndex: "id",
+      key: "id",
+      width: 100,
+      render: () => <Skeleton.Input active size="small" style={{ width: 50 }} />,
+    },
+    {
+      title: <Skeleton.Input active size="small" style={{ width: 80 }} />,
+      dataIndex: "name",
+      key: "name",
+      width: 150,
+      render: () => <Skeleton.Input active size="small" style={{ width: 120 }} />,
+    },
+    {
+      title: <Skeleton.Input active size="small" style={{ width: 60 }} />,
+      dataIndex: "startDate",
+      key: "startDate",
+      width: 80,
+      render: () => <Skeleton.Input active size="small" style={{ width: 70 }} />,
+    },
+    {
+      title: <Skeleton.Input active size="small" style={{ width: 60 }} />,
+      dataIndex: "endDate",
+      key: "endDate",
+      width: 80,
+      render: () => <Skeleton.Input active size="small" style={{ width: 70 }} />,
+    },
+    {
+      title: <Skeleton.Input active size="small" style={{ width: 50 }} />,
+      key: "action",
+      width: 150,
+      render: () => (
+        <div style={{ display: "flex", gap: 8 }}>
+          <Skeleton.Button active size="small" />
+          <Skeleton.Button active size="small" />
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <>
-      <Switch checked={true} style={{ marginBottom: 16 }} />
-      <List
-        itemLayout="vertical"
-        size="large"
-        dataSource={listData}
-        renderItem={(item) => (
-          <List.Item
-            key={item.title}
-            actions={
-              <>
-                <IconText
-                  icon={StarOutlined}
-                  text="156"
-                  key="list-vertical-star-o"
-                />
-                ,
-                <IconText
-                  icon={LikeOutlined}
-                  text="156"
-                  key="list-vertical-like-o"
-                />
-                ,
-                <IconText
-                  icon={MessageOutlined}
-                  text="2"
-                  key="list-vertical-message"
-                />
-                ,
-              </>
-            }
-            extra={
-             
-                <img
-                  draggable={false}
-                  width={272}
-                  alt="logo"
-                  src="https://gw.alipayobjects.com/zos/rmsportal/mqaQswcyDLcXyDKnZfES.png"
-                />
-             
-            }
-          >
-            <Skeleton true={true} active avatar>
-              <List.Item.Meta
-                avatar={<Avatar src={item.avatar} />}
-                title={<a href={item.href}>{item.title}</a>}
-                description={item.description}
-              />
-              {item.content}
-            </Skeleton>
-          </List.Item>
-        )}
+    <Card style={{ borderRadius: 12 }}>
+      <Skeleton active paragraph={{ rows: 0 }} style={{ marginBottom: 16 }} />
+      <Table
+        columns={columns}
+        dataSource={data}
+        pagination={false}
+        rowKey="key"
       />
-    </>
+    </Card>
   );
 };
 
-export default TableSkelton;
+export default TableSkeleton;

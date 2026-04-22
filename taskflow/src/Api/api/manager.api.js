@@ -9,9 +9,12 @@ const createProject = async (data) => {
   }
 };
 
-const getProjects = async (page = 1, limit = 10) => {
+const getProjects = async (managerId) => {
+  console.log(managerId);
   try {
-    const res = await managerClient.get(`/Project?page=${page}&limit=${limit}`);
+    const res = await managerClient.get(`/Project/manager`, {
+      params: { managerId: managerId },
+    });
     return res?.data;
   } catch (err) {
     throw { err };
@@ -141,7 +144,9 @@ const updateUserProfile = async (data) => {
 
 const updateProjectStatus = async (projectId, newStatus) => {
   try {
-    const res = await managerClient.patch(`/Project/ProjectStatus?projectId=${projectId}&newStatus=${newStatus}`);
+    const res = await managerClient.patch(
+      `/Project/ProjectStatus?projectId=${projectId}&newStatus=${newStatus}`,
+    );
     return res?.data;
   } catch (err) {
     throw { err };
@@ -167,6 +172,36 @@ const getTeams = async () => {
     throw { err };
   }
 };
+
+const getStatisticsForManager = async () => {
+  try {
+    const res = await managerClient.get(`/Project/Statistics`);
+    return res?.data;
+  } catch (err) {
+    throw { err };
+  }
+};
+
+const getTaskStatusPerProject = async (projectId) => {
+  try {
+    const res = await managerClient.get(`/Project/TaskStatus`, {
+      params: { projectId: projectId },
+    });
+    return res?.data;
+  } catch (err) {
+    throw { err };
+  }
+};
+
+const getMember = async (id) => {
+  try {
+    const res = await managerClient.get(`/User/${id}`);
+    return res?.data;
+  } catch (err) {
+    throw { err };
+  }
+};
+
 export {
   createProject,
   getProjects,
@@ -186,4 +221,7 @@ export {
   updateProjectStatus,
   getAllMembersPerProject,
   getTeams,
+  getStatisticsForManager,
+  getTaskStatusPerProject,
+  getMember,
 };

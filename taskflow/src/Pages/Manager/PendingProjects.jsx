@@ -11,6 +11,8 @@ import {
   Col,
   Modal,
   Divider,
+  Spin,
+  Avatar,
 } from "antd";
 import {
   EyeOutlined,
@@ -19,38 +21,17 @@ import {
   CalendarOutlined,
   ClockCircleOutlined,
   FileTextOutlined,
+  CheckCircleOutlined,
 } from "@ant-design/icons";
-
+import useGetPendingProjects from "../../Hooks/Manager/useGetPerndingProjects";
+import dayjs from "dayjs";
 const { Title, Text, Paragraph } = Typography;
 
-const myPendingProjects = [
-  {
-    id: "PRJ-001",
-    name: "E-Commerce Platform",
-    description:
-      "A full-featured e-commerce platform with payment integration.",
-    members: ["Malak Youssef", "Rawan Ahmed", "Hassan Ibrahim"],
-    numOfMembers: 3,
-    submittedDate: "2024-03-15",
-    status: "pending",
-    estimatedDuration: "4 months",
-  },
-  {
-    id: "PRJ-002",
-    name: "Task Management App",
-    description: "A productivity app for task tracking and team collaboration.",
-    members: ["Laila Mostafa", "Omar Hassan", "Ahmed Ali"],
-    numOfMembers: 3,
-    submittedDate: "2024-03-14",
-    status: "pending",
-    estimatedDuration: "3 months",
-  },
-];
-
 const PendingProjects = () => {
-  const [projects, _setProjects] = useState(myPendingProjects);
   const [selectedProject, setSelectedProject] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+
+  const { data: projects } = useGetPendingProjects();
 
   const handleViewDetails = (record) => {
     setSelectedProject(record);
@@ -58,23 +39,25 @@ const PendingProjects = () => {
   };
 
   return (
-    <div style={{ padding: "16px", background: "#f8fafc", minHeight: "100vh" }}>
+    <div style={{ padding: "16px", minHeight: "100vh" }}>
       {/* Header */}
       <div style={{ marginBottom: "20px" }}>
         <Title level={4} style={{ margin: 0, fontWeight: 600 }}>
-          My Pending Projects
+          Pending Projects
         </Title>
         <Text type="secondary">Projects waiting for admin approval</Text>
       </div>
 
-      {projects.length > 0 ? (
+      {projects?.length > 0 ? (
         <Row gutter={[16, 16]}>
           {projects.map((project) => (
             <Col xs={24} sm={12} lg={8} key={project.id}>
               <Card
+                hoverable
                 style={{
                   borderRadius: "12px",
                   boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)",
+                  height: "100%",
                 }}
                 styles={{ body: { padding: "16px" } }}
               >
@@ -92,41 +75,85 @@ const PendingProjects = () => {
                       {project.name}
                     </Text>
                     <div style={{ marginTop: "4px" }}>
-                      <Tag color="geekblue" style={{ fontSize: "11px" }}>
-                        {project.id}
+                      <Tag color="blue" style={{ fontSize: "11px" }}>
+                        ID: {project.id}
                       </Tag>
                     </div>
                   </div>
-                  <Badge status="warning" text="Pending" />
+                  <Badge status="warning" text={project.status || "Pending"} />
                 </div>
 
                 <Divider style={{ margin: "12px 0" }} />
+
+                {/* Description */}
+                {project.description && (
+                  <Paragraph
+                    type="secondary"
+                    ellipsis={{ rows: 2 }}
+                    style={{ marginBottom: "12px", fontSize: "13px" }}
+                  >
+                    {project.description}
+                  </Paragraph>
+                )}
+
+                {/* Manager Info */}
+                {project.maneger && (
+                  <div style={{ marginBottom: "12px" }}>
+                    <Space>
+                      <UserOutlined style={{ color: "#94a3b8" }} />
+                      <Text type="secondary">
+                        Manager: {project.maneger.firstName}{" "}
+                        {project.maneger.lastName}
+                      </Text>
+                    </Space>
+                  </div>
+                )}
 
                 {/* Team Info */}
                 <div style={{ marginBottom: "12px" }}>
                   <Space>
                     <TeamOutlined style={{ color: "#94a3b8" }} />
                     <Text type="secondary">
-                      {project.numOfMembers} Team Members
+                      {project.users?.length || 0} Team Members
                     </Text>
                   </Space>
                 </div>
 
-                {/* Submitted Date */}
+                {/* Tasks Info */}
                 <div style={{ marginBottom: "16px" }}>
                   <Space>
-                    <CalendarOutlined style={{ color: "#94a3b8" }} />
+                    <CheckCircleOutlined style={{ color: "#94a3b8" }} />
                     <Text type="secondary">
-                      Submitted: {project.submittedDate}
+                      {project.tasks?.length || 0} Tasks
                     </Text>
+                  </Space>
+                </div>
+
+                {/* Dates */}
+                <div style={{ marginBottom: "16px" }}>
+                  <Space orientation="vertical" size={4}>
+                    <Space>
+                      <CalendarOutlined style={{ color: "#94a3b8" }} />
+                      <Text type="secondary">
+                        Start: {dayjs(project.startDate).format("YYYY-MM-DD")}
+                      </Text>
+                    </Space>
+                    <Space>
+                      <ClockCircleOutlined style={{ color: "#94a3b8" }} />
+                      <Text type="secondary">
+                        End: {dayjs(project.endDate).format("YYYY-MM-DD")}
+                      </Text>
+                    </Space>
                   </Space>
                 </div>
 
                 {/* View Button */}
                 <Button
+                  type="primary"
                   icon={<EyeOutlined />}
                   onClick={() => handleViewDetails(project)}
                   style={{ width: "100%" }}
+                  ghost
                 >
                   View Details
                 </Button>
@@ -146,7 +173,7 @@ const PendingProjects = () => {
       <Modal
         open={modalOpen}
         onCancel={() => setModalOpen(false)}
-        width={500}
+        width={550}
         footer={[
           <Button key="close" onClick={() => setModalOpen(false)}>
             Close
@@ -161,44 +188,85 @@ const PendingProjects = () => {
       >
         {selectedProject && (
           <div>
-            <Title level={5}>{selectedProject.name}</Title>
-            <Tag color="geekblue">{selectedProject.id}</Tag>
+            {/* Project Title */}
+            <Title level={4} style={{ marginBottom: 4 }}>
+              {selectedProject.name}
+            </Title>
+            <Space>
+              <Tag color="blue">ID: {selectedProject.id}</Tag>
+              <Badge
+                status="warning"
+                text={selectedProject.status || "Pending"}
+              />
+            </Space>
 
             <Divider />
 
+            {/* Description */}
             <Text strong>Description</Text>
             <Paragraph style={{ marginTop: "8px" }}>
-              {selectedProject.description}
+              {selectedProject.description || "No description provided"}
             </Paragraph>
 
+            {/* Manager */}
+            {selectedProject.maneger && (
+              <>
+                <Text strong>Project Manager</Text>
+                <div style={{ marginTop: "8px", marginBottom: "16px" }}>
+                  <Tag icon={<UserOutlined />} color="blue">
+                    {selectedProject.maneger.firstName}{" "}
+                    {selectedProject.maneger.lastName}
+                  </Tag>
+                </div>
+              </>
+            )}
+
+            {/* Team Members */}
             <Text strong>Team Members</Text>
             <div style={{ marginTop: "8px", marginBottom: "16px" }}>
-              <Space wrap>
-                {selectedProject.members.map((member, idx) => (
-                  <Tag key={idx} icon={<UserOutlined />} color="blue">
-                    {member}
-                  </Tag>
-                ))}
+              {selectedProject.users?.length > 0 ? (
+                <Space wrap>
+                  {selectedProject.users.map((user, idx) => (
+                    <Tag key={idx} icon={<UserOutlined />} color="geekblue">
+                      {user.firstName} {user.lastName}
+                    </Tag>
+                  ))}
+                </Space>
+              ) : (
+                <Text type="secondary">No team members assigned</Text>
+              )}
+            </div>
+
+            {/* Timeline */}
+            <Text strong>Timeline</Text>
+            <div style={{ marginTop: "8px", marginBottom: "16px" }}>
+              <Space orientation="vertical">
+                <Text type="secondary">
+                  <CalendarOutlined /> Start Date:{" "}
+                  {dayjs(selectedProject.startDate).format("YYYY-MM-DD")}
+                </Text>
+                <Text type="secondary">
+                  <ClockCircleOutlined /> End Date:{" "}
+                  {dayjs(selectedProject.endDate).format("YYYY-MM-DD")}
+                </Text>
               </Space>
             </div>
 
-            <Text strong>Timeline</Text>
-            <div style={{ marginTop: "8px" }}>
-              <Space orientation="vertical">
-                <Text type="secondary">
-                  <CalendarOutlined /> Submitted:{" "}
-                  {selectedProject.submittedDate}
-                </Text>
-                <Text type="secondary">
-                  <ClockCircleOutlined /> Estimated:{" "}
-                  {selectedProject.estimatedDuration}
-                </Text>
-              </Space>
+            {/* Tasks */}
+            <Text strong>Tasks</Text>
+            <div style={{ marginTop: "8px", marginBottom: "16px" }}>
+              <Tag color="green">
+                {selectedProject.tasks?.length || 0} Tasks
+              </Tag>
             </div>
 
             <Divider />
 
-            <Badge status="warning" text="Waiting for admin approval" />
+            <Badge
+              status="warning"
+              text="Waiting for admin approval"
+              style={{ marginTop: "8px" }}
+            />
           </div>
         )}
       </Modal>

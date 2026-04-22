@@ -1,42 +1,97 @@
 import React from "react";
 import { formatRegistrationDate } from "../../Utils/TimeFormatt";
-import { Flex, Space, Tag, Typography } from "antd"; // Fixed import
+import { Flex, Typography, Tag } from "antd";
 import BackBtn from "../Buttons/BackBtn";
-import {  // Fixed Title import - it should be from Typography, not skeleton
+import {
   CalendarOutlined,
+  ThunderboltOutlined,
+  FlagOutlined,
 } from "@ant-design/icons";
 import TextSkelton from "../Skelton/TextSkelton";
 
-const { Title, Text } = Typography; // Correct way to import Title and Text
+const { Title, Text } = Typography;
 
 const ProjectBox = ({ name, description, endDate }) => {
-  // Check if all required props exist and are valid
   const hasValidData = name && description && endDate;
 
   return (
     <>
+      <Flex justify="end">
+        <BackBtn />
+      </Flex>
+
       {hasValidData ? (
-        <Space direction="vertical" size="middle" style={{ width: "100%" }}> {/* Changed size to "middle" */}
-          <Flex justify="end">
-            <BackBtn />
-          </Flex>
-          <Title level={2} style={{ margin: "16px 0 8px 0" }}>
-            {name}
-          </Title>
-          <Text
-            type="secondary"
-            style={{ maxWidth: "600px", display: "block" }}
+        <div style={{ width: "100%" }}>
+          {/* Hero Section - No Card, Just Content */}
+          <div
+            style={{
+              padding: "48px 0 24px 0",
+              borderBottom: "2px solid #f0f0f0",
+            }}
           >
-            {description}
-          </Text>
-          <Tag
-            icon={<CalendarOutlined />}
-            color="blue"
-            style={{ marginTop: "8px" }}
-          >
-            Deadline: {formatRegistrationDate(endDate)}
-          </Tag>
-        </Space>
+            {/* Icon Badge */}
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: "linear-gradient(135deg, #1890ff10, #722ed110)",
+                padding: "6px 16px",
+                borderRadius: 40,
+                marginBottom: 24,
+              }}
+            >
+              <ThunderboltOutlined style={{ color: "#1890ff", fontSize: 14 }} />
+              <Text style={{ fontSize: 12, fontWeight: 500, color: "#1890ff" }}>
+                ACTIVE PROJECT
+              </Text>
+            </div>
+
+            {/* Project Name */}
+            <Title
+              level={1}
+             
+            >
+              {name}
+            </Title>
+
+            {/* Description */}
+            <Text
+              style={{
+                fontSize: 18,
+                color: "#666",
+                lineHeight: 1.6,
+                display: "block",
+                maxWidth: "80%",
+                marginBottom: 24,
+              }}
+            >
+              {description}
+            </Text>
+
+            {/* Deadline Badge */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                padding: "12px 20px",
+                borderRadius: 12,
+                width: "fit-content",
+              }}
+            >
+              <CalendarOutlined style={{ fontSize: 20, color: "#1890ff" }} />
+              <div>
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  Deadline
+                </Text>
+                <Text strong style={{ fontSize: 16, display: "block" }}>
+                  {formatRegistrationDate(endDate)}
+                </Text>
+              </div>
+            </div>
+          </div>
+        </div>
       ) : (
         <TextSkelton />
       )}

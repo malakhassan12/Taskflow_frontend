@@ -8,6 +8,8 @@ import {
   Flex,
   theme,
   Badge,
+  Dropdown,
+  Space,
 } from "antd";
 
 // ==================== Components ====================
@@ -16,15 +18,16 @@ import Logo from "../Logo/Logo";
 import DarkModeBtn from "../Buttons/DarkModeBtn";
 
 // ==================== Icons ====================
-import { FaRegUser } from "react-icons/fa";
+import { FaRegUser, FaChevronDown } from "react-icons/fa";
 import { IoIosNotificationsOutline } from "react-icons/io";
+import { IoLogOutOutline } from "react-icons/io5";
+import { AiOutlineSetting } from "react-icons/ai";
 // ==================== React-router-dom ====================
 
 import { useNavigate } from "react-router-dom";
-// ==================== React ====================
-import { useState, useEffect } from "react";
 // ==================== Context ====================
 import { useNotifications } from "../../Context/NotificationsProvider";
+import { useAuth } from "../../Context/AuthContext";
 
 const { Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -32,6 +35,7 @@ const { useBreakpoint } = Grid;
 const Nav = () => {
   const screens = useBreakpoint();
   const { token } = theme.useToken();
+  const { logout } = useAuth();
 
   const isMobile = !screens.md;
 
@@ -39,9 +43,30 @@ const Nav = () => {
 
   const { notifications } = useNotifications();
 
-  const user = JSON.parse(localStorage.getItem("user")) || {};
-  const userName = user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : "User";
-  const userRole = user.role || "Team Member";
+  const { user } = useAuth();
+  console.log(user);
+
+  const userName = user?.name || "Team Member";
+
+  const userRole = user?.role || "User";
+  const userAvatar = user.name?.charAt(0) || "U";
+
+  // User menu items
+  const userMenuItems = [
+    {
+      key: "profile",
+      label: "Profile Settings",
+      icon: <AiOutlineSetting />,
+      onClick: () => navigate("settings"),
+    },
+    {
+      key: "logout",
+      label: "Logout",
+      icon: <IoLogOutOutline />,
+      danger: true,
+      onClick: () => logout(),
+    },
+  ];
 
   return (
     <Header
@@ -53,76 +78,101 @@ const Nav = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        backdropFilter: "blur(10px)",
-        padding: isMobile ? "0 12px" : "0 24px",
+        background: token.colorBgContainer,
+        borderBottom: `1px solid ${token.colorBorderSecondary}`,
+        padding: isMobile ? "0 16px" : "0 24px",
         height: "64px",
         transition: "all 0.3s ease",
+        boxShadow: "0 1px 4px rgba(0, 0, 0, 0.05)",
       }}
     >
       {/* LEFT SECTION: Brand & Menu */}
-      <Flex align="center" gap={isMobile ? 8 : 16}>
+      <Flex align="center" gap={isMobile ? 12 : 20}>
         {isMobile && <OpenDrawerBtn />}
         <Logo collapsed={isMobile} />
       </Flex>
 
       {/* RIGHT SECTION: Actions & User */}
       <Flex align="center" gap={isMobile ? 12 : 20}>
-        {/* Responsive Greeting */}
-        {!isMobile && (
-          <div style={{ textAlign: "right", lineHeight: "1.2" }}>
-            <Text
-              strong
-              style={{ display: "block", fontSize: "14px", color: "white" }}
-            >
-              {userName}
-            </Text>
-            <Text type="secondary" style={{ fontSize: "12px", color: "white" }}>
-              {userRole}
-            </Text>
-          </div>
-        )}
-
-        <Flex align="center" gap={8}>
-          <Tooltip title="Notifications">
-            <Badge count={notifications.length} color={token.colorPrimary} offset={[-2, 4]}>
-              <Button
-                type="text"
-                shape="circle"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-                icon={
-                  <IoIosNotificationsOutline
-                    style={{ fontSize: 22, color: "white" }}
-                  />
-                }
-                onClick={() => {
-                  const rolePath = userRole.toLowerCase().replace(' ', '');
-                  navigate(`/${rolePath}/notifications`);
-                }}
-              />
-            </Badge>
-          </Tooltip>
-
-          <DarkModeBtn />
-
-          <Tooltip title="Account Settings">
-            <Avatar
-              size={isMobile ? "default" : "large"}
-              icon={<FaRegUser />}
+        {/* Notifications */}
+        <Tooltip title="Notifications">
+          <Badge
+            count={notifications?.length || 0}
+            color={token.colorPrimary}
+            offset={[-2, 4]}
+            size="small"
+          >
+            <Button
+              type="text"
+              shape="circle"
               style={{
-                cursor: "pointer",
-                boxShadow: `0 2px 8px ${token.colorPrimary}40`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 40,
+                height: 40,
               }}
-              onClick={() => {
-                const rolePath = userRole.toLowerCase().replace(' ', '');
-                navigate(`/${rolePath}/settings`);
-              }}
+              icon={
+                <IoIosNotificationsOutline
+                  style={{ fontSize: 20, color: token.colorText }}
+                />
+              }
+              onClick={() => navigate("notifications")}
             />
-          </Tooltip>
-        </Flex>
+          </Badge>
+        </Tooltip>
+
+        {/* Dark Mode Toggle */}
+        <DarkModeBtn />
+
+        {/* User Dropdown */}
+        <Dropdown
+          menu={{ items: userMenuItems }}
+          placement="bottomRight"
+          trigger={["click"]}
+          arrow
+        >
+          <div
+            style={{
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              padding: "4px 8px",
+              borderRadius: 24,
+              transition: "all 0.3s ease",
+              background: token.colorBgTextHover,
+            }}
+          >
+            <Avatar
+              size={isMobile ? 32 : 36}
+              style={{
+                backgroundColor: token.colorPrimary,
+                cursor: "pointer",
+                boxShadow: `0 2px 8px ${token.colorPrimary}30`,
+              }}
+            >
+              {userAvatar}
+            </Avatar>
+
+            {!isMobile && (
+              <Space orientation="vertical" size={0} style={{ lineHeight: 1.2 }}>
+                <Text strong style={{ fontSize: 13 }}>
+                  {userName}
+                </Text>
+                <Text type="secondary" style={{ fontSize: 11 }}>
+                  {userRole}
+                </Text>
+              </Space>
+            )}
+
+            {!isMobile && (
+              <FaChevronDown
+                style={{ fontSize: 10, color: token.colorTextSecondary }}
+              />
+            )}
+          </div>
+        </Dropdown>
       </Flex>
     </Header>
   );

@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import {
   Card,
   Input,
@@ -27,6 +26,9 @@ import TaskModal from "../../Modals/TaskModal";
 import useGetTasksPerProject from "../../../Hooks/Manager/useGetTasksPerProject";
 import { useParams } from "react-router-dom";
 import AddNewTaskBtn from "../../Buttons/Task/AddNewTaskBtn";
+import DataLoad from "../../Loaders/DataLoad";
+import useSearch from "../../../Context/SearchContext";
+import SearchBar from "../../Search/SearchBar";
 
 const { Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -38,10 +40,9 @@ const TasksTab = () => {
 
   const { data: projectData, isLoading } = useGetTasksPerProject(projectId);
 
-  const [searchText, setSearchText] = useState("");
-  const [filterPriority, setFilterPriority] = useState("all");
-
   const tasks = projectData?.tasks || [];
+
+  console.log(tasks);
 
   const getPriorityColor = (priority) => {
     const colors = { 1: "green", 2: "blue", 3: "orange", 4: "red" };
@@ -53,21 +54,10 @@ const TasksTab = () => {
     return texts[priority] || "None";
   };
 
-  const filteredTasks = tasks.filter((task) => {
-    const matchesSearch = task.title
-      ?.toLowerCase()
-      .includes(searchText.toLowerCase());
-    const matchesPriority =
-      filterPriority === "all" || task.priority === parseInt(filterPriority);
-    return matchesSearch && matchesPriority;
-  });
+  const { _, setSearchTerm, filteredData } = useSearch(tasks, ["title"]);
 
   if (isLoading) {
-    return (
-      <Flex justify="center" style={{ padding: 40 }}>
-        <Spin />
-      </Flex>
-    );
+    return <DataLoad />;
   }
 
   return (
@@ -80,35 +70,21 @@ const TasksTab = () => {
 
       {/* Search & Filter */}
       <Flex gap="small" style={{ marginBottom: 16 }} wrap>
-        <Input
-          placeholder="Search tasks..."
-          prefix={<SearchOutlined />}
-          allowClear
-          onChange={(e) => setSearchText(e.target.value)}
-          style={{ width: isMobile ? "100%" : 250 }}
-        />
-        <Select
-          style={{ width: 120 }}
-          value={filterPriority}
-          onChange={setFilterPriority}
-          options={[
-            { label: "All", value: "all" },
-            { label: "Urgent", value: "4" },
-            { label: "High", value: "3" },
-            { label: "Medium", value: "2" },
-            { label: "Low", value: "1" },
-          ]}
-        />
+        <SearchBar
+          onSearch={setSearchTerm}
+          placeholder="Search member or project..."
+        />{" "}
+      
       </Flex>
 
       {/* Task List */}
       <Flex vertical gap={12}>
-        {filteredTasks.length === 0 ? (
+        {filteredData.length === 0 ? (
           <Card>
             <Empty description="No tasks" />
           </Card>
         ) : (
-          filteredTasks.map((task) => (
+          filteredData.map((task) => (
             <Card key={task.id} size="small" hoverable>
               <Flex justify="space-between" align="center" wrap="wrap" gap={12}>
                 <Flex vertical gap={4} style={{ flex: 1 }}>
