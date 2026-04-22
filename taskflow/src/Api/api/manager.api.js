@@ -202,6 +202,51 @@ const getMember = async (id) => {
   }
 };
 
+const getAllProjects = async () => {
+  try {
+    const res = await managerClient.get("/Project/projects");
+    return res?.data;
+  } catch (err) {
+    throw { err };
+  }
+};
+
+const getProjectStatistics = async () => {
+  try {
+    const res = await managerClient.get("/Project/Statistics");
+    return res?.data;
+  } catch (err) {
+    throw { err };
+  }
+};
+
+const getProjectProgress = async (projectId) => {
+  try {
+    const res = await managerClient.get(`/Project/progress/${projectId}`);
+    return res?.data;
+  } catch (err) {
+    throw { err };
+  }
+};
+
+const getProjectTaskStatus = async () => {
+  try {
+    const res = await managerClient.get("/Project/TaskStatus");
+    return res?.data;
+  } catch (err) {
+    throw { err };
+  }
+};
+
+const getAllTasks = async () => {
+  try {
+    const res = await managerClient.get("/Task");
+    return res?.data;
+  } catch (err) {
+    throw { err };
+  }
+};
+
 export {
   createProject,
   getProjects,
@@ -209,7 +254,6 @@ export {
   getProject,
   createTask,
   updateTask,
-  getTasksPerProject,
   getAllMembers,
   getPendingProjects,
   getUserWithStatus,
@@ -224,4 +268,10 @@ export {
   getStatisticsForManager,
   getTaskStatusPerProject,
   getMember,
+  getAllProjects,
+  getProjectStatistics,
+  getProjectProgress,
+  getProjectTaskStatus,
+  getAllTasks,
+  getTasksPerProject,
 };

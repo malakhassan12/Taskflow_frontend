@@ -16,7 +16,7 @@ import {
 import { useState, useEffect } from "react";
 // ==================== API ====================
 import { getPendingRequests, getAllUsers } from "../../Api/api/admin.api";
-import { getProjects, getAllMembers } from "../../Api/api/manager.api";
+import { getProjects, getAllMembers, getAllProjects, getTaskStatusPerProject } from "../../Api/api/manager.api";
 
 const { Title, Text } = Typography;
 
@@ -152,8 +152,8 @@ const DashboardCards = () => {
         { label: "Team Members", value: memberCount, color: "#22c55e", icon: <Users size={20} /> },
       ]);
 
-      // Fetch projects
-      const projectsRes = await getProjects(1, 1000);
+      // Fetch all projects for admin dashboard
+      const projectsRes = await getAllProjects();
       const projects = Array.isArray(projectsRes) ? projectsRes : [];
       // Since projects don't have status field, count all as active for now
       const activeCount = projects.length;
@@ -168,28 +168,40 @@ const DashboardCards = () => {
         { label: "On Hold", value: onHoldCount, color: "#f97316", icon: <PauseCircle size={20} /> },
       ]);
 
-      // Get tasks from projects
-      const allTasks = projects.flatMap(p => p.tasks || []);
-      // Map tasks to UI status (same logic as Member Dashboard)
-      const tasksWithStatus = allTasks.map((task) => {
-        const raw = getRawStatusFromTask(task);
-        const statusLabel = mapApiStatusToUi(raw);
-        return { ...task, statusLabel };
+      // Fetch task status for each project
+      const projectStatusPromises = projects.map(async (project) => {
+        try {
+          const projectId = project.projectCode ? parseInt(project.projectCode.replace(/\D/g, '')) : null;
+          if (!projectId) {
+            return { totalTasks: 0, toDo: 0, inProgress: 0, done: 0 };
+          }
+          const statusData = await getTaskStatusPerProject(projectId);
+          return {
+            totalTasks: statusData?.totalTasks || 0,
+            toDo: statusData?.toDo || 0,
+            inProgress: statusData?.inProgress || 0,
+            done: statusData?.done || 0
+          };
+        } catch (error) {
+          return { totalTasks: 0, toDo: 0, inProgress: 0, done: 0 };
+        }
       });
+      const projectStatuses = await Promise.all(projectStatusPromises);
 
-      const todoCount = tasksWithStatus.filter(t => t.statusLabel === "Todo").length;
-      const inProgressCount = tasksWithStatus.filter(t => t.statusLabel === "In progress").length;
-      const tasksCompletedCount = tasksWithStatus.filter(t => t.statusLabel === "Done").length;
+      // Aggregate task statistics across all projects
+      const totalToDo = projectStatuses.reduce((sum, p) => sum + p.toDo, 0);
+      const totalInProgress = projectStatuses.reduce((sum, p) => sum + p.inProgress, 0);
+      const totalDone = projectStatuses.reduce((sum, p) => sum + p.done, 0);
+      const totalTasks = projectStatuses.reduce((sum, p) => sum + p.totalTasks, 0);
 
       setTasksData([
-        { label: "To Do", value: todoCount, color: "#6b7280", icon: <AlertCircle size={20} /> },
-        { label: "In Progress", value: inProgressCount, color: "#3b82f6", icon: <Clock size={20} /> },
-        { label: "Completed", value: tasksCompletedCount, color: "#22c55e", icon: <CheckCircle size={20} /> },
+        { label: "To Do", value: totalToDo, color: "#6b7280", icon: <AlertCircle size={20} /> },
+        { label: "In Progress", value: totalInProgress, color: "#3b82f6", icon: <Clock size={20} /> },
+        { label: "Completed", value: totalDone, color: "#22c55e", icon: <CheckCircle size={20} /> },
       ]);
 
       // Calculate overall progress
-      const totalTasks = allTasks.length;
-      const progress = totalTasks > 0 ? Math.round((tasksCompletedCount / totalTasks) * 100) : 0;
+      const progress = totalTasks > 0 ? Math.round((totalDone / totalTasks) * 100) : 0;
       setOverallProgress(progress);
 
     } catch (error) {

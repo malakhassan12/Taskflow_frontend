@@ -7,8 +7,8 @@ import TaskDetailsModal from "../TaskBoard/TaskDetailsModal";
 import { useNotifications } from "../../../../Context/NotificationsProvider";
 
 import useGetTasksPerMemberAndProject from "../../../../Hooks/Task/useGetTasksPerMemberAndProject";
-import { getProjects } from "../../../../Api/api/manager.api";
-import { getTaskStatus } from "../../../../Api/api/task.api";
+import useGetMyTasks from "../../../../Hooks/Task/useGetMyTasks";
+import { getTasksStatus } from "../../../../Api/api/task.api";
 
 import { message } from "antd";
 
@@ -177,29 +177,13 @@ const MyTasksTab = () => {
     console.error('Error getting user ID:', e);
   }
 
-  // If projectId is still null, try to get the first project
-  const [fetchedProjectId, setFetchedProjectId] = useState(projectId);
-
-  useEffect(() => {
-    const fetchFirstProject = async () => {
-      if (!projectId) {
-        try {
-          const projects = await getProjects(1, 1000);
-          if (projects && projects.length > 0) {
-            setFetchedProjectId(projects[0].id);
-          }
-        } catch (error) {
-          console.error('Error fetching projects:', error);
-        }
-      }
-    };
-    fetchFirstProject();
-  }, [projectId]);
-
-  const finalProjectId = projectId || fetchedProjectId;
+  const finalProjectId = projectId;
 
   // Use React Query hook to fetch tasks
-  const { data: tasksData = [], isLoading, refetch } = useGetTasksPerMemberAndProject(currentUserId, finalProjectId);
+  // If projectId is available, use GetTasksForOneMember, otherwise use MyTasks
+  const { data: tasksData = [], isLoading, refetch } = finalProjectId
+    ? useGetTasksPerMemberAndProject(currentUserId, finalProjectId)
+    : useGetMyTasks(currentUserId);
 
   // State to store task statuses fetched from GetTaskStatus endpoint
   const [taskStatuses, setTaskStatuses] = useState({});
@@ -207,12 +191,16 @@ const MyTasksTab = () => {
   // Fetch status for each task when tasksData changes
   useEffect(() => {
     const fetchTaskStatuses = async () => {
-      if (!tasksData.length || !finalProjectId) return;
+      if (!tasksData.length) return;
 
       const statusMap = {};
       const promises = tasksData.map(async (task) => {
         try {
-          const statusData = await getTaskStatus(task.id, finalProjectId);
+          // Use task's own projectID if available, otherwise use finalProjectId
+          const taskProjectId = task.projectID || finalProjectId;
+          if (!taskProjectId) return;
+
+          const statusData = await getTasksStatus(task.id, taskProjectId);
           if (statusData && statusData.status && statusData.status.length > 0) {
             statusMap[task.id] = statusData.status[0];
           }
