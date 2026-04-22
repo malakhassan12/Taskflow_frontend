@@ -6,12 +6,15 @@ import TaskDetailsModal from "../TaskBoard/TaskDetailsModal";
 
 import { useNotifications } from "../../../../Context/NotificationsProvider";
 
-import { getTasksPerMemberAndProject } from "../../../../Api/api/task.api";
+import useGetTasksPerMemberAndProject from "../../../../Hooks/Task/useGetTasksPerMemberAndProject";
 import { getProjects } from "../../../../Api/api/manager.api";
+import { getTaskStatus } from "../../../../Api/api/task.api";
 
 import { message } from "antd";
 
 import { useSearchParams } from "react-router-dom";
+
+import axios from "axios";
 
 
 
@@ -146,10 +149,6 @@ const rawStatusToApiParam = (raw) => {
 
 const MyTasksTab = () => {
 
-  const [tasks, setTasks] = useState([]);
-
-  const [loading, setLoading] = useState(true);
-
   const [selectedTask, setSelectedTask] = useState(null);
 
   const [toastMessage, setToastMessage] = useState("");
@@ -160,191 +159,122 @@ const MyTasksTab = () => {
 
   const [searchParams] = useSearchParams();
 
-
-
-  const fetchTasks = useCallback(async () => {
-
-    // Get current user ID
-    let currentUserId = '';
-    let projectId = null;
-    try {
-      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-      if (storedUser.userId) {
-        currentUserId = storedUser.userId;
-      }
-      // Try to get projectId from URL params first
-      const urlProjectId = searchParams.get('projectId');
-      if (urlProjectId) {
-        projectId = parseInt(urlProjectId);
-      }
-      // Then try from user data or localStorage
-      else if (storedUser.projectId) {
-        projectId = storedUser.projectId;
-      }
-    } catch (e) {
-      console.error('Error getting user ID:', e);
+  // Get current user ID and projectId
+  let currentUserId = '';
+  let projectId = null;
+  try {
+    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+    if (storedUser.userId) {
+      currentUserId = storedUser.userId;
     }
-
-    if (!currentUserId) {
-      console.error('User ID not found');
-      return [];
+    const urlProjectId = searchParams.get('projectId');
+    if (urlProjectId) {
+      projectId = parseInt(urlProjectId);
+    } else if (storedUser.projectId) {
+      projectId = storedUser.projectId;
     }
+  } catch (e) {
+    console.error('Error getting user ID:', e);
+  }
 
-    // If projectId is still null, try to get the first project
-    if (!projectId) {
-      try {
-        const projects = await getProjects(1, 1000);
-        if (projects && projects.length > 0) {
-          projectId = projects[0].id;
-          console.log('Using first project:', projectId);
-        }
-      } catch (error) {
-        console.error('Error fetching projects:', error);
-      }
-    }
-
-    console.log('Fetching tasks with userId:', currentUserId, 'projectId:', projectId);
-
-    if (!projectId) {
-      console.error('No projectId found');
-      return [];
-    }
-
-    // Get tasks from new API endpoint
-    const tasksData = await getTasksPerMemberAndProject(currentUserId, projectId);
-
-    console.log('Tasks data received:', tasksData);
-
-    let overrides = loadStatusOverrides();
-
-
-
-    // Drop overrides once API starts returning a real status for that task
-
-    let overridesChanged = false;
-
-    for (const task of tasksData) {
-
-      const raw = getRawStatusFromTask(task);
-
-      const idKey = String(task.id);
-
-      if (raw != null && raw !== "" && overrides[idKey]) {
-
-        delete overrides[idKey];
-
-        overridesChanged = true;
-
-      }
-
-    }
-
-    if (overridesChanged) {
-
-      saveStatusOverrides(overrides);
-
-    }
-
-
-
-    // Convert API response to UI format
-    return tasksData.map((task) => {
-
-      const raw = getRawStatusFromTask(task);
-
-      const idKey = String(task.id);
-
-      const fallbackApiStatus = overrides[idKey];
-
-      const effectiveRaw =
-
-        raw != null && raw !== "" ? raw : fallbackApiStatus ?? raw;
-
-
-
-      return {
-
-        id: task.id.toString(),
-
-        title: task.title,
-
-        project: `Project ${task.projectID}`,
-
-        dueDate: task.dueTime ? new Date(task.dueTime).toLocaleDateString() : "",
-
-        priority:
-
-          task.priority === 3 ? "high" : task.priority === 2 ? "medium" : "low",
-
-        statusLabel: mapApiStatusToUi(effectiveRaw),
-
-        description: task.discription || task.description || "", // Handle typo in API
-
-        assignedTo: task.assignedMemberName || "Unassigned",
-
-        createdBy: "Project Manager",
-
-        lastUpdated: "Recently",
-
-        attachments: [],
-
-        comments: [],
-
-        // Merge known status (from API or last successful PATCH) for downstream use
-
-        originalTask: {
-
-          ...task,
-
-          ...(fallbackApiStatus && (raw == null || raw === "")
-
-            ? { status: fallbackApiStatus }
-
-            : {}),
-
-        },
-
-      };
-
-    });
-
-  }, [searchParams]);
-
-
-
-  // Fetch tasks from API
+  // If projectId is still null, try to get the first project
+  const [fetchedProjectId, setFetchedProjectId] = useState(projectId);
 
   useEffect(() => {
-
-    const run = async () => {
-
-      try {
-
-        setLoading(true);
-
-        const formattedTasks = await fetchTasks();
-
-        setTasks(formattedTasks);
-
-      } catch (error) {
-
-        console.error("Error fetching tasks:", error);
-
-        message.error("Failed to load tasks");
-
-      } finally {
-
-        setLoading(false);
-
+    const fetchFirstProject = async () => {
+      if (!projectId) {
+        try {
+          const projects = await getProjects(1, 1000);
+          if (projects && projects.length > 0) {
+            setFetchedProjectId(projects[0].id);
+          }
+        } catch (error) {
+          console.error('Error fetching projects:', error);
+        }
       }
+    };
+    fetchFirstProject();
+  }, [projectId]);
 
+  const finalProjectId = projectId || fetchedProjectId;
+
+  // Use React Query hook to fetch tasks
+  const { data: tasksData = [], isLoading, refetch } = useGetTasksPerMemberAndProject(currentUserId, finalProjectId);
+
+  // State to store task statuses fetched from GetTaskStatus endpoint
+  const [taskStatuses, setTaskStatuses] = useState({});
+
+  // Fetch status for each task when tasksData changes
+  useEffect(() => {
+    const fetchTaskStatuses = async () => {
+      if (!tasksData.length || !finalProjectId) return;
+
+      const statusMap = {};
+      const promises = tasksData.map(async (task) => {
+        try {
+          const statusData = await getTaskStatus(task.id, finalProjectId);
+          if (statusData && statusData.status && statusData.status.length > 0) {
+            statusMap[task.id] = statusData.status[0];
+          }
+        } catch (error) {
+          console.error(`Error fetching status for task ${task.id}:`, error);
+        }
+      });
+
+      await Promise.all(promises);
+      setTaskStatuses(statusMap);
     };
 
+    fetchTaskStatuses();
+  }, [tasksData, finalProjectId]);
 
+  // Convert API response to UI format
+  const tasks = useMemo(() => {
+    let overrides = loadStatusOverrides();
 
-    run();
+    // Drop overrides once API starts returning a real status for that task
+    let overridesChanged = false;
+    for (const task of tasksData) {
+      const raw = getRawStatusFromTask(task);
+      const idKey = String(task.id);
+      if (raw != null && raw !== "" && overrides[idKey]) {
+        delete overrides[idKey];
+        overridesChanged = true;
+      }
+    }
+    if (overridesChanged) {
+      saveStatusOverrides(overrides);
+    }
 
-  }, [fetchTasks]);
+    return tasksData.map((task) => {
+      // Use fetched status from GetTaskStatus endpoint, fallback to task.status, then overrides
+      const fetchedStatus = taskStatuses[task.id];
+      const raw = fetchedStatus ?? getRawStatusFromTask(task);
+      const idKey = String(task.id);
+      const fallbackApiStatus = overrides[idKey];
+      const effectiveRaw = raw != null && raw !== "" ? raw : fallbackApiStatus ?? raw;
+
+      return {
+        id: task.id.toString(),
+        title: task.title,
+        project: `Project ${task.projectID}`,
+        dueDate: task.dueTime ? new Date(task.dueTime).toLocaleDateString() : "",
+        priority: task.priority === 3 ? "high" : task.priority === 2 ? "medium" : "low",
+        statusLabel: mapApiStatusToUi(effectiveRaw),
+        description: task.discription || task.description || "",
+        assignedTo: task.assignedMemberName || "Unassigned",
+        createdBy: "Project Manager",
+        lastUpdated: "Recently",
+        attachments: [],
+        comments: [],
+        originalTask: {
+          ...task,
+          ...(fetchedStatus ? { status: fetchedStatus } : {}),
+          ...(fallbackApiStatus && (raw == null || raw === "") ? { status: fallbackApiStatus } : {}),
+        },
+      };
+    });
+  }, [tasksData, taskStatuses]);
 
 
 
@@ -404,17 +334,17 @@ const MyTasksTab = () => {
 
       const originalTask = updatedTask.originalTask;
 
-      
+
 
       // Convert UI status back to API status
 
-      const apiStatus = updatedTask.statusLabel === 'Todo' ? 'todo' 
+      const apiStatus = updatedTask.statusLabel === 'Todo' ? 'todo'
 
-                      : updatedTask.statusLabel === 'In progress' ? 'in_progress' 
+                      : updatedTask.statusLabel === 'In progress' ? 'in_progress'
 
                       : 'done';
 
-      
+
 
       // Update task status using API
 
@@ -446,39 +376,17 @@ const MyTasksTab = () => {
 
 
 
-      // Refresh from server to ensure persistence (what you see after refresh)
+      // Refresh from server using React Query refetch
 
       const previousTask = tasks.find((task) => task.id === updatedTask.id);
 
-      const formattedTasks = await fetchTasks();
-
-      setTasks(formattedTasks);
+      await refetch();
 
       setSelectedTask(null);
 
 
 
-      const serverTask = formattedTasks.find((t) => t.id === updatedTask.id);
-
-      const serverRaw = serverTask ? getRawStatusFromTask(serverTask.originalTask) : null;
-
-      const serverCanonical = rawStatusToApiParam(serverRaw);
-
-
-
-      if (serverCanonical && serverCanonical !== apiStatus) {
-
-        message.warning(
-
-          "Server didn't persist the new status. Showing server state.",
-
-        );
-
-      } else {
-
-        message.success("Task updated successfully");
-
-      }
+      message.success("Task updated successfully");
 
 
 
@@ -520,6 +428,35 @@ const MyTasksTab = () => {
 
 
 
+  // Auto-save task status when it changes (for drag and drop)
+  const handleTaskStatusChange = async (taskId, newStatus) => {
+    try {
+      const token = localStorage.getItem('token');
+      const apiStatus = newStatus === 'Todo' ? 'todo'
+                      : newStatus === 'In progress' ? 'in_progress'
+                      : 'done';
+
+      await axios.patch(
+        `http://taskflowproject1.runasp.net/api/Task/progress/${taskId}?status=${apiStatus}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Refresh tasks using React Query refetch
+      await refetch();
+      message.success("Task status updated");
+    } catch (error) {
+      console.error('Error auto-saving task status:', error);
+      message.error('Failed to update task status');
+    }
+  };
+
+
+
   return (
 
     <>
@@ -536,7 +473,7 @@ const MyTasksTab = () => {
 
 
 
-      {loading ? (
+      {isLoading ? (
 
         <div className="flex justify-center items-center h-64">
 
@@ -565,6 +502,8 @@ const MyTasksTab = () => {
                 tone={column.tone}
 
                 onTaskClick={setSelectedTask}
+
+                onStatusChange={handleTaskStatusChange}
 
               />
 

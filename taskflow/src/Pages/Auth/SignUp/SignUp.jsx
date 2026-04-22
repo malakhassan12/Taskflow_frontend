@@ -14,7 +14,11 @@ const SignUp = () => {
           },
         });
       } else {
-        navigate("/new-user");
+        navigate("/login", {
+          state: {
+            message: "Registration successful. Please login to continue.",
+          },
+        });
       }
     } else {
       const userRole = result.user?.role?.toLowerCase();

@@ -60,10 +60,10 @@ const rejectTask = async (taskId, userId) => {
   }
 };
 
-const getTasksStatus = async (id, projectId) => {
+const getTasksStatus = async (taskId, projectId) => {
   try {
     const res = await taskClient.get(`/GetTaskStatus`, {
-      params: { id: id, projectId: projectId },
+      params: { id: taskId, projectId: projectId },
     });
     return res?.data;
   } catch (err) {

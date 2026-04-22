@@ -15,8 +15,15 @@ const TaskCard = ({
   priority = "medium",
   statusLabel,
   onClick,
+  onStatusChange,
+  id,
 }) => {
   const { isDarkMode } = useTheme();
+
+  const handleStatusChange = (e) => {
+    e.stopPropagation();
+    onStatusChange?.(id, e.target.value);
+  };
 
   return (
     <button
@@ -38,7 +45,18 @@ const TaskCard = ({
       <p className={`mt-1 text-xs ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>{project}</p>
       <div className="mt-3 flex items-center justify-between text-[11px]">
         <span className={isDarkMode ? "text-slate-400" : "text-slate-500"}>Due {dueDate}</span>
-        <span className={`rounded-full px-2 py-0.5 ${isDarkMode ? "bg-slate-700 text-slate-300" : "bg-slate-100 text-slate-600"}`}>{statusLabel}</span>
+        <select
+          value={statusLabel}
+          onChange={handleStatusChange}
+          onClick={(e) => e.stopPropagation()}
+          className={`rounded-full px-2 py-0.5 text-[10px] ${
+            isDarkMode ? "bg-slate-700 text-slate-300" : "bg-slate-100 text-slate-600"
+          }`}
+        >
+          <option value="Todo">Todo</option>
+          <option value="In progress">In progress</option>
+          <option value="Done">Done</option>
+        </select>
       </div>
     </button>
   );
