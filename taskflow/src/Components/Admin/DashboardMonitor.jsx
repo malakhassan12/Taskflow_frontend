@@ -13,7 +13,7 @@ import {
 import { useState, useEffect } from "react";
 // ==================== API ====================
 import { getPendingRequests, getAllUsers } from "../../Api/api/admin.api";
-import { getProjects, getAllMembers } from "../../Api/api/manager.api";
+import { getProjects, getAllMembers, getAllProjects, getTaskStatusPerProject } from "../../Api/api/manager.api";
 
 const { Title } = Typography;
 
@@ -122,26 +122,36 @@ const DashboardMonitor = () => {
       ).length;
       const memberCount = users.filter((m) => m.role === "TeamMember").length;
 
-      // Fetch projects
-      const projectsRes = await getProjects(1, 1000);
+      // Fetch all projects for admin dashboard
+      const projectsRes = await getAllProjects();
       const projects = Array.isArray(projectsRes) ? projectsRes : [];
 
-      // Get tasks from projects
-      const allTasks = projects.flatMap((p) => p.tasks || []);
-      const tasksWithStatus = allTasks.map((task) => {
-        const raw = getRawStatusFromTask(task);
-        const statusLabel = mapApiStatusToUi(raw);
-        return { ...task, statusLabel };
+      // Fetch task status for each project
+      const projectStatusPromises = projects.map(async (project) => {
+        try {
+          const projectId = project.projectCode ? parseInt(project.projectCode.replace(/\D/g, '')) : null;
+          if (!projectId) {
+            return { totalTasks: 0, toDo: 0, inProgress: 0, done: 0 };
+          }
+          const statusData = await getTaskStatusPerProject(projectId);
+          return {
+            totalTasks: statusData?.totalTasks || 0,
+            toDo: statusData?.toDo || 0,
+            inProgress: statusData?.inProgress || 0,
+            done: statusData?.done || 0
+          };
+        } catch (error) {
+          return { totalTasks: 0, toDo: 0, inProgress: 0, done: 0 };
+        }
       });
+      const projectStatuses = await Promise.all(projectStatusPromises);
 
-      const tasksCompletedCount = tasksWithStatus.filter(
-        (t) => t.statusLabel === "Done",
-      ).length;
-      const totalTasks = allTasks.length;
-      const progress =
-        totalTasks > 0
-          ? Math.round((tasksCompletedCount / totalTasks) * 100)
-          : 0;
+      // Aggregate statistics across all projects
+      const totalTasks = projectStatuses.reduce((sum, p) => sum + p.totalTasks, 0);
+      const totalToDo = projectStatuses.reduce((sum, p) => sum + p.toDo, 0);
+      const totalInProgress = projectStatuses.reduce((sum, p) => sum + p.inProgress, 0);
+      const totalDone = projectStatuses.reduce((sum, p) => sum + p.done, 0);
+      const progress = totalTasks > 0 ? Math.round((totalDone / totalTasks) * 100) : 0;
 
       // Update stats
       setStats([
