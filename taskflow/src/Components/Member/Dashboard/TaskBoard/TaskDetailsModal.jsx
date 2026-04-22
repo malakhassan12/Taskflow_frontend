@@ -131,18 +131,34 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
 
   // Fetch manager ID from project
   const fetchManagerId = async (projectId) => {
-    if (!projectId) return;
+    console.log("fetchManagerId called with projectId:", projectId);
+    if (!projectId) {
+      console.error("projectId is null or undefined");
+      return;
+    }
     try {
       const token = localStorage.getItem("token");
+      console.log("Fetching project data from:", `${API_BASE}/api/Project/${projectId}`);
       const response = await axios.get(`${API_BASE}/api/Project/${projectId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("Project data:", response.data);
+      console.log("Project data response:", response.data);
+      console.log("Project data keys:", Object.keys(response.data || {}));
+      
       const managerId = response.data?.managerId || response.data?.ManagerId || response.data?.createdBy || response.data?.CreatedBy || "";
       console.log("Fetched managerId:", managerId);
+      console.log("All possible manager ID fields:", {
+        managerId: response.data?.managerId,
+        ManagerId: response.data?.ManagerId,
+        createdBy: response.data?.createdBy,
+        CreatedBy: response.data?.CreatedBy,
+        userId: response.data?.userId,
+        UserId: response.data?.UserId,
+      });
       setManagerId(managerId);
     } catch (error) {
       console.error("Error fetching manager ID:", error);
+      console.error("Error response:", error.response?.data);
     }
   };
 
@@ -179,13 +195,6 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
       }
     };
 
-    const loadManagerId = async () => {
-      const projectId = task.originalTask?.projectID;
-      if (projectId) {
-        await fetchManagerId(projectId);
-      }
-    };
-
     setDraft({
       title: task.title || "",
       statusLabel: task.statusLabel || "Todo",
@@ -201,7 +210,12 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
 
     loadAttachments();
     loadComments();
-    loadManagerId();
+    
+    // Use assignedMemberId from task as receiverId (the person who assigned the task)
+    const assignedMemberId = task.originalTask?.assignedMemberId || "";
+    console.log("Using assignedMemberId as receiverId:", assignedMemberId);
+    setManagerId(assignedMemberId);
+    
     setNewComment("");
     setEditingCommentId(null);
     setEditingText("");
@@ -350,12 +364,14 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
     }
 
     const taskId = task.originalTask?.id;
+    console.log("Adding comment - taskId:", taskId);
     if (taskId == null) {
       message.error("Cannot add comment: task is missing an id.");
       return;
     }
 
     const userId = getAuthUserId();
+    console.log("Adding comment - userId:", userId);
     if (!userId) {
       message.error("Cannot add comment: please sign in again.");
       return;
@@ -363,24 +379,26 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
 
     try {
       const token = localStorage.getItem("token");
-
-      // Use managerId fetched from project as receiverId
       const receiverId = managerId || "";
+      console.log("Adding comment - managerId:", managerId, "receiverId:", receiverId);
 
       if (!receiverId) {
         message.error("Cannot add comment: manager ID not found");
         return;
       }
 
+      const payload = {
+        id: 0,
+        comment: trimmed,
+        taskId,
+        senderId: userId,
+        receiverId: receiverId,
+      };
+      console.log("Adding comment - payload:", payload);
+
       const response = await axios.post(
         `${API_BASE}/api/Comment`,
-        {
-          id: 0,
-          comment: trimmed,
-          taskId,
-          senderId: userId,
-          receiverId: receiverId,
-        },
+        payload,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -388,16 +406,17 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
           },
         }
       );
+      console.log("Adding comment - response:", response.data);
 
-      const serverId = response.data?.id ?? response.data?.Id;
-      const rowId = serverId != null ? serverId : Date.now();
-      const idNum = Number(serverId);
+      const rowId = response.data?.id || response.data?.commentId;
       const apiId =
-        serverId != null &&
-        Number.isInteger(idNum) &&
-        idNum > 0 &&
-        idNum <= 2147483647
-          ? idNum
+        response.data?.id || response.data?.commentId || response.data?.Id || response.data?.CommentId
+          ? String(
+              response.data?.id ||
+                response.data?.commentId ||
+                response.data?.Id ||
+                response.data?.CommentId
+            )
           : null;
       setDraft((prev) => ({
         ...prev,
@@ -407,11 +426,8 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
             id: String(rowId),
             apiId,
             text: trimmed,
-            author: "User",
-            createdAt:
-              response.data?.createdAt ||
-              response.data?.CreatedAt ||
-              new Date().toISOString(),
+            author: "You",
+            createdAt: new Date().toISOString(),
           },
         ],
       }));
