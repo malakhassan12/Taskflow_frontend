@@ -55,19 +55,16 @@ import { visualizer } from "rollup-plugin-visualizer";
 //   },
 // });
 
-
-
-
 export default defineConfig(({ mode }) => {
   return {
-    base: mode === "production" ? "/Taskflow_frontend/" : "/",
-    
+    // base: mode === "production" ? "/Taskflow_frontend/" : "/",
+    base: "/",
     plugins: [
       react(),
       tailwindcss(), // ده اللي بيخلي ستايل Tailwind يظهر في الـ build
-      visualizer({ open: false }), 
+      visualizer({ open: false }),
     ],
-    
+
     build: {
       chunkSizeWarningLimit: 300,
       rollupOptions: {
