@@ -105,16 +105,26 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
   const fetchComments = async (taskId) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${API_BASE}/api/Comment`, {
+      const userId = getAuthUserId();
+      const receiverId = managerId || "";
+      
+      if (!userId || !receiverId || !taskId) {
+        console.log("Missing required params for comments:", { userId, receiverId, taskId });
+        return [];
+      }
+
+      const response = await axios.get(`${API_BASE}/api/Comment/ById`, {
+        params: {
+          SenderId: userId,
+          ReciverID: receiverId,
+          TaskId: taskId,
+        },
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      // Filter comments by taskId
-      const filtered = response.data.filter((c) => c.taskId === taskId);
-
-      const mapped = filtered.map((c) => ({
+      const mapped = (response.data || []).map((c) => ({
         id: String(c.id || c.commentId || c.Id || c.CommentId),
         apiId: c.id || c.commentId || c.Id || c.CommentId,
         text: c.comment || c.text || c.Comment || c.Text || "",
@@ -145,9 +155,10 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
       console.log("Project data response:", response.data);
       console.log("Project data keys:", Object.keys(response.data || {}));
       
-      const managerId = response.data?.managerId || response.data?.ManagerId || response.data?.createdBy || response.data?.CreatedBy || "";
+      const managerId = response.data?.manegerID || response.data?.managerId || response.data?.ManagerId || response.data?.createdBy || response.data?.CreatedBy || "";
       console.log("Fetched managerId:", managerId);
       console.log("All possible manager ID fields:", {
+        manegerID: response.data?.manegerID,
         managerId: response.data?.managerId,
         ManagerId: response.data?.ManagerId,
         createdBy: response.data?.createdBy,
@@ -209,12 +220,28 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
     });
 
     loadAttachments();
-    loadComments();
     
-    // Use assignedMemberId from task as receiverId (the person who assigned the task)
-    const assignedMemberId = task.originalTask?.assignedMemberId || "";
-    console.log("Using assignedMemberId as receiverId:", assignedMemberId);
-    setManagerId(assignedMemberId);
+    // Fetch managerId from project
+    const loadManagerId = async () => {
+      const projectId = task.originalTask?.projectID;
+      if (projectId) {
+        await fetchManagerId(projectId);
+      }
+    };
+    loadManagerId();
+    
+    // Load comments after managerId is set
+    const loadCommentsAsync = async () => {
+      const taskId = task.originalTask?.id;
+      if (taskId) {
+        const comments = await fetchComments(taskId);
+        setDraft((prev) => ({
+          ...prev,
+          comments,
+        }));
+      }
+    };
+    loadCommentsAsync();
     
     setNewComment("");
     setEditingCommentId(null);
@@ -581,6 +608,7 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
       };
 
       console.log("PUT payload:", payload);
+      console.log("PUT URL:", `${API_BASE}/api/Task?taskID=${taskId}`);
 
       await axios.put(`${API_BASE}/api/Task`, payload, {
         params: { taskID: taskId },
@@ -599,13 +627,19 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
     } catch (error) {
       console.error("Error saving task:", error);
       console.error("Error response:", error.response?.data);
-      const detail =
-        error.response?.data?.message ||
-        error.response?.data?.title ||
-        (typeof error.response?.data === "string"
-          ? error.response.data
-          : null);
-      message.error(detail || "Failed to save task");
+      console.error("Error status:", error.response?.status);
+      
+      if (error.response?.status === 403) {
+        message.error("Permission denied: Members cannot update tasks. Only managers can update tasks.");
+      } else {
+        const detail =
+          error.response?.data?.message ||
+          error.response?.data?.title ||
+          (typeof error.response?.data === "string"
+            ? error.response.data
+            : null);
+        message.error(detail || "Failed to save task");
+      }
     }
   };
 
