@@ -37,8 +37,17 @@ const CommentsModal = ({ open, setOpen, memberId, taskId }) => {
   const [newComment, setNewComment] = useState("");
   const [activeTab, setActiveTab] = useState("all");
 
+  console.log(memberId);
+  const managerId = user?.userId;
+
   // Get all comments for this task
-  const { data: allComments = [], isLoading,  } = useGetCommentsById(memberId);
+  const { data: allComments = [], isLoading } = useGetCommentsById(
+    memberId,
+    managerId,
+    taskId
+  );
+
+  console.log(allComments);
   const { pushCommentMutation } = useCommentMutations();
 
   const isManager = user?.role === "projectmanager";
@@ -50,13 +59,19 @@ const CommentsModal = ({ open, setOpen, memberId, taskId }) => {
       return;
     }
 
-    pushCommentMutation.mutate(
-      {
-        comment: newComment,
-        taskId: taskId ,
-        userId: memberId,
-      }
-    );
+    console.log({
+      comment: newComment,
+      taskId: taskId,
+      senderId: memberId,
+      receiverId: managerId,
+    });
+    pushCommentMutation.mutate({
+      comment: newComment,
+      taskId: taskId,
+      senderId: managerId,
+      receiverId: memberId,
+    });
+    setNewComment("");
   };
 
   const getFilteredComments = () => {
@@ -68,7 +83,10 @@ const CommentsModal = ({ open, setOpen, memberId, taskId }) => {
 
   const tabItems = [
     { key: "all", label: `All (${allComments.length})` },
-    { key: "mine", label: `Mine (${allComments.filter(c => c.userId === user?.userId).length})` },
+    {
+      key: "mine",
+      label: `Mine (${allComments.filter((c) => c.userId === user?.userId).length})`,
+    },
   ];
 
   return (
@@ -90,9 +108,14 @@ const CommentsModal = ({ open, setOpen, memberId, taskId }) => {
       <div style={{ marginBottom: 16 }}>
         <Space direction="vertical" style={{ width: "100%" }} size={12}>
           <Space>
-            <Avatar icon={<UserOutlined />} style={{ backgroundColor: currentUserColor }} />
+            <Avatar
+              icon={<UserOutlined />}
+              style={{ backgroundColor: currentUserColor }}
+            />
             <Text strong>{user?.name || "You"}</Text>
-            <Tag color={isManager ? "blue" : "green"}>{isManager ? "Manager" : "Member"}</Tag>
+            <Tag color={isManager ? "blue" : "green"}>
+              {isManager ? "Manager" : "Member"}
+            </Tag>
           </Space>
           <TextArea
             rows={3}
@@ -122,7 +145,10 @@ const CommentsModal = ({ open, setOpen, memberId, taskId }) => {
             <Spin />
           </div>
         ) : getFilteredComments().length === 0 ? (
-          <Empty description="No comments yet" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+          <Empty
+            description="No comments yet"
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+          />
         ) : (
           <List
             dataSource={getFilteredComments()}
@@ -138,15 +164,23 @@ const CommentsModal = ({ open, setOpen, memberId, taskId }) => {
                     borderLeft: `3px solid ${isOwn ? primaryColor : "#d9d9d9"}`,
                   }}
                 >
-                  <Space direction="vertical" size={4} style={{ width: "100%" }}>
+                  <Space
+                    direction="vertical"
+                    size={4}
+                    style={{ width: "100%" }}
+                  >
                     <Space wrap>
                       <Avatar size="small" icon={<UserOutlined />} />
                       <Text strong>{isOwn ? "You" : "Team Member"}</Text>
-                      <Tag color={isOwn ? "blue" : "green"} style={{ margin: 0 }}>
+                      <Tag
+                        color={isOwn ? "blue" : "green"}
+                        style={{ margin: 0 }}
+                      >
                         {isOwn ? (isManager ? "Manager" : "Member") : "Member"}
                       </Tag>
                       <Text type="secondary" style={{ fontSize: 11 }}>
-                        <ClockCircleOutlined /> {dayjs(comment.createdAt).format("MM-DD HH:mm")}
+                        <ClockCircleOutlined />{" "}
+                        {dayjs(comment.createdAt).format("MM-DD HH:mm")}
                       </Text>
                     </Space>
                     <Text style={{ marginLeft: 32 }}>{comment.comment}</Text>

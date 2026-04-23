@@ -44,6 +44,7 @@ const TasksTable = ({ tasks, memberId, isLoading }) => {
         open={isCommentsModalOpen}
         setOpen={setIsCommentsModalOpen}
         taskId={taskId}
+        memberId={memberId}
       />
       {/* Tasks Table */}
       <Table

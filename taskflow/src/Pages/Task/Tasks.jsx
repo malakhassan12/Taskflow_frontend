@@ -71,10 +71,10 @@ const Tasks = () => {
     },
     {
       title: "Completed",
-      value: tasks.filter((t) => t.status === "completed").length,
+      value: tasks.filter((t) => t.status === "done").length,
       icon: <CheckCircleOutlined />,
       color: "#52c41a",
-      status: "completed",
+      status: "done",
     },
     {
       title: "In Progress",
