@@ -23,7 +23,7 @@ const TaskCard = ({ task }) => {
       <Flex align="center" gap={8}>
         <Badge color={priority.color} />
         <Text strong style={{ flex: 1, fontSize: 13 }}>
-          <Link to={`tasks/${task.id}`} >
+          <Link to={`${task.id}`} >
             {task.title}
           </Link>
         </Text>

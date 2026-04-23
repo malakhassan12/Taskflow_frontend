@@ -13,6 +13,7 @@ import useGetTasksPerProject from "../../../Hooks/Manager/useGetTasksPerProject"
 import { useParams } from "react-router-dom";
 import DataError from "../../Error/DataError";
 import DataLoad from "../../Loaders/DataLoad";
+import useGetTasksStatus from "../../../Hooks/Task/useGetTasksStatus";
 
 const { Title, Text } = Typography;
 
@@ -23,13 +24,18 @@ const StatusTab = () => {
     isLoading,
     error,
   } = useGetTasksPerProject(projectId);
+  const tasks = projectData?.tasks || [];
+
+  const { data } = useGetTasksStatus(tasks, projectId);
+  console.log(data);
 
   if (isLoading) return <DataLoad item="tasks" />;
   if (error) return <DataError item="tasks" />;
 
-  const tasks = projectData?.tasks || [];
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter(
+  console.log(projectData);
+
+  const totalTasks = data.length;
+  const completedTasks = data.filter(
     (t) => t.status === "done" || t.status === "completed",
   ).length;
   const completionRate =
@@ -73,13 +79,13 @@ const StatusTab = () => {
       </div>
 
       {/* Task Columns */}
-      {tasks.length === 0 ? (
+      {data?.length === 0 ? (
         <DataError item="tasks" />
       ) : (
         <Row gutter={[24, 24]}>
           {taskStatus.map((statusItem) => (
             <Col xs={24} lg={12} key={statusItem}>
-              <TasksCard status={statusItem} allTasks={tasks} />
+              <TasksCard status={statusItem} allTasks={data} />
             </Col>
           ))}
         </Row>
