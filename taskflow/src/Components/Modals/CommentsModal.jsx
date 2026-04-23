@@ -39,10 +39,12 @@ const CommentsModal = ({ open, setOpen, memberId, taskId }) => {
 
   console.log(memberId);
   const managerId = user?.userId;
+
   // Get all comments for this task
   const { data: allComments = [], isLoading } = useGetCommentsById(
-    managerId,
     memberId,
+    managerId,
+    taskId
   );
 
   console.log(allComments);
@@ -66,9 +68,10 @@ const CommentsModal = ({ open, setOpen, memberId, taskId }) => {
     pushCommentMutation.mutate({
       comment: newComment,
       taskId: taskId,
-      senderId: memberId,
-      receiverId: managerId,
+      senderId: managerId,
+      receiverId: memberId,
     });
+    setNewComment("");
   };
 
   const getFilteredComments = () => {
