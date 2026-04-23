@@ -8,7 +8,7 @@ import { SendOutlined, ClearOutlined } from "@ant-design/icons";
 // ==================== FormComponents  ====================
 import SelectManager from "../../FormComponents/Manager/SelectManager";
 import NameProjectField from "../../FormComponents/Manager/NameProjectField";
-import DescProjectField from "../../FormComponents/Manager/DescPRojectField";
+import DescProjectField from "../../FormComponents/Manager/DescProjectField.jsx";
 // ==================== Components  ====================
 
 import ProjectModal from "../../Modals/ProjectModal";
