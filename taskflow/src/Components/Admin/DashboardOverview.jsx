@@ -12,7 +12,7 @@ import { useState, useEffect } from "react";
 
 // ==================== API ====================
 
-import { getProjects, getAllProjects, getProjectStatistics, getTaskStatusPerProject } from "../../Api/api/manager.api";
+import { getAllProjects, getProjectStatistics } from "../../Api/api/manager.api";
 
 
 
@@ -106,39 +106,18 @@ const DashboardOverview = () => {
 
 
 
-      // Fetch task status for each project
-      const projectStatusPromises = projects.map(async (project) => {
-        try {
-          const projectId = project.projectCode ? parseInt(project.projectCode.replace(/\D/g, '')) : null;
-          if (!projectId) {
-            return { totalTasks: 0, toDo: 0, inProgress: 0, done: 0 };
-          }
-          const statusData = await getTaskStatusPerProject(projectId);
-          return {
-            totalTasks: statusData?.totalTasks || 0,
-            toDo: statusData?.toDo || 0,
-            inProgress: statusData?.inProgress || 0,
-            done: statusData?.done || 0
-          };
-        } catch (error) {
-          return { totalTasks: 0, toDo: 0, inProgress: 0, done: 0 };
-        }
-      });
-      const projectStatuses = await Promise.all(projectStatusPromises);
-
-      // Aggregate task statistics across all projects
-      const totalToDo = projectStatuses.reduce((sum, p) => sum + p.toDo, 0);
-      const totalInProgress = projectStatuses.reduce((sum, p) => sum + p.inProgress, 0);
-      const totalDone = projectStatuses.reduce((sum, p) => sum + p.done, 0);
+      // Fetch task statistics from admin endpoint
+      let statsData = { taskStatusDistribution: { toDo: 0, inProgress: 0, done: 0 } };
+      try {
+        statsData = await getProjectStatistics() || statsData;
+      } catch (error) {
+        console.error("Error fetching project statistics:", error);
+      }
 
       setTaskStatusData([
-
-        { name: "To Do", value: totalToDo, color: "#6b7280" },
-
-        { name: "In Progress", value: totalInProgress, color: "#3b82f6" },
-
-        { name: "Completed", value: totalDone, color: "#22c55e" },
-
+        { name: "To Do", value: statsData.taskStatusDistribution?.toDo || 0, color: "#6b7280" },
+        { name: "In Progress", value: statsData.taskStatusDistribution?.inProgress || 0, color: "#3b82f6" },
+        { name: "Completed", value: statsData.taskStatusDistribution?.done || 0, color: "#22c55e" },
       ]);
 
 

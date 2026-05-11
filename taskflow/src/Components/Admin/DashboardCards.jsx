@@ -16,7 +16,7 @@ import {
 import { useState, useEffect } from "react";
 // ==================== API ====================
 import { getPendingRequests, getAllUsers } from "../../Api/api/admin.api";
-import { getProjects, getAllMembers, getAllProjects, getTaskStatusPerProject } from "../../Api/api/manager.api";
+import { getAllProjects, getProjectStatistics } from "../../Api/api/manager.api";
 
 const { Title, Text } = Typography;
 
@@ -168,31 +168,18 @@ const DashboardCards = () => {
         { label: "On Hold", value: onHoldCount, color: "#f97316", icon: <PauseCircle size={20} /> },
       ]);
 
-      // Fetch task status for each project
-      const projectStatusPromises = projects.map(async (project) => {
-        try {
-          const projectId = project.projectCode ? parseInt(project.projectCode.replace(/\D/g, '')) : null;
-          if (!projectId) {
-            return { totalTasks: 0, toDo: 0, inProgress: 0, done: 0 };
-          }
-          const statusData = await getTaskStatusPerProject(projectId);
-          return {
-            totalTasks: statusData?.totalTasks || 0,
-            toDo: statusData?.toDo || 0,
-            inProgress: statusData?.inProgress || 0,
-            done: statusData?.done || 0
-          };
-        } catch (error) {
-          return { totalTasks: 0, toDo: 0, inProgress: 0, done: 0 };
-        }
-      });
-      const projectStatuses = await Promise.all(projectStatusPromises);
+      // Fetch task statistics from admin endpoint
+      let statsData = { totalTasks: 0, taskStatusDistribution: { toDo: 0, inProgress: 0, done: 0 } };
+      try {
+        statsData = await getProjectStatistics() || statsData;
+      } catch (error) {
+        console.error("Error fetching project statistics:", error);
+      }
 
-      // Aggregate task statistics across all projects
-      const totalToDo = projectStatuses.reduce((sum, p) => sum + p.toDo, 0);
-      const totalInProgress = projectStatuses.reduce((sum, p) => sum + p.inProgress, 0);
-      const totalDone = projectStatuses.reduce((sum, p) => sum + p.done, 0);
-      const totalTasks = projectStatuses.reduce((sum, p) => sum + p.totalTasks, 0);
+      const totalTasks = statsData.totalTasks || 0;
+      const totalToDo = statsData.taskStatusDistribution?.toDo || 0;
+      const totalInProgress = statsData.taskStatusDistribution?.inProgress || 0;
+      const totalDone = statsData.taskStatusDistribution?.done || 0;
 
       setTasksData([
         { label: "To Do", value: totalToDo, color: "#6b7280", icon: <AlertCircle size={20} /> },
@@ -200,7 +187,6 @@ const DashboardCards = () => {
         { label: "Completed", value: totalDone, color: "#22c55e", icon: <CheckCircle size={20} /> },
       ]);
 
-      // Calculate overall progress
       const progress = totalTasks > 0 ? Math.round((totalDone / totalTasks) * 100) : 0;
       setOverallProgress(progress);
 

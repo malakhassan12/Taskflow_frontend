@@ -90,23 +90,18 @@ const ProjectsColumns = (
     dataIndex: "status",
     key: "status",
     render: (status) => {
-      let text = "";
-      if (status === "pending") {
-        text = "Pending";
-      } else if (status === "approved") {
-        text = "Approved";
-      } else {
-        text = "Rejected";
+      let text = "Active";
+      let badgeStatus = "success";
+      if (status === "completed") {
+        text = "Completed";
+        badgeStatus = "processing";
+      } else if (status === "on-hold") {
+        text = "On Hold";
+        badgeStatus = "warning";
       }
       return (
         <Badge
-          status={
-            status === "pending"
-              ? "warning"
-              : status === "approved"
-                ? "success"
-                : "error"
-          }
+          status={badgeStatus}
           text={text}
         />
       );
@@ -124,27 +119,6 @@ const ProjectsColumns = (
             onClick={() => handleViewProjectDetails(record)}
           />
         </Tooltip>
-        {record.status === "pending" && (
-          <>
-            <Tooltip title="Approve">
-              <Button
-                type="primary"
-                icon={<CheckCircleOutlined />}
-                size="small"
-                style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
-                onClick={() => handleApprove && handleApprove(record.id)}
-              />
-            </Tooltip>
-            <Tooltip title="Reject">
-              <Button
-                danger
-                icon={<CloseCircleOutlined />}
-                size="small"
-                onClick={() => handleReject && handleReject(record.id)}
-              />
-            </Tooltip>
-          </>
-        )}
       </Space>
     ),
   },

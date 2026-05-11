@@ -71,7 +71,7 @@ const getTasksPerProject = async (projectId) => {
 const getAllMembers = async () => {
   try {
     const res = await managerClient.get(
-      `http://taskflowproject1.runasp.net/allteammember`,
+      `/allteammember`,
     );
     return res?.data;
   } catch (err) {
@@ -156,7 +156,7 @@ const updateProjectStatus = async (projectId, newStatus) => {
 const getAllMembersPerProject = async (projectId) => {
   try {
     const res = await managerClient.get(
-      `http://taskflowproject1.runasp.net/api/User/allTeamMemberByProjectID?id=${projectId}`,
+      `/api/User/allTeamMemberByProjectID?id=${projectId}`,
     );
     return res?.data;
   } catch (err) {
@@ -204,7 +204,7 @@ const getMember = async (id) => {
 
 const getAllProjects = async () => {
   try {
-    const res = await managerClient.get("/Project/projects");
+    const res = await managerClient.get("/Project");
     return res?.data;
   } catch (err) {
     throw { err };

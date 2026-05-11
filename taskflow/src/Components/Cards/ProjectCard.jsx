@@ -117,7 +117,7 @@ const ProjectCard = ({ project }) => {
         percent={progress}
         showInfo={false}
         strokeColor={purple}
-        trailColor="#e0e7ff"
+        railColor="#e0e7ff"
         size="small"
       />
 
