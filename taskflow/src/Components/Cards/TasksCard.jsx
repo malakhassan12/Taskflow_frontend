@@ -21,6 +21,7 @@ const TasksCard = ({ status, allTasks = [] }) => {
   // Filter tasks based on status
 
   console.log(allTasks);
+  console.log(allTasks)
   const getTasksByStatus = () => {
     if (!allTasks.length) return [];
 

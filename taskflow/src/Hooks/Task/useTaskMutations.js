@@ -8,7 +8,10 @@ const useTaskMutations = () => {
   const deleteTaskMutation = useMutation({
     mutationFn: deleteTask,
     onSuccess: () => {
-      queryClient.refetchQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+
+      queryClient.invalidateQueries({ queryKey: ["task"] });
+
       message.success("Task deleted successfully!");
     },
     onError: (err) => {
@@ -19,6 +22,10 @@ const useTaskMutations = () => {
   const approveTaskMutation = useMutation({
     mutationFn: approveTask,
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+
+      queryClient.invalidateQueries({ queryKey: ["task"] });
+
       message.success("Task approved successfully!");
     },
     onError: (err) => {
@@ -29,6 +36,10 @@ const useTaskMutations = () => {
   const rejectTaskMutation = useMutation({
     mutationFn: rejectTask,
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+
+      queryClient.invalidateQueries({ queryKey: ["task"] });
+
       message.success("Task reject successfully!");
     },
     onError: (err) => {

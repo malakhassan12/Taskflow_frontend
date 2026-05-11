@@ -13,6 +13,8 @@ const EditTaskBtn = ({ task }) => {
         isTaskModalOpen={isTaskModalOpen}
         setIsTaskModalOpen={setIsTaskModalOpen}
         task={task}
+        projectId={task?.projectID}
+        memberId={task?.assignedMemberId}
       />
       <Button
         icon={<EditOutlined />}
