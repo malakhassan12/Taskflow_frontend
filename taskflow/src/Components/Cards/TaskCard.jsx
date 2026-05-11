@@ -1,15 +1,19 @@
 import React from "react";
 import { Card, Avatar, Tag, Typography, Flex, Badge } from "antd";
 import { UserOutlined, CalendarOutlined } from "@ant-design/icons";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import dayjs from "dayjs";
 
 const { Text } = Typography;
 
 const TaskCard = ({ task }) => {
- 
-  const priority =  { color: "#d9d9d9", label: "None" };
+  const priority = { color: "#d9d9d9", label: "None" };
 
+  const location = useLocation();
+  const pathSegments = location.pathname.split("/");
+  const lastName = pathSegments[pathSegments.length - 1];
+
+  console.log(lastName);
   return (
     <Card
       size="small"
@@ -23,7 +27,7 @@ const TaskCard = ({ task }) => {
       <Flex align="center" gap={8}>
         <Badge color={priority.color} />
         <Text strong style={{ flex: 1, fontSize: 13 }}>
-          <Link to={`${task.id}`} >
+          <Link to={lastName == "tasks" ? `${task.id}` : `tasks/${task.id}`}>
             {task.title}
           </Link>
         </Text>

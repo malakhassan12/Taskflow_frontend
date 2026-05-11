@@ -1,3 +1,3 @@
-const taskStatus = ["todo", "in-progress", "completed" , "pending" , "rejected" , "approved" , "done" ];
+const taskStatus = ["todo", "in_progress", "completed" , "pending" , "rejected" , "approved" , "done" ];
 
 export { taskStatus };

@@ -4,6 +4,7 @@ import { Modal, Input, DatePicker, Form } from "antd";
 import dayjs from "dayjs";
 import useManagerMutations from "../../Hooks/Manager/useManagerMutations";
 import SelectManager from "../FormComponents/Manager/SelectManager";
+import { useParams } from "react-router-dom";
 
 const { TextArea } = Input;
 
@@ -12,8 +13,18 @@ const TaskModal = ({
   setIsTaskModalOpen,
   task = {},
   projectId = null,
+  memberId = null
 }) => {
-  const { createTaskMutation, updateTaskMuatation } = useManagerMutations();
+  console.log(projectId);
+  console.log(memberId)
+
+  const { projectId: projId } = useParams();
+  const finalProjectId = projectId ? projectId : projId;
+
+  console.log(finalProjectId);
+
+  const { createTaskMutation, updateTaskMuatation } =
+    useManagerMutations(memberId , finalProjectId);
   const [form] = Form.useForm();
   console.log(form);
   console.log(task);
@@ -31,7 +42,7 @@ const TaskModal = ({
             id: task?.id,
           };
 
-          console.log(finalTask)
+          console.log(finalTask);
           updateTaskMuatation.mutate(finalTask);
           form.resetFields();
           setIsTaskModalOpen(false);
@@ -90,7 +101,7 @@ const TaskModal = ({
         layout="vertical"
         initialValues={{
           title: task?.title || "",
-          description: task?.description || "Not exist",
+          discription: task?.discription || "Not exist",
           dueTime: task?.dueTime ? dayjs(task?.dueTime) : dayjs(), // Convert to dayjs
           priority: task?.priority,
           assignedMemberId: task?.assignedMemberId,
@@ -105,7 +116,7 @@ const TaskModal = ({
         </Form.Item>
 
         <Form.Item
-          name="description"
+          name="discription"
           label="Description"
           rules={[{ required: true, message: "Please enter task description" }]}
         >

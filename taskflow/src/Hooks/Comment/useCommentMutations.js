@@ -7,13 +7,15 @@ import {
   pushComment,
 } from "../../Api/api/comment.api";
 
-const useCommentMutations = () => {
+const useCommentMutations = (memberId, managerId, taskId) => {
   const queryClient = useQueryClient();
 
   const pushCommentMutation = useMutation({
     mutationFn: pushComment,
     onSuccess: () => {
-      queryClient.refetchQueries({ queryKey: ["comments"] });
+      queryClient.refetchQueries({
+        queryKey: ["comments", taskId, memberId, managerId],
+      });
 
       message.success("Comment created successfully!");
     },
@@ -25,7 +27,9 @@ const useCommentMutations = () => {
   const deleteCommentMutation = useMutation({
     mutationFn: deleteComment,
     onSuccess: () => {
-      queryClient.refetchQueries({ queryKey: ["comments"] });
+      queryClient.refetchQueries({
+        queryKey: ["comments", taskId, memberId, managerId],
+      });
 
       message.success("comment deleted successfully!");
     },
@@ -38,7 +42,9 @@ const useCommentMutations = () => {
     mutationFn: editComment,
     onSuccess: () => {
       /// Comment here !!!
-      queryClient.refetchQueries({ queryKey: ["comments"] });
+      queryClient.refetchQueries({
+        queryKey: ["comments", taskId, memberId, managerId],
+      });
 
       message.success("comment Update successfully!");
     },
