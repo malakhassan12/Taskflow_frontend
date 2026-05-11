@@ -1,6 +1,6 @@
 import { Table } from "antd";
 import ProjectsColumns from "../Columns/ProjectsColumns";
-import { getProjects } from "../../../Api/api/manager.api";
+import { getAllProjects } from "../../../Api/api/manager.api";
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 
 const AllProjectsTable = forwardRef(({
@@ -23,22 +23,25 @@ const AllProjectsTable = forwardRef(({
   const fetchAllProjects = async () => {
     try {
       setLoading(true);
-      const res = await getProjects(1, 1000);
-      const mappedData = Array.isArray(res) ? res.map((project) => ({
+      const res = await getAllProjects();
+      console.log("API Response:", res);
+      const projectsArray = Array.isArray(res) ? res : res?.data || [];
+
+      const mappedData = projectsArray.map((project) => ({
         id: project.id?.toString() || "",
         name: project.name || "",
-        projectManager: project.maneger
-          ? `${project.maneger.firstName} ${project.maneger.lastName}`
-          : "",
+        projectManager: project.manegerName || "",
         projectManagerId: project.manegerID?.toString() || "",
-        members: project.users?.map((u) => u.firstName) || [],
-        numOfMembers: project.users?.length || 0,
-        status: project.status?.toLowerCase() || "pending",
-        submittedDate: project.createdAt ? new Date(project.createdAt).toISOString().split('T')[0] : "",
+        members: [],
+        numOfMembers: 0,
+        status: "active",
+        submittedDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : "",
         desc: project.description || "",
         startTime: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : "",
         endTime: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : "",
-      })) : [];
+      }));
+
+      console.log("Mapped Data:", mappedData);
       setData(mappedData);
     } catch (error) {
       console.error("Error fetching all projects:", error);

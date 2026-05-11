@@ -108,11 +108,12 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
       const userId = getAuthUserId();
       const receiverId = managerId || "";
       
-      if (!userId || !receiverId || !taskId) {
-        console.log("Missing required params for comments:", { userId, receiverId, taskId });
+      if (!taskId || !userId || !receiverId) {
+        console.log("Missing required params for comments:", { taskId, userId, receiverId });
         return [];
       }
 
+      // Fetch comments between member and manager
       const response = await axios.get(`${API_BASE}/api/Comment/ById`, {
         params: {
           SenderId: userId,
@@ -129,6 +130,7 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
         apiId: c.id || c.commentId || c.Id || c.CommentId,
         text: c.comment || c.text || c.Comment || c.Text || "",
         author: c.userName || c.author || c.userId || "User",
+        userId: c.senderId || c.SenderId || c.userId || "",
         createdAt: c.createdAt || c.CreatedAt || c.uploadDate || new Date().toISOString(),
       }));
 
@@ -230,24 +232,25 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
     };
     loadManagerId();
     
-    // Load comments after managerId is set
-    const loadCommentsAsync = async () => {
-      const taskId = task.originalTask?.id;
-      if (taskId) {
-        const comments = await fetchComments(taskId);
-        setDraft((prev) => ({
-          ...prev,
-          comments,
-        }));
-      }
-    };
-    loadCommentsAsync();
-    
     setNewComment("");
     setEditingCommentId(null);
     setEditingText("");
   }, [task]);
   /* eslint-enable react-hooks/set-state-in-effect */
+
+  // Load comments when managerId is set
+  useEffect(() => {
+    if (task?.originalTask?.id && managerId) {
+      const loadComments = async () => {
+        const comments = await fetchComments(task.originalTask.id);
+        setDraft((prev) => ({
+          ...prev,
+          comments,
+        }));
+      };
+      loadComments();
+    }
+  }, [managerId, task]);
 
   if (!task) {
     return null;
@@ -810,14 +813,24 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
             <div className="mt-2 space-y-2">
               {draft.comments.map((comment, index) => {
                 const isEditing = editingCommentId === comment.id;
+                const isOwnComment = comment.userId === getAuthUserId();
+                const isManager = comment.userId === managerId;
                 return (
                   <div
                     key={comment.id || index}
                     className={`flex items-start justify-between gap-2 rounded-md px-2 py-1.5 ${
-                      isDarkMode ? "bg-slate-800" : "bg-slate-50"
+                      isDarkMode ? "bg-slate-800" : isManager ? "bg-blue-50" : "bg-slate-50"
                     }`}
                   >
                     <div className="min-w-0 flex-1 text-start">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-semibold text-slate-600">
+                          {isManager ? "Manager" : isOwnComment ? "You" : comment.author}
+                        </span>
+                        {isManager && (
+                          <span className="text-[9px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded-full">Manager</span>
+                        )}
+                      </div>
                       {isEditing ? (
                         <input
                           type="text"
@@ -844,67 +857,69 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
                         </p>
                       )}
                     </div>
-                    <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
-                      {isEditing ? (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => saveEditedComment(comment)}
-                            className={`rounded px-2 py-1 text-[11px] font-medium ${
-                              isDarkMode
-                                ? "bg-emerald-900/50 text-emerald-300 hover:bg-emerald-900/70"
-                                : "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
-                            }`}
-                            title="Save"
-                            aria-label="Save comment"
-                          >
-                            <FiCheck className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={cancelEditComment}
-                            className={`rounded px-2 py-1 text-[11px] ${
-                              isDarkMode
-                                ? "bg-slate-700 text-slate-200 hover:bg-slate-600"
-                                : "bg-slate-200 text-slate-700 hover:bg-slate-300"
-                            }`}
-                            title="Cancel"
-                            aria-label="Cancel editing"
-                          >
-                            <FiX className="h-3.5 w-3.5" />
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => startEditComment(comment)}
-                            className={`inline-flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium ${
-                              isDarkMode
-                                ? "bg-indigo-900/40 text-indigo-200 hover:bg-indigo-900/60"
-                                : "bg-indigo-100 text-indigo-800 hover:bg-indigo-200"
-                            }`}
-                            aria-label="Edit comment"
-                          >
-                            <FiEdit2 className="h-3.5 w-3.5 shrink-0" />
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => deleteComment(comment)}
-                            className={`inline-flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium ${
-                              isDarkMode
-                                ? "bg-rose-900/40 text-rose-200 hover:bg-rose-900/60"
-                                : "bg-rose-100 text-rose-800 hover:bg-rose-200"
-                            }`}
-                            aria-label="Delete comment"
-                          >
-                            <FiTrash2 className="h-3.5 w-3.5 shrink-0" />
-                            Delete
-                          </button>
-                        </>
-                      )}
-                    </div>
+                    {isOwnComment && (
+                      <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
+                        {isEditing ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => saveEditedComment(comment)}
+                              className={`rounded px-2 py-1 text-[11px] font-medium ${
+                                isDarkMode
+                                  ? "bg-emerald-900/50 text-emerald-300 hover:bg-emerald-900/70"
+                                  : "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
+                              }`}
+                              title="Save"
+                              aria-label="Save comment"
+                            >
+                              <FiCheck className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={cancelEditComment}
+                              className={`rounded px-2 py-1 text-[11px] ${
+                                isDarkMode
+                                  ? "bg-slate-700 text-slate-200 hover:bg-slate-600"
+                                  : "bg-slate-200 text-slate-700 hover:bg-slate-300"
+                              }`}
+                              title="Cancel"
+                              aria-label="Cancel editing"
+                            >
+                              <FiX className="h-3.5 w-3.5" />
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => startEditComment(comment)}
+                              className={`inline-flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium ${
+                                isDarkMode
+                                  ? "bg-indigo-900/40 text-indigo-200 hover:bg-indigo-900/60"
+                                  : "bg-indigo-100 text-indigo-800 hover:bg-indigo-200"
+                              }`}
+                              aria-label="Edit comment"
+                            >
+                              <FiEdit2 className="h-3.5 w-3.5 shrink-0" />
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => deleteComment(comment)}
+                              className={`inline-flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium ${
+                                isDarkMode
+                                  ? "bg-rose-900/40 text-rose-200 hover:bg-rose-900/60"
+                                  : "bg-rose-100 text-rose-800 hover:bg-rose-200"
+                              }`}
+                              aria-label="Delete comment"
+                            >
+                              <FiTrash2 className="h-3.5 w-3.5 shrink-0" />
+                              Delete
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })}

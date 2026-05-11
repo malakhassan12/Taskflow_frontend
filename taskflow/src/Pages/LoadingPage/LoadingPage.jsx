@@ -100,7 +100,7 @@ const LoadingPage = () => {
             from: token.colorPrimary,
             to: token.colorPrimary,
           }}
-          trailColor={token.colorBorderSecondary}
+          railColor={token.colorBorderSecondary}
           strokeLinecap="round"
           format={(percent) => (
             <span style={{ color: token.colorPrimary, fontWeight: 600 }}>
