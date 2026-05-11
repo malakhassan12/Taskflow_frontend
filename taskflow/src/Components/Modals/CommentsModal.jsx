@@ -37,20 +37,22 @@ const CommentsModal = ({ open, setOpen, memberId, taskId }) => {
   const [newComment, setNewComment] = useState("");
   const [activeTab, setActiveTab] = useState("all");
 
-  console.log(memberId);
   const managerId = user?.userId;
-
+  
   // Get all comments for this task
   const { data: allComments = [], isLoading } = useGetCommentsById(
     memberId,
     managerId,
-    taskId
+    taskId,
   );
 
-  console.log(allComments);
-  const { pushCommentMutation } = useCommentMutations();
+  const { pushCommentMutation } = useCommentMutations(
+    memberId,
+    managerId,
+    taskId,
+  );
 
-  const isManager = user?.role === "projectmanager";
+  const isManager = user?.role === "ProjectManager";
   const currentUserColor = isManager ? primaryColor : green;
 
   const handleSendComment = () => {
@@ -59,24 +61,52 @@ const CommentsModal = ({ open, setOpen, memberId, taskId }) => {
       return;
     }
 
-    console.log({
-      comment: newComment,
-      taskId: taskId,
-      senderId: memberId,
-      receiverId: managerId,
-    });
     pushCommentMutation.mutate({
       comment: newComment,
       taskId: taskId,
-      senderId: managerId,
-      receiverId: memberId,
+      senderId: managerId,  // The current user is the sender
+      receiverId: memberId,  // The other party is the receiver
     });
     setNewComment("");
   };
 
+  // Helper function to determine if comment belongs to current user
+  const isCurrentUserComment = (comment) => {
+    return comment.senderId === user?.userId || comment.receiverId === user?.userId;
+  };
+
+  // Helper function to get the display name for a comment
+  const getCommentDisplayName = (comment) => {
+    const isSender = comment.senderId === user?.userId;
+    
+    if (isSender) {
+      return "You";
+    }
+    
+    // If it's not from current user, determine the role based on who they are
+    const isCommentFromManager = comment.senderId === managerId;
+    return isCommentFromManager ? "Manager" : "Team Member";
+  };
+
+  // Helper function to get comment's user role
+  const getCommentUserRole = (comment) => {
+    const isSender = comment.senderId === user?.userId;
+    
+    if (isSender) {
+      return isManager ? "Manager" : "Member";
+    }
+    
+    // For others' comments
+    const isCommentFromManager = comment.senderId === managerId;
+    return isCommentFromManager ? "Manager" : "Member";
+  };
+
   const getFilteredComments = () => {
     if (activeTab === "mine") {
-      return allComments.filter((c) => c.userId === user?.userId);
+      // Filter comments where current user is either sender or receiver
+      return allComments.filter((c) => 
+        c.senderId === user?.userId 
+      );
     }
     return allComments;
   };
@@ -85,7 +115,9 @@ const CommentsModal = ({ open, setOpen, memberId, taskId }) => {
     { key: "all", label: `All (${allComments.length})` },
     {
       key: "mine",
-      label: `Mine (${allComments.filter((c) => c.userId === user?.userId).length})`,
+      label: `Mine (${allComments.filter((c) => 
+        c.senderId === user?.userId 
+      ).length})`,
     },
   ];
 
@@ -153,14 +185,14 @@ const CommentsModal = ({ open, setOpen, memberId, taskId }) => {
           <List
             dataSource={getFilteredComments()}
             renderItem={(comment) => {
-              const isOwn = comment.userId === user?.userId;
+              const isOwn = isCurrentUserComment(comment);
               return (
                 <div
+                  key={comment.id}
                   style={{
                     padding: "12px",
                     marginBottom: "12px",
                     borderRadius: "8px",
-                    backgroundColor: isOwn ? "#f0f7ff" : "#fafafa",
                     borderLeft: `3px solid ${isOwn ? primaryColor : "#d9d9d9"}`,
                   }}
                 >
@@ -171,16 +203,18 @@ const CommentsModal = ({ open, setOpen, memberId, taskId }) => {
                   >
                     <Space wrap>
                       <Avatar size="small" icon={<UserOutlined />} />
-                      <Text strong>{isOwn ? "You" : "Team Member"}</Text>
+                      <Text strong>{getCommentDisplayName(comment)}</Text>
                       <Tag
-                        color={isOwn ? "blue" : "green"}
+                        color={isOwn ? (isManager ? "blue" : "green") : "default"}
                         style={{ margin: 0 }}
                       >
-                        {isOwn ? (isManager ? "Manager" : "Member") : "Member"}
+                        {getCommentUserRole(comment)}
                       </Tag>
                       <Text type="secondary" style={{ fontSize: 11 }}>
                         <ClockCircleOutlined />{" "}
-                        {dayjs(comment.createdAt).format("MM-DD HH:mm")}
+                        {comment.createdAt !== "0001-01-01T00:00:00" 
+                          ? dayjs(comment.createdAt).format("MM-DD HH:mm")
+                          : "Just now"}
                       </Text>
                     </Space>
                     <Text style={{ marginLeft: 32 }}>{comment.comment}</Text>

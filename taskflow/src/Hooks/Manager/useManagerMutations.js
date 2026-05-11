@@ -8,8 +8,10 @@ import {
 } from "../../Api/api/manager.api";
 import { useAuth } from "../../Context/AuthContext";
 
-const useManagerMutations = (projectId) => {
+const useManagerMutations = (memberId, projectId) => {
   const queryClient = useQueryClient();
+
+  console.log(memberId, projectId);
 
   const { user } = useAuth();
   const createProjectMutation = useMutation({
@@ -20,6 +22,7 @@ const useManagerMutations = (projectId) => {
         (oldData = []) => [...oldData, newProject],
       );
 
+      queryClient.invalidateQueries({ queryKey: ["managerProjects", user?.userId] });
       message.success("Project created successfully!");
     },
     onError: (err) => {
@@ -34,6 +37,10 @@ const useManagerMutations = (projectId) => {
         ["managerProjects", user?.userId],
         (oldData = []) => oldData.filter((p) => p.id !== deletedId),
       );
+      queryClient.invalidateQueries({ queryKey: ["managerProjects", user?.userId] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+
+      queryClient.invalidateQueries({ queryKey: ["task"] });
 
       message.success("Project deleted successfully!");
     },
@@ -46,7 +53,9 @@ const useManagerMutations = (projectId) => {
     mutationFn: createTask,
     onSuccess: () => {
       /// Comment here !!!
-      queryClient.refetchQueries({ queryKey: ["tasks", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+
+      queryClient.invalidateQueries({ queryKey: ["task"] });
       message.success("Task Created successfully!");
     },
     onError: (err) => {
@@ -58,7 +67,9 @@ const useManagerMutations = (projectId) => {
     mutationFn: updateTask,
     onSuccess: () => {
       /// Comment here !!!
-      queryClient.refetchQueries({ queryKey: ["tasks", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+
+      queryClient.invalidateQueries({ queryKey: ["task"] });
       message.success("Task Update successfully!");
     },
     onError: (err) => {

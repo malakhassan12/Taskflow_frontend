@@ -55,6 +55,8 @@ const TeamTable = () => {
 
   const { data: teamsData, isLoading, error } = useGetTeams();
 
+  console.log(teamsData);
+
   // Transform API data to table format
   const transformedData =
     teamsData?.map((item, index) => ({
@@ -70,12 +72,10 @@ const TeamTable = () => {
       status: item.status || "active",
     })) || [];
 
- 
-
-  const { _, setSearchTerm, filteredData } = useSearch(
-    transformedData,
-    ["name", "project_name"],
-  );
+  const { _, setSearchTerm, filteredData } = useSearch(transformedData, [
+    "name",
+    "project_name",
+  ]);
 
   const handleViewTasks = (record) => {
     // Extract project ID from project_code (e.g., "PRJ-4" -> 4)
@@ -168,7 +168,7 @@ const TeamTable = () => {
             showQuickJumper: true,
           }}
           loading={isLoading}
-          rowKey="key"
+          rowKey={(record) => record.project_id}
         />
       </Card>
     </div>
