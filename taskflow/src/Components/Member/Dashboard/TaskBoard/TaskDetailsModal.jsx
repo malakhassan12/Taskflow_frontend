@@ -10,7 +10,6 @@ import {
   FiPaperclip,
   FiSend,
   FiTrash2,
-  FiUser,
   FiX,
 } from "react-icons/fi";
 import { useTheme } from "../../../../Context/DarkModeProvider";
@@ -60,9 +59,8 @@ const emptyDraft = {
   statusLabel: "Todo",
   priority: "medium",
   description: "",
-  assignedTo: "Emma Wilson",
-  createdBy: "Sarah Johnson",
   dueDate: "",
+  deadline: "",
   lastUpdated: "about 2 years ago",
   attachments: [],
   comments: [],
@@ -208,14 +206,25 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
       }
     };
 
+    const dueTimeRaw = task.originalTask?.dueTime;
+    const dueDateValue = dueTimeRaw ? new Date(dueTimeRaw).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    }) : "";
+    const deadlineValue = dueTimeRaw ? new Date(dueTimeRaw).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    }) : "";
+    
     setDraft({
       title: task.title || "",
       statusLabel: task.statusLabel || "Todo",
       priority: task.priority || "medium",
       description: task.description || "",
-      assignedTo: task.assignedTo || "Emma Wilson",
-      createdBy: task.createdBy || "Sarah Johnson",
-      dueDate: task.dueDate || "",
+      dueDate: dueDateValue,
+      deadline: deadlineValue,
       lastUpdated: task.lastUpdated || "about 2 years ago",
       attachments: task.attachments || [],
       comments: task.comments || [],
@@ -696,40 +705,25 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
             <FiEdit2 className="h-3.5 w-3.5" />
             Description
           </p>
-          <textarea
-            rows={3}
-            value={draft.description}
-            onChange={(e) => handleFieldChange("description", e.target.value)}
-            className="w-full resize-none rounded-md border border-slate-200 px-2 py-1 text-xs text-slate-600"
-          />
+          <p className="w-full whitespace-pre-wrap rounded-md bg-slate-50 px-2 py-1.5 text-xs leading-relaxed text-slate-600">
+            {draft.description || "No description provided"}
+          </p>
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-slate-600">
-          <div className="space-y-3">
-            <p className="flex items-center gap-2"><FiUser className="h-3.5 w-3.5" />Assigned To</p>
-            <input
-              value={draft.assignedTo}
-              onChange={(e) => handleFieldChange("assignedTo", e.target.value)}
-              className="w-full rounded-md border border-slate-200 bg-slate-50 px-2 py-1"
-            />
+          <div className="space-y-1">
             <p className="flex items-center gap-2"><FiCalendar className="h-3.5 w-3.5" />Due Date</p>
             <input
               value={draft.dueDate}
-              onChange={(e) => handleFieldChange("dueDate", e.target.value)}
+              readOnly
               className="w-full rounded-md border border-slate-200 bg-slate-50 px-2 py-1"
             />
           </div>
-          <div className="space-y-3">
-            <p className="flex items-center gap-2"><FiUser className="h-3.5 w-3.5" />Created By</p>
+          <div className="space-y-1">
+            <p className="flex items-center gap-2"><FiClock className="h-3.5 w-3.5" />Deadline</p>
             <input
-              value={draft.createdBy}
-              onChange={(e) => handleFieldChange("createdBy", e.target.value)}
-              className="w-full rounded-md border border-slate-200 bg-slate-50 px-2 py-1"
-            />
-            <p className="flex items-center gap-2"><FiClock className="h-3.5 w-3.5" />Last Updated</p>
-            <input
-              value={draft.lastUpdated}
-              onChange={(e) => handleFieldChange("lastUpdated", e.target.value)}
+              value={draft.deadline}
+              readOnly
               className="w-full rounded-md border border-slate-200 bg-slate-50 px-2 py-1"
             />
           </div>
