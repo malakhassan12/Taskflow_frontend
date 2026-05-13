@@ -39,7 +39,7 @@ const MemberCard = ({ member, projectId }) => {
       <TasksModal
         modalOpen={openMemberModal}
         setModalOpen={setOpenMemberModal}
-        memberId={member.user?.id}
+        memberId={member?.id}
         projectId={projectId}
       />
 
@@ -64,12 +64,12 @@ const MemberCard = ({ member, projectId }) => {
               icon={<UserOutlined />}
               style={{ backgroundColor: "#1890ff" }}
             >
-              {member.user?.name?.charAt(0) || "U"}
+              {member.name?.charAt(0) || "U"}
             </Avatar>
 
             <div>
               <Title level={5} style={{ margin: 0 }}>
-                {member.user?.name || "Unknown Member"}
+                {member?.name || "Unknown Member"}
               </Title>
               <Tag color={getRoleColor(member.user?.role)} style={{ marginTop: 4 }}>
                 {member.user?.role || "Member"}
@@ -78,11 +78,11 @@ const MemberCard = ({ member, projectId }) => {
           </Flex>
 
           {/* Email */}
-          {member.user?.email && (
+          {member?.email && (
             <Flex align="center" gap={8}>
               <MailOutlined style={{ color: "#8c8c8c" }} />
               <Text type="secondary" style={{ fontSize: "12px" }}>
-                {member.user.email}
+                {member?.email}
               </Text>
             </Flex>
           )}

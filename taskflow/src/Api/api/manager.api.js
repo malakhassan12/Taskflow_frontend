@@ -80,6 +80,11 @@ const getAllMembers = async () => {
 const getPendingProjects = async () => {
   try {
     const res = await managerClient.get("/Project/GetPendingProjects");
+    console.log("RAW RESPONSE:", res);
+    const pendingProjects =
+      typeof res?.data === "string" ? JSON.parse(res?.data) : res?.data || [];
+    console.log(pendingProjects);
+
     return res?.data;
   } catch (err) {
     throw { err };
