@@ -70,9 +70,7 @@ const getTasksPerProject = async (projectId) => {
 
 const getAllMembers = async () => {
   try {
-    const res = await managerClient.get(
-      `/api/User/allteammember`,
-    );
+    const res = await managerClient.get(`User/allteammember`);
     return res?.data;
   } catch (err) {
     throw { err };
@@ -88,7 +86,7 @@ const getPendingProjects = async () => {
   }
 };
 
-const getUserWithStatus = async (status) => {
+const getUserWithStatus = async () => {
   try {
     const res = await managerClient.get("/Account/pending");
     return res?.data;
@@ -142,7 +140,8 @@ const updateUserProfile = async (data) => {
   }
 };
 
-const updateProjectStatus = async (projectId, newStatus) => {
+const updateProjectStatus = async ({ projectId, newStatus }) => {
+  console.log(projectId, newStatus);
   try {
     const res = await managerClient.patch(
       `/Project/ProjectStatus?projectId=${projectId}&newStatus=${newStatus}`,
@@ -156,7 +155,7 @@ const updateProjectStatus = async (projectId, newStatus) => {
 const getAllMembersPerProject = async (projectId) => {
   try {
     const res = await managerClient.get(
-      `/api/User/allTeamMemberByProjectID?id=${projectId}`,
+      `/User/allTeamMemberByProjectID?id=${projectId}`,
     );
     return res?.data;
   } catch (err) {

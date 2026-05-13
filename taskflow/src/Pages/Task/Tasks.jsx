@@ -43,24 +43,30 @@ const Tasks = () => {
   const screens = useBreakpoint();
   const isMobile = !screens.md;
   const { projectId } = useParams();
-  
+
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  
-  const { data: projectData, isLoading, refetch } = useGetTasksPerProject(projectId);
-  
+
+  const {
+    data: projectData,
+    isLoading,
+    refetch,
+  } = useGetTasksPerProject(projectId);
+
   const tasks = projectData?.tasks || [];
-  
+
   // Filter tasks
   const filteredTasks = tasks.filter((task) => {
-    const matchesSearch = task.title?.toLowerCase().includes(searchText.toLowerCase()) ||
-                         task.discription?.toLowerCase().includes(searchText.toLowerCase());
-    const matchesStatus = statusFilter === "all" || task.status === statusFilter;
+    const matchesSearch =
+      task.title?.toLowerCase().includes(searchText.toLowerCase()) ||
+      task.discription?.toLowerCase().includes(searchText.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" || task.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
-  
+
   const stats = [
     {
       title: "Total",
@@ -78,10 +84,10 @@ const Tasks = () => {
     },
     {
       title: "In Progress",
-      value: tasks.filter((t) => t.status === "in-progress").length,
+      value: tasks.filter((t) => t.status === "in_progress").length,
       icon: <SyncOutlined spin />,
       color: "#faad14",
-      status: "in-progress",
+      status: "in_progress",
     },
     {
       title: "Pending",
@@ -91,21 +97,19 @@ const Tasks = () => {
       status: "pending",
     },
   ];
-  
+
   if (isLoading) {
-    return (
-     <DataLoad/>
-    );
+    return <DataLoad />;
   }
-  
+
   return (
-    <div style={{ padding: isMobile ? "16px" : "24px", minHeight: "100vh",  }}>
+    <div style={{ padding: isMobile ? "16px" : "24px", minHeight: "100vh" }}>
       <div style={{ maxWidth: 1400, margin: "0 auto" }}>
         {/* Header */}
         <Card style={{ marginBottom: 24, borderRadius: 12 }}>
           <Row gutter={[16, 16]} align="middle">
             <Col xs={24} md={12}>
-              <Space direction="vertical" size={8}>
+              <Space orientation="vertical" size={8}>
                 <BackBtn />
                 <Title level={isMobile ? 3 : 2} style={{ margin: 0 }}>
                   {projectData?.name || "Project Tasks"}
@@ -116,13 +120,18 @@ const Tasks = () => {
               </Space>
             </Col>
             <Col xs={24} md={12} style={{ textAlign: "right" }}>
-              <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsTaskModalOpen(true)} size="large">
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => setIsTaskModalOpen(true)}
+                size="large"
+              >
                 New Task
               </Button>
             </Col>
           </Row>
         </Card>
-        
+
         {/* Stats */}
         <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
           {stats.map((stat) => (
@@ -133,20 +142,25 @@ const Tasks = () => {
                 style={{
                   borderRadius: 12,
                   cursor: "pointer",
-                  border: statusFilter === stat.status ? `2px solid ${stat.color}` : "none",
+                  border:
+                    statusFilter === stat.status
+                      ? `2px solid ${stat.color}`
+                      : "none",
                 }}
               >
                 <Statistic
                   title={stat.title}
                   value={stat.value}
                   prefix={stat.icon}
-                  valueStyle={{ color: stat.color }}
+                  styles={{
+                    content: { color: stat.color },
+                  }}
                 />
               </Card>
             </Col>
           ))}
         </Row>
-        
+
         {/* Filters */}
         <Card style={{ marginBottom: 24, borderRadius: 12 }}>
           <Row gutter={[16, 16]}>
@@ -175,7 +189,7 @@ const Tasks = () => {
             </Col>
           </Row>
         </Card>
-        
+
         {/* Tasks List */}
         {filteredTasks.length === 0 ? (
           <Card style={{ textAlign: "center", padding: 40, borderRadius: 12 }}>
@@ -189,16 +203,13 @@ const Tasks = () => {
           <Row gutter={[16, 16]}>
             {filteredTasks.map((task) => (
               <Col xs={24} lg={12} xl={8} key={task.id}>
-                <TaskCard 
-                  task={task} 
-                    
-                />
+                <TaskCard task={task} />
               </Col>
             ))}
           </Row>
         )}
       </div>
-      
+
       <TaskModal
         isTaskModalOpen={isTaskModalOpen}
         setIsTaskModalOpen={() => {

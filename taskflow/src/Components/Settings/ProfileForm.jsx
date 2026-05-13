@@ -1,5 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Card, Form, Input, Button, Space, Typography, Spin, Row, Col, message } from "antd";
+import {
+  Card,
+  Form,
+  Input,
+  Button,
+  Space,
+  Typography,
+  Spin,
+  Row,
+  Col,
+  message,
+} from "antd";
 import { SaveOutlined, MailOutlined } from "@ant-design/icons";
 import { primaryColor } from "../../Constants/Colors";
 import { getUserProfile, updateUserProfile } from "../../Api/api/manager.api";
@@ -15,14 +26,18 @@ const ProfileForm = () => {
     const fetchProfile = async () => {
       try {
         const response = await getUserProfile();
-        form.setFieldsValue({
-          firstName: response.user?.firstName || "",
-          lastName: response.user?.lastName || "",
-          age: response.user?.age || "",
-        });
+
+        setLoading(false);
+
+        setTimeout(() => {
+          form.setFieldsValue({
+            firstName: response.firstName || "",
+            lastName: response.lastName || "",
+            age: response.age || "",
+          });
+        }, 0);
       } catch (error) {
         console.error("Error fetching profile:", error);
-      } finally {
         setLoading(false);
       }
     };
@@ -58,7 +73,7 @@ const ProfileForm = () => {
   if (loading) {
     return (
       <div style={{ textAlign: "center", padding: 40 }}>
-        <Spin size="large" tip="Loading profile..." />
+        <Spin size="large" description="Loading profile..." />
       </div>
     );
   }
@@ -66,26 +81,41 @@ const ProfileForm = () => {
   const user = JSON.parse(localStorage.getItem("user")) || {};
 
   return (
-    <Space direction="vertical" size={24} style={{ width: "100%" }}>
+    <Space orientation="vertical" size={24} style={{ width: "100%" }}>
       <Card style={{ borderRadius: 16 }}>
         <Title level={4}>Personal Information</Title>
-        <Text type="secondary">Update your personal details and profile information</Text>
+        <Text type="secondary">
+          Update your personal details and profile information
+        </Text>
 
-        <Form form={form} layout="vertical" onFinish={handleSave} style={{ marginTop: 20 }}>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSave}
+          style={{ marginTop: 20 }}
+        >
           <Row gutter={16}>
             <Col xs={24} sm={12}>
-              <Form.Item name="firstName" label="First Name" rules={[{ required: true, message: "Please enter first name" }]}>
+              <Form.Item
+                name="firstName"
+                label="First Name"
+                rules={[{ required: true, message: "Please enter first name" }]}
+              >
                 <Input size="large" placeholder="Enter first name" />
               </Form.Item>
             </Col>
             <Col xs={24} sm={12}>
-              <Form.Item name="lastName" label="Last Name" rules={[{ required: true, message: "Please enter last name" }]}>
+              <Form.Item
+                name="lastName"
+                label="Last Name"
+                rules={[{ required: true, message: "Please enter last name" }]}
+              >
                 <Input size="large" placeholder="Enter last name" />
               </Form.Item>
             </Col>
             <Col xs={24}>
               <Form.Item label="Email Address">
-                <Input size="large" value={user?.email || ""} disabled  />
+                <Input size="large" value={user?.email || ""} disabled />
               </Form.Item>
             </Col>
             <Col xs={24}>
@@ -94,7 +124,14 @@ const ProfileForm = () => {
               </Form.Item>
             </Col>
             <Col xs={24}>
-              <Button type="primary" htmlType="submit" icon={<SaveOutlined />} loading={saving} size="large" style={{ backgroundColor: primaryColor }}>
+              <Button
+                type="primary"
+                htmlType="submit"
+                icon={<SaveOutlined />}
+                loading={saving}
+                size="large"
+                style={{ backgroundColor: primaryColor }}
+              >
                 {saving ? "Saving..." : "Save Changes"}
               </Button>
             </Col>
@@ -107,23 +144,60 @@ const ProfileForm = () => {
         <Text type="secondary">Your account details and role</Text>
 
         <div style={{ marginTop: 20 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: "1px solid #f0f0f0" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "12px 0",
+              borderBottom: "1px solid #f0f0f0",
+            }}
+          >
             <div>
               <Text strong>Account Type</Text>
               <br />
-              <Text type="secondary" style={{ fontSize: 12 }}>Your current role</Text>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                Your current role
+              </Text>
             </div>
-            <span style={{ borderRadius: 20, backgroundColor: "#e6f7ff", padding: "4px 12px", fontSize: 12, fontWeight: 500, color: "#1890ff" }}>
+            <span
+              style={{
+                borderRadius: 20,
+                backgroundColor: "#e6f7ff",
+                padding: "4px 12px",
+                fontSize: 12,
+                fontWeight: 500,
+                color: "#1890ff",
+              }}
+            >
               {user?.role || "Team Member"}
             </span>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "12px 0",
+            }}
+          >
             <div>
               <Text strong>Account Status</Text>
               <br />
-              <Text type="secondary" style={{ fontSize: 12 }}>Current status</Text>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                Current status
+              </Text>
             </div>
-            <span style={{ borderRadius: 20, backgroundColor: "#f6ffed", padding: "4px 12px", fontSize: 12, fontWeight: 500, color: "#52c41a" }}>
+            <span
+              style={{
+                borderRadius: 20,
+                backgroundColor: "#f6ffed",
+                padding: "4px 12px",
+                fontSize: 12,
+                fontWeight: 500,
+                color: "#52c41a",
+              }}
+            >
               Active
             </span>
           </div>

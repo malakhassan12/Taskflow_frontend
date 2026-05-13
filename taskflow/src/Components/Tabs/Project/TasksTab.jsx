@@ -110,7 +110,7 @@ const TasksTab = () => {
                       style={{ backgroundColor: primaryColor }}
                     />
                     <Text style={{ fontSize: 13 }}>
-                      {task.assignedMember?.firstName || "Unassigned"}
+                      {task.assignedMember?.name || "Unassigned"}
                     </Text>
                   </Flex>
                 </Flex>

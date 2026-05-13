@@ -34,7 +34,7 @@ const AllProjectsTable = forwardRef(({
         projectManagerId: project.manegerID?.toString() || "",
         members: [],
         numOfMembers: 0,
-        status: "active",
+        status:project?.status,
         submittedDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : "",
         desc: project.description || "",
         startTime: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : "",
@@ -57,6 +57,7 @@ const AllProjectsTable = forwardRef(({
         handleViewManagerDetails,
         handleApprove,
         handleReject,
+        false
       )}
       dataSource={data}
       rowKey="id"

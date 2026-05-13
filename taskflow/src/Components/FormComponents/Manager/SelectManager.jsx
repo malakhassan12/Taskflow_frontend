@@ -5,13 +5,17 @@ import useGetAllMembers from "../../../Hooks/Manager/useGetAllMembers";
 
 const SelectManager = () => {
   const { data: members, isLoading } = useGetAllMembers();
+  console.log(members);
 
-  const memberOptions = members?.map((member) => ({
-    label: member.user?.email || member.user?.name || "Team Member",
-    value: member.user?.id,
-    email: member.user?.email,
-    name: member.user?.name,
-  })) || [];
+  const finalMember = Array.isArray(members) ? members : [];
+
+  const memberOptions =
+    finalMember?.map((member) => ({
+      label: member.email || member.name || "Team Member",
+      value: member.id,
+      email: member.email,
+      name: member.name,
+    })) || [];
 
   return (
     <Form.Item
@@ -22,7 +26,7 @@ const SelectManager = () => {
           Assign Member
         </span>
       }
-      rules={[{ required: true, message: "Please select a team member!" }]}
+      rules={[{ message: "Please select a team member!" }]}
     >
       <Select
         style={{ width: "100%" }}
@@ -38,8 +42,6 @@ const SelectManager = () => {
           </Space>
         )}
       />
-   
-
     </Form.Item>
   );
 };

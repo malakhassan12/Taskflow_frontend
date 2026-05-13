@@ -1,77 +1,119 @@
 import React, { useState, useEffect } from "react";
-import ManagerModal from "../../Modals/Admin/ManagerModal";
-import MemberModal from "../../Modals/Admin/MemberModal";
+import { message } from "antd";
+
 import UsersTable from "../../Table/Admin/UsersTable";
+import UserModal from "../../Modals/User/UserModal";
+
 import { getAllUsers } from "../../../Api/api/admin.api";
 
 const UsersTab = () => {
+
   const [dataSource, setDataSource] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const [selectedMemeber, setSelectedMemeber] = useState(null);
-  const [memberModalOpen, setMemberModalOpen] = useState(false);
+  // Modal State
+  const [open, setOpen] = useState(false);
 
-  const [managerModalOpen, setManagerModalOpen] = useState(false);
-  const [selectedManager, setSelectedManager] = useState(null);
+  // Selected User
+  const [selectedMember, setSelectedMember] =
+    useState(null);
 
   useEffect(() => {
     fetchAllUsers();
   }, []);
 
   const fetchAllUsers = async () => {
+
     try {
+
       setLoading(true);
+
       const res = await getAllUsers();
-      const mappedData = Array.isArray(res) ? res.map((user) => ({
-        id: user.id?.toString() || "",
-        name: user.email?.split('@')[0] || user.email || "",
-        email: user.email || "",
-        phone: "",
-        role: user.role === "ProjectManager" ? "manager" : user.role === "TeamMember" ? "member" : user.role?.toLowerCase() || "member",
-        roleName: user.role || "User",
-        status: "active",
-        registeredDate: "",
-        lastActive: "",
-        company: "",
-        experience: "",
-        projectsCount: user.projects?.length || 0,
-        avatarColor: "#1890ff",
-        bio: "",
-      })) : [];
+
+      const mappedData = Array.isArray(res)
+        ? res
+            .filter(
+              (user) =>
+                user.role === "TeamMember" ||
+                user.role === "ProjectManager"
+            )
+
+            .map((user) => ({
+              id: user.id,
+
+              name:
+                user.email?.split("@")[0] ||
+                "User",
+
+              email: user.email,
+
+              role:
+                user.role === "TeamMember"
+                  ? "Team Member"
+                  : "Project Manager",
+
+              projectsCount:
+                user.projects?.length || 0,
+
+              tasksCount:
+                user.tasks?.length || 0,
+
+              notificationsCount:
+                user.notifications?.length || 0,
+
+              // Keep original user
+              originalUser: user,
+            }))
+        : [];
+
       setDataSource(mappedData);
+
     } catch (error) {
-      console.error("Error fetching all users:", error);
+
+      console.error(
+        "Error fetching users:",
+        error
+      );
+
+      message.error(
+        "Failed to load users"
+      );
+
     } finally {
+
       setLoading(false);
     }
   };
 
+  // View Details
   const handleViewDetails = (record) => {
-    if (record.role == "member") {
-      setSelectedMemeber(record);
-      setMemberModalOpen(true);
-    } else {
-      setSelectedManager(record);
-      setManagerModalOpen(true);
-    }
+
+    console.log("Selected User:", record);
+
+    setSelectedMember(record);
+
+    setOpen(true);
   };
+
   return (
     <>
-      <UsersTable
-        handleViewDetails={handleViewDetails}
-        dataSource={dataSource}
-        loading={loading}
-      />
-      <ManagerModal
-        viewModalOpen={managerModalOpen}
-        setViewModalOpen={setManagerModalOpen}
-        selectedManager={selectedManager}
+
+      {/* User Modal */}
+      <UserModal
+        open={open}
+        setOpen={setOpen}
+        selectedMember={selectedMember}
       />
 
-      <MemberModal
-        viewModalOpen={memberModalOpen}
-        setViewModalOpen={setMemberModalOpen}
-        selectedMemeber={selectedMemeber}
+      {/* Users Table */}
+      <UsersTable
+        handleViewDetails={
+          handleViewDetails
+        }
+
+        dataSource={dataSource}
+
+        loading={loading}
       />
     </>
   );

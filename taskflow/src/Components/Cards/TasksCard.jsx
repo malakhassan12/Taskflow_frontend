@@ -21,7 +21,7 @@ const TasksCard = ({ status, allTasks = [] }) => {
   // Filter tasks based on status
 
   console.log(allTasks);
-  console.log(allTasks)
+  console.log(allTasks);
   const getTasksByStatus = () => {
     if (!allTasks.length) return [];
 
@@ -60,7 +60,7 @@ const TasksCard = ({ status, allTasks = [] }) => {
           paddingBottom: "12px",
         }}
       >
-        <Space direction="vertical" size={8} style={{ width: "100%" }}>
+        <Space orientation="vertical" size={8} style={{ width: "100%" }}>
           <Space size={12} align="center">
             {getTaskStatusIcon(status)}
             <Title level={4} style={{ margin: 0, color: primaryColor }}>
@@ -101,17 +101,48 @@ const TasksCard = ({ status, allTasks = [] }) => {
       </div>
 
       {/* Tasks List Section */}
+        <style>
+              {`
+          .no-color-scroll::-webkit-scrollbar {
+            width: 8px;
+          }
+          .no-color-scroll::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          .no-color-scroll::-webkit-scrollbar-thumb {
+            background: #d9d9d9; 
+            border-radius: 10px;
+          }
+          .no-color-scroll::-webkit-scrollbar-thumb:hover {
+            background: #bfbfbf;
+          }
+          /* For Firefox */
+          .no-color-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: #d9d9d9 transparent;
+          }
+        `}
+            </style>
       <div
         style={{ maxHeight: "500px", overflowY: "auto", paddingRight: "4px" }}
+                      className="no-color-scroll"
+
       >
         {tasks.length === 0 ? (
           <DataError />
         ) : (
-          <Space orientation="vertical" size="16px" style={{ width: "100%" }}>
-            {tasks.map((task) => (
-              <TaskCard key={task.id} task={task} />
-            ))}
-          </Space>
+          <>
+          
+            <Space
+              orientation="vertical"
+              size="16px"
+              style={{ width: "100%" ,  }}
+            >
+              {tasks.map((task) => (
+                <TaskCard key={task.id} task={task} />
+              ))}
+            </Space>
+          </>
         )}
       </div>
     </Card>
