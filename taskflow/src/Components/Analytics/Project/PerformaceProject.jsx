@@ -9,18 +9,17 @@ import useGetTaskStatusPerProject from "../../../Hooks/Manager/useGetTaskStatusP
 import DataLoad from "../../Loaders/DataLoad";
 
 const PerformaceProject = ({ projectId }) => {
-  const { data = {}, isLoading,  } = useGetTaskStatusPerProject(projectId);
+  const { data = {}, isLoading } = useGetTaskStatusPerProject(projectId);
 
   const totalTasks = data?.totalTasks || 0;
   const toDoTasks = data?.toDo || 0;
   const inProgressTasks = data?.inProgress || 0;
   const completedTasks = data?.done || 0;
-  const overallProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  const overallProgress =
+    totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
   if (isLoading) {
-    return (
-     <DataLoad/>
-    );
+    return <DataLoad />;
   }
 
   return (
@@ -41,7 +40,13 @@ const PerformaceProject = ({ projectId }) => {
               value={overallProgress}
               prefix={<RocketOutlined />}
               suffix="%"
-              valueStyle={{ color: "#1890ff", fontSize: "24px", fontWeight: "bold" }}
+              styles={{
+                content: {
+                  color: "#1890ff",
+                  fontSize: "24px",
+                  fontWeight: "bold",
+                },
+              }}
             />
             <Progress
               percent={overallProgress}
@@ -68,7 +73,13 @@ const PerformaceProject = ({ projectId }) => {
               value={toDoTasks}
               prefix={<ClockCircleOutlined />}
               suffix=" tasks"
-              valueStyle={{ color: "#faad14", fontSize: "24px", fontWeight: "bold" }}
+              styles={{
+                content: {
+                  color: "#faad14",
+                  fontSize: "24px",
+                  fontWeight: "bold",
+                },
+              }}
             />
           </Card>
         </Col>
@@ -88,7 +99,13 @@ const PerformaceProject = ({ projectId }) => {
               value={inProgressTasks}
               prefix={<PlayCircleOutlined />}
               suffix=" tasks"
-              valueStyle={{ color: "#13c2c2", fontSize: "24px", fontWeight: "bold" }}
+              styles={{
+                content: {
+                  color: "#13c2c2",
+                  fontSize: "24px",
+                  fontWeight: "bold",
+                },
+              }}
             />
           </Card>
         </Col>
@@ -108,7 +125,13 @@ const PerformaceProject = ({ projectId }) => {
               value={completedTasks}
               prefix={<CheckCircleOutlined />}
               suffix=" tasks"
-              valueStyle={{ color: "#52c41a", fontSize: "24px", fontWeight: "bold" }}
+              styles={{
+                content: {
+                  color: "#52c41a",
+                  fontSize: "24px",
+                  fontWeight: "bold",
+                },
+              }}
             />
           </Card>
         </Col>

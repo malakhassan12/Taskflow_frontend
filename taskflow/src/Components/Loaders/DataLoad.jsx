@@ -12,7 +12,7 @@ const DataLoad = ({ item }) => {
         height: "100%",
       }}
     >
-      <Spin size="large" tip={`Loading ${item} data...`} />
+      <Spin size="large" description={`Loading ${item} data...`} />
     </Card>
   );
 };

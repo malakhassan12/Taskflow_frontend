@@ -25,18 +25,31 @@ import {
 } from "@ant-design/icons";
 import useGetPendingProjects from "../../Hooks/Manager/useGetPerndingProjects";
 import dayjs from "dayjs";
+import CardSkeleton from "../../Components/Skelton/CardSkelton";
 const { Title, Text, Paragraph } = Typography;
 
 const PendingProjects = () => {
   const [selectedProject, setSelectedProject] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const { data: projects } = useGetPendingProjects();
+  const { data: projects, isLoading } = useGetPendingProjects();
 
   const handleViewDetails = (record) => {
     setSelectedProject(record);
     setModalOpen(true);
   };
+
+  if (isLoading) {
+    return (
+   <Row gutter={[16, 16]}>
+  {Array.from({ length: 5 }).map((_, index) => (
+    <Col xs={24} sm={12} lg={8} xl={6} key={index}>
+      <CardSkeleton />
+    </Col>
+  ))}
+</Row>
+    );
+  }
 
   return (
     <div style={{ padding: "16px", minHeight: "100vh" }}>

@@ -60,13 +60,13 @@ const TasksColumns = (setIsCommentsModalOpen, setTaskId, ) => {
       render: (status, record) => {
         // Exist update here
         console.log(record);
-        if (record.approved === true) {
+        if (record.statusPorAp === "APPROVED") {
           return <Tag color="success">Approved ✓</Tag>;
         }
-        if (record.approved === false && record.status === "completed") {
+        if (record.statusPorAp === "REJECTED") {
           return <Tag color="error">Rejected ✗</Tag>;
         }
-        if (record.status === "completed" && record.approved === null) {
+        if (record.statusPorAp === "PENDING" ) {
           return <Tag color="warning">Pending Approval</Tag>;
         }
         return (

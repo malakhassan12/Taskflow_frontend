@@ -14,6 +14,7 @@ const ProjectsColumns = (
   handleViewManagerDetails,
   handleApprove,
   handleReject,
+  hasPendingProjects = false,
 ) => [
   {
     title: "Project ID",
@@ -29,18 +30,6 @@ const ProjectsColumns = (
     title: "Project Name",
     dataIndex: "name",
     key: "name",
-    render: (name, record) => (
-      <Link
-        to={`${record.id}`}
-        style={{
-          fontWeight: 600,
-          color: "#1677ff",
-          display: "block",
-        }}
-      >
-        {name}
-      </Link>
-    ),
   },
   {
     title: "Project Manager",
@@ -54,26 +43,22 @@ const ProjectsColumns = (
           style={{ backgroundColor: "#87d068" }}
         />
         <Typography.Text
-          style={{ cursor: "pointer", color: "#1890ff" }}
-          onClick={() => handleViewManagerDetails(manager, record.id)}
+          style={{
+            cursor: hasPendingProjects ? "pointer" : "default",
+            color: "#1890ff",
+          }}
+          onClick={() => {
+            console.log(record?.manager);
+            if (hasPendingProjects) handleViewManagerDetails(record?.manager);
+          }}
         >
           {manager}
         </Typography.Text>
       </Space>
     ),
   },
-  {
-    title: "Team Size",
-    dataIndex: "numOfMembers",
-    key: "numOfMembers",
-    render: (num, record) => (
-      <Tooltip title={`Members: ${record.members.join(", ")}`}>
-        <Tag icon={<TeamOutlined />} color="cyan">
-          {num} Members
-        </Tag>
-      </Tooltip>
-    ),
-  },
+
+  
   {
     title: "Submitted",
     dataIndex: "submittedDate",
@@ -85,42 +70,103 @@ const ProjectsColumns = (
       </Space>
     ),
   },
-  {
-    title: "Status",
-    dataIndex: "status",
-    key: "status",
-    render: (status) => {
-      let text = "Active";
-      let badgeStatus = "success";
-      if (status === "completed") {
+ {
+  title: "Status",
+  dataIndex: "status",
+  key: "status",
+
+  render: (status) => {
+
+    let text = "Approved";
+    let badgeStatus = "success";
+
+    switch (status?.toUpperCase()) {
+
+      case "PENDING":
+        text = "Pending";
+        badgeStatus = "warning";
+        break;
+
+      case "REJECTED":
+        text = "Rejected";
+        badgeStatus = "error";
+        break;
+
+      case "APPROVED":
+        text = "Approved";
+        badgeStatus = "success";
+        break;
+
+      case "COMPLETED":
         text = "Completed";
         badgeStatus = "processing";
-      } else if (status === "on-hold") {
-        text = "On Hold";
-        badgeStatus = "warning";
-      }
-      return (
-        <Badge
-          status={badgeStatus}
-          text={text}
-        />
-      );
-    },
+        break;
+
+      default:
+        text = status;
+        badgeStatus = "default";
+    }
+
+    return (
+      <Badge
+        status={badgeStatus}
+        text={text}
+      />
+    );
   },
+},
   {
     title: "Actions",
     key: "actions",
-    render: (_, record) => (
-      <Space>
-        <Tooltip title="View Project Details">
-          <Button
-            icon={<EyeOutlined />}
-            size="small"
-            onClick={() => handleViewProjectDetails(record)}
-          />
-        </Tooltip>
-      </Space>
-    ),
+    render: (_, record) => {
+      console.log(record);
+      return (
+        <Space size="small">
+          <Tooltip title="View Project Details">
+            <Button
+              icon={<EyeOutlined />}
+              size="small"
+              onClick={() => handleViewProjectDetails(record)}
+              style={{ color: "#1890ff" }}
+            />
+          </Tooltip>
+
+          {record?.status === "pending" && (
+            <>
+              <Tooltip title="Approve Project">
+                <Button
+                  icon={<CheckCircleOutlined />}
+                  size="small"
+                  onClick={() => {
+                    console.log("Approving project:", record.id);
+                    handleApprove(record.id);
+                  }}
+                  style={{ color: "#52c41a", borderColor: "#52c41a" }}
+                  type="primary"
+                  ghost
+                >
+                  Approve
+                </Button>
+              </Tooltip>
+
+              <Tooltip title="Reject Project">
+                <Button
+                  icon={<CloseCircleOutlined />}
+                  size="small"
+                  onClick={() => {
+                    console.log("Rejecting project:", record.id);
+                    handleReject(record.id);
+                  }}
+                  danger
+                >
+                  Reject
+                </Button>
+              </Tooltip>
+            </>
+          )}
+        </Space>
+      );
+    },
   },
 ];
 

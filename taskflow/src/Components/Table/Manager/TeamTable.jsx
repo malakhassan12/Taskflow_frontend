@@ -40,6 +40,7 @@ import useGetTeams from "../../../Hooks/Manager/useGetTeams.js";
 import MemberModal from "../../Modals/Admin/MemberModal.jsx";
 import useSearch from "../../../Context/SearchContext.js";
 import SearchBar from "../../Search/SearchBar.jsx";
+import TableSkeleton from "../../Skelton/TableSkelton.jsx";
 
 const { Title, Text } = Typography;
 const { Search } = Input;
@@ -93,7 +94,7 @@ const TeamTable = () => {
   };
 
   if (isLoading) {
-    return <DataLoad item="teams" />;
+    return <TableSkeleton />;
   }
 
   if (error) {

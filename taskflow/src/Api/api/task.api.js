@@ -18,6 +18,24 @@ const deleteTask = async (taskId) => {
   }
 };
 
+const assignTask = async ({ taskId, userId }) => {
+  console.log(taskId, userId);
+  try {
+    const res = await taskClient.patch(
+      `assign/${taskId}`,
+      {},
+      {
+        params: {
+          userId: userId,
+        },
+      },
+    );
+    return res?.data;
+  } catch (err) {
+    throw { err };
+  }
+};
+
 const getAllTasks = async () => {
   try {
     const res = await taskClient.get("");
@@ -89,4 +107,5 @@ export {
   rejectTask,
   getTasksStatus,
   getMyTasks,
+  assignTask,
 };

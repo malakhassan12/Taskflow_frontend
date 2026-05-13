@@ -24,8 +24,10 @@ const DeleteProjectModal = ({ open, setOpen, project }) => {
       footer={null}
       centered
       width={400}
+      mask={{
+        closable: !deleteProjectMutation.isPending,
+      }}
       closable={!deleteProjectMutation.isPending}
-      maskClosable={!deleteProjectMutation.isPending}
     >
       <Space
         orientation="vertical"

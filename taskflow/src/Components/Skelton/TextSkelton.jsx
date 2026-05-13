@@ -22,7 +22,7 @@ const TextSkelton = () => {
        
 
         {/* Additional content rows */}
-        <Space direction="vertical" size="small" style={{ width: "100%", marginTop: "16px" }}>
+        <Space orientation="vertical" size="small" style={{ width: "100%", marginTop: "16px" }}>
           <Skeleton active paragraph={{ rows: 2 }} title={false} />
           <Flex justify="space-between">
             <Skeleton.Input active size="small" style={{ width: "30%" }} />

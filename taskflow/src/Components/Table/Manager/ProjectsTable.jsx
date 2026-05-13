@@ -25,8 +25,6 @@ const ProjectsTable = () => {
 
   console.log(data);
 
- 
-
   const { _, setSearchTerm, filteredData } = useSearch(data, ["name"]);
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -72,6 +70,7 @@ const ProjectsTable = () => {
             pageSize: 10,
             showTotal: (total) => `Total ${total} items`,
           }}
+          rowKey="id"
         />
       </div>
     </div>
