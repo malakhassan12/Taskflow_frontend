@@ -37,7 +37,7 @@ const ProjectsRequestTable = ({ data = [] }) => {
     }
   };
   // Map backend data to table columns format
-  const mappedData = data.map((project) => ({
+  const mappedData = data?.map((project) => ({
     id: project.id?.toString() || "",
     name: project.name || "",
     projectManager: project.maneger
@@ -62,6 +62,7 @@ const ProjectsRequestTable = ({ data = [] }) => {
 
   console.log("Mapped data:", mappedData); // Debug log
 
+  const hasPendingProjects = true;
   return (
     <>
       <ProjectModal
@@ -82,7 +83,7 @@ const ProjectsRequestTable = ({ data = [] }) => {
           handleViewManagerDetails,
           handleApprove,
           handleReject,
-          true,
+          hasPendingProjects,
         )}
         dataSource={mappedData}
         rowKey="id"

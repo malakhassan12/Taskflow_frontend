@@ -7,6 +7,8 @@ const { Title, Text } = Typography;
 const UserModal = ({ open, setOpen, selectedMember }) => {
   if (!selectedMember) return null;
 
+
+  console.log(selectedMember)
   return (
     <Modal
       title={

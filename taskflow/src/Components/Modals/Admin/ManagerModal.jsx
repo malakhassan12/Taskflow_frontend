@@ -17,6 +17,8 @@ const ManagerModal = ({ viewModalOpen, setViewModalOpen, selectedManager }) => {
   const { approveManagerMutation, rejectManagerMutation } = useAdminMutations();
   const [messageApi, contextHolder] = message.useMessage();
 
+  console.log(selectedManager)
+
   const handleApprove = () => {
     if (!selectedManager?.id) {
       messageApi.warning("User ID not found");
@@ -179,38 +181,7 @@ const ManagerModal = ({ viewModalOpen, setViewModalOpen, selectedManager }) => {
               </Col>
 
               {/* Projects & Tasks Summary */}
-              <Col span={24}>
-                <Card size="small" style={{ borderRadius: 8,  }}>
-                  <Space direction="vertical" size={8} style={{ width: "100%" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <Space>
-                        <ClockCircleOutlined />
-                        <Text strong>Activity Summary</Text>
-                      </Space>
-                    </div>
-                    <div style={{ display: "flex", gap: 16 }}>
-                      <div>
-                        <Text type="secondary" style={{ fontSize: 12 }}>Projects</Text>
-                        <div>
-                          <Tag color="cyan">{selectedManager.projects?.length || 0}</Tag>
-                        </div>
-                      </div>
-                      <div>
-                        <Text type="secondary" style={{ fontSize: 12 }}>Tasks</Text>
-                        <div>
-                          <Tag color="purple">{selectedManager.tasks?.length || 0}</Tag>
-                        </div>
-                      </div>
-                      <div>
-                        <Text type="secondary" style={{ fontSize: 12 }}>Notifications</Text>
-                        <div>
-                          <Tag color="orange">{selectedManager.notifications?.length || 0}</Tag>
-                        </div>
-                      </div>
-                    </div>
-                  </Space>
-                </Card>
-              </Col>
+            
             </Row>
 
             {/* Status Note */}
