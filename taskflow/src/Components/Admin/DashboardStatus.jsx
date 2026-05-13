@@ -31,13 +31,13 @@ const DashboardStatus = () => {
         console.error("Error fetching users:", error);
         // Fallback to hardcoded value temporarily
         users = [
-          { role: 'Admin' },
-          { role: 'ProjectManager' },
-          { role: 'ProjectManager' },
-          { role: 'ProjectManager' },
-          { role: 'ProjectManager' },
-          { role: 'ProjectManager' },
-          { role: 'TeamMember' },
+          { role: "Admin" },
+          { role: "ProjectManager" },
+          { role: "ProjectManager" },
+          { role: "ProjectManager" },
+          { role: "ProjectManager" },
+          { role: "ProjectManager" },
+          { role: "TeamMember" },
         ];
       }
       setActiveUsers(users.length);
@@ -51,7 +51,9 @@ const DashboardStatus = () => {
         title={
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <Activity size={24} color="#22c55e" />
-            <Title level={4} style={{ margin: 0 }}>System Status</Title>
+            <Title level={4} style={{ margin: 0 }}>
+              System Status
+            </Title>
           </div>
         }
       >
@@ -67,7 +69,14 @@ const DashboardStatus = () => {
                 height: "100%",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  marginBottom: "12px",
+                }}
+              >
                 <div
                   style={{
                     width: "48px",
@@ -82,13 +91,28 @@ const DashboardStatus = () => {
                   <Activity size={24} color="#22c55e" />
                 </div>
                 <div>
-                  <Title level={5} style={{ margin: 0, marginBottom: "4px", color: isDarkMode ? token.colorText : "inherit" }}>
+                  <Title
+                    level={5}
+                    style={{
+                      margin: 0,
+                      marginBottom: "4px",
+                      color: isDarkMode ? token.colorText : "inherit",
+                    }}
+                  >
                     System Health
                   </Title>
-                  <Tag color="success" style={{ margin: 0 }}>Healthy</Tag>
+                  <Tag color="success" style={{ margin: 0 }}>
+                    Healthy
+                  </Tag>
                 </div>
               </div>
-              <Text type="secondary" style={{ fontSize: "14px", color: isDarkMode ? token.colorTextSecondary : "inherit" }}>
+              <Text
+                type="secondary"
+                style={{
+                  fontSize: "14px",
+                  color: isDarkMode ? token.colorTextSecondary : "inherit",
+                }}
+              >
                 All systems operational
               </Text>
             </div>
@@ -105,7 +129,14 @@ const DashboardStatus = () => {
                 height: "100%",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  marginBottom: "12px",
+                }}
+              >
                 <div
                   style={{
                     width: "48px",
@@ -120,13 +151,28 @@ const DashboardStatus = () => {
                   <Database size={24} color="#3b82f6" />
                 </div>
                 <div>
-                  <Title level={5} style={{ margin: 0, marginBottom: "4px", color: isDarkMode ? token.colorText : "inherit" }}>
+                  <Title
+                    level={5}
+                    style={{
+                      margin: 0,
+                      marginBottom: "4px",
+                      color: isDarkMode ? token.colorText : "inherit",
+                    }}
+                  >
                     Database Status
                   </Title>
-                  <Tag color="processing" style={{ margin: 0 }}>Active</Tag>
+                  <Tag color="processing" style={{ margin: 0 }}>
+                    Active
+                  </Tag>
                 </div>
               </div>
-              <Text type="secondary" style={{ fontSize: "14px", color: isDarkMode ? token.colorTextSecondary : "inherit" }}>
+              <Text
+                type="secondary"
+                style={{
+                  fontSize: "14px",
+                  color: isDarkMode ? token.colorTextSecondary : "inherit",
+                }}
+              >
                 Connected and responsive
               </Text>
             </div>
@@ -143,7 +189,14 @@ const DashboardStatus = () => {
                 height: "100%",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  marginBottom: "12px",
+                }}
+              >
                 <div
                   style={{
                     width: "48px",
@@ -158,13 +211,28 @@ const DashboardStatus = () => {
                   <Users size={24} color="#8b5cf6" />
                 </div>
                 <div>
-                  <Title level={5} style={{ margin: 0, marginBottom: "4px", color: isDarkMode ? token.colorText : "inherit" }}>
+                  <Title
+                    level={5}
+                    style={{
+                      margin: 0,
+                      marginBottom: "4px",
+                      color: isDarkMode ? token.colorText : "inherit",
+                    }}
+                  >
                     Active Sessions
                   </Title>
-                  <Tag color="purple" style={{ margin: 0 }}>{activeUsers}</Tag>
+                  <Tag color="purple" style={{ margin: 0 }}>
+                    {activeUsers}
+                  </Tag>
                 </div>
               </div>
-              <Text type="secondary" style={{ fontSize: "14px", color: isDarkMode ? token.colorTextSecondary : "inherit" }}>
+              <Text
+                type="secondary"
+                style={{
+                  fontSize: "14px",
+                  color: isDarkMode ? token.colorTextSecondary : "inherit",
+                }}
+              >
                 {activeUsers} users online
               </Text>
             </div>

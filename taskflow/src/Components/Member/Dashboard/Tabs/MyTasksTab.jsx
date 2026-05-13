@@ -155,7 +155,7 @@ const MyTasksTab = () => {
 
   const toastTimerRef = useRef(null);
 
-  const { addNotification } = useNotifications();
+  const { addNotification, refetch: refetchNotifications } = useNotifications();
 
   const [searchParams] = useSearchParams();
 
@@ -376,33 +376,9 @@ const MyTasksTab = () => {
 
       message.success("Task updated successfully");
 
-
-
-      if (previousTask && previousTask.assignedTo !== updatedTask.assignedTo) {
-
-        pushNotification({
-
-          type: "assigned",
-
-          title: "Task assigned to you",
-
-          message: `Task "${updatedTask.title}" assigned to ${updatedTask.assignedTo}.`,
-
-        });
-
-      } else {
-
-        pushNotification({
-
-          type: "updated",
-
-          title: "Task updated",
-
-          message: `Task "${updatedTask.title}" updated successfully.`,
-
-        });
-
-      }
+      // Backend will send notification, so no need for local notification
+      // Refetch notifications to get the new notification from backend
+      refetchNotifications();
 
     } catch (error) {
 
@@ -437,6 +413,9 @@ const MyTasksTab = () => {
       // Refresh tasks using React Query refetch
       await refetch();
       message.success("Task status updated");
+
+      // Refetch notifications to get the new notification from backend
+      refetchNotifications();
     } catch (error) {
       console.error('Error auto-saving task status:', error);
       message.error('Failed to update task status');
