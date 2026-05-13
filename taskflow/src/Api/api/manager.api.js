@@ -71,7 +71,7 @@ const getTasksPerProject = async (projectId) => {
 const getAllMembers = async () => {
   try {
     const res = await managerClient.get(
-      `/allteammember`,
+      `/api/User/allteammember`,
     );
     return res?.data;
   } catch (err) {

@@ -17,14 +17,12 @@ const getAllNotifications = async () => {
 const getUserNotifications = async (userId) => {
   try {
     const token = localStorage.getItem("token");
-    // Use general endpoint and filter for the current user
-    const res = await axios.get(`${API_BASE}/api/Notification`, {
+    const res = await axios.get(`${API_BASE}/api/Notification/user/${userId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    // Filter notifications for the current user
-    const allNotifications = res?.data || [];
-    return allNotifications.filter(n => n.userId === userId || n.recipientId === userId);
+    return res?.data;
   } catch (err) {
+    console.error("Error fetching notifications:", err);
     throw { err };
   }
 };

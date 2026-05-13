@@ -1,25 +1,48 @@
-import React, { createContext, useContext, useMemo, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 import { useAuth } from "./AuthContext";
 import useGetUserNotifications from "../Hooks/Notification/useGetUserNotifications";
 import { markNotificationAsRead, deleteNotification } from "../Api/api/notification.api";
 
 const NotificationsContext = createContext(null);
 
+const isAdminRole = (role) => {
+  if (role == null || role === "") return false;
+  const roles = Array.isArray(role) ? role : [role];
+  return roles.some((r) => String(r).trim().toLowerCase() === "admin");
+};
+
+const isManagerRole = (role) => {
+  if (role == null || role === "") return false;
+  const roles = Array.isArray(role) ? role : [role];
+  return roles.some((r) => {
+    const s = String(r).trim().toLowerCase().replace(/[\s_]+/g, "");
+    return s === "manager" || s === "projectmanager";
+  });
+};
+
 export const NotificationsProvider = ({ children }) => {
   const { user } = useAuth();
   const userId = user?.userId;
-  
-  // Fetch notifications from backend
-  const { data: backendNotifications = [], refetch } = useGetUserNotifications(userId);
-  
+  const isAdmin = isAdminRole(user?.role);
+  const isManager = isManagerRole(user?.role);
+  const skipNotificationApi = isAdmin || isManager;
+
+  const { data: backendNotifications = [], refetch } =
+    useGetUserNotifications(userId);
+
   const [localNotifications, setLocalNotifications] = useState([]);
 
-  // Combine backend and local notifications
   const notifications = useMemo(() => {
     const backendWithIds = (backendNotifications || []).map((n) => ({
       id: n.id || n.notificationId,
       type: n.type || "info",
-      title: n.title || n.message || "Notification",
+      title: n.title || "Notification",
       message: n.message || n.description || "",
       createdAt: n.createdAt || n.createdDate || Date.now(),
       isRead: n.isRead || false,
@@ -28,7 +51,7 @@ export const NotificationsProvider = ({ children }) => {
     return [...backendWithIds, ...localNotifications];
   }, [backendNotifications, localNotifications]);
 
-  const addNotification = ({ type = "updated", title, message }) => {
+  const addNotification = useCallback(({ type = "updated", title, message }) => {
     const item = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       type,
@@ -38,40 +61,73 @@ export const NotificationsProvider = ({ children }) => {
       isRead: false,
     };
     setLocalNotifications((prev) => [item, ...prev].slice(0, 30));
-  };
+  }, []);
 
-  const clearNotifications = () => {
+  const clearNotifications = useCallback(() => {
     setLocalNotifications([]);
-  };
+  }, []);
 
-  const markAsRead = async (notificationId) => {
-    try {
-      await markNotificationAsRead(notificationId);
-      refetch();
-    } catch (error) {
-      console.error("Error marking notification as read:", error);
-    }
-  };
+  const markAsRead = useCallback(
+    async (notificationId) => {
+      const isLocal = localNotifications.some((n) => n.id === notificationId);
+      if (isLocal) {
+        setLocalNotifications((prev) =>
+          prev.map((n) =>
+            n.id === notificationId ? { ...n, isRead: true } : n,
+          ),
+        );
+        return;
+      }
+      if (skipNotificationApi) return;
 
-  const removeNotification = async (notificationId) => {
-    try {
-      await deleteNotification(notificationId);
-      refetch();
-    } catch (error) {
-      console.error("Error deleting notification:", error);
-    }
-  };
+      try {
+        await markNotificationAsRead(notificationId);
+        refetch();
+      } catch (error) {
+        console.error("Error marking notification as read:", error);
+      }
+    },
+    [skipNotificationApi, localNotifications, refetch],
+  );
+
+  const removeNotification = useCallback(
+    async (notificationId) => {
+      const isLocal = localNotifications.some((n) => n.id === notificationId);
+      if (isLocal) {
+        setLocalNotifications((prev) =>
+          prev.filter((n) => n.id !== notificationId),
+        );
+        return;
+      }
+      if (skipNotificationApi) return;
+
+      try {
+        await deleteNotification(notificationId);
+        refetch();
+      } catch (error) {
+        console.error("Error deleting notification:", error);
+      }
+    },
+    [skipNotificationApi, localNotifications, refetch],
+  );
 
   const value = useMemo(
-    () => ({ 
-      notifications, 
-      addNotification, 
+    () => ({
+      notifications,
+      addNotification,
       clearNotifications,
       markAsRead,
       removeNotification,
-      refetch 
+      refetch,
     }),
-    [notifications, refetch],
+    [
+      notifications,
+      addNotification,
+      clearNotifications,
+      markAsRead,
+      removeNotification,
+      refetch,
+    ],
   );
 
   return (

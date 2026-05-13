@@ -7,10 +7,10 @@ const SelectManager = () => {
   const { data: members, isLoading } = useGetAllMembers();
 
   const memberOptions = members?.map((member) => ({
-    label: member.email || member.name || "Team Member",
-    value: member.id,
-    email: member.email,
-    name: member.name,
+    label: member.user?.email || member.user?.name || "Team Member",
+    value: member.user?.id,
+    email: member.user?.email,
+    name: member.user?.name,
   })) || [];
 
   return (

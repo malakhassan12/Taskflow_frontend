@@ -16,9 +16,9 @@ const ProfileForm = () => {
       try {
         const response = await getUserProfile();
         form.setFieldsValue({
-          firstName: response.firstName || "",
-          lastName: response.lastName || "",
-          age: response.age || "",
+          firstName: response.user?.firstName || "",
+          lastName: response.user?.lastName || "",
+          age: response.user?.age || "",
         });
       } catch (error) {
         console.error("Error fetching profile:", error);

@@ -51,7 +51,7 @@ const TeamTab = () => {
       ) : (
         <Row gutter={[16, 16]}>
           {members?.map((member) => (
-            <Col xs={24} sm={12} lg={8} xl={6} key={member.id}>
+            <Col xs={24} sm={12} lg={8} xl={6} key={member.user?.id}>
               <MemberCard member={member} projectId={projectId} />
             </Col>
           ))}

@@ -37,16 +37,16 @@ const MemberModal = ({ viewModalOpen, setViewModalOpen, selectedMember }) => {
         {/* Header Section */}
         <Row gutter={[24, 16]} align="middle">
           <Col xs={24} sm={6} style={{ textAlign: 'center' }}>
-            <Avatar 
-              size={{ xs: 80, sm: 100, md: 110 }} 
+            <Avatar
+              size={{ xs: 80, sm: 100, md: 110 }}
               style={{ backgroundColor: token.colorPrimary }}
             >
-              {selectedMember.name?.charAt(0) || 'U'}
+              {selectedMember.user?.name?.charAt(0) || 'U'}
             </Avatar>
           </Col>
           <Col xs={24} sm={18}>
             <div style={{ textAlign: 'center', sm: { textAlign: 'left' } }}>
-              <Title level={3} style={{ margin: 0 }}>{selectedMember.name}</Title>
+              <Title level={3} style={{ margin: 0 }}>{selectedMember.user?.name}</Title>
               <Space wrap style={{ marginTop: 8 }}>
                 {/* Display tags from API */}
                 {selectedMember.tags?.map(tag => (
@@ -54,9 +54,9 @@ const MemberModal = ({ viewModalOpen, setViewModalOpen, selectedMember }) => {
                     {tag.replace('-', ' ').toUpperCase()}
                   </Tag>
                 ))}
-                <Badge 
-                  status={selectedMember.status === 'active' ? 'success' : 'error'} 
-                  text={selectedMember.status === 'active' ? 'Active' : 'Inactive'} 
+                <Badge
+                  status={selectedMember.status === 'active' ? 'success' : 'error'}
+                  text={selectedMember.status === 'active' ? 'Active' : 'Inactive'}
                 />
               </Space>
             </div>
@@ -142,8 +142,8 @@ const MemberModal = ({ viewModalOpen, setViewModalOpen, selectedMember }) => {
           <Space direction="vertical" size={8} style={{ width: '100%' }}>
             <Text strong>Quick Summary</Text>
             <Text type="secondary">
-              {selectedMember.name} is currently working on {selectedMember.project_name} 
-              with {selectedMember.number_of_tasks} assigned tasks, 
+              {selectedMember.user?.name} is currently working on {selectedMember.project_name}
+              with {selectedMember.number_of_tasks} assigned tasks,
               {selectedMember.completed_tasks === 0 ? ' none of which have been completed yet.' : ` ${selectedMember.completed_tasks} have been completed.`}
             </Text>
             <Tag color={selectedMember.status === 'active' ? 'green' : 'red'} style={{ marginTop: 8 }}>
