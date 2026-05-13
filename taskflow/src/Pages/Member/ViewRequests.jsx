@@ -2,11 +2,23 @@ import React, { useEffect, useState } from 'react';
 import { Card, Button, message, Spin, Empty } from 'antd';
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../Context/DarkModeProvider';
+import { useAuth } from '../../Context/AuthContext';
+import { useNotifications } from '../../Context/NotificationsProvider';
+import { normalizeNotificationList } from '../../Api/api/notification.api';
 import { jwtDecode } from 'jwt-decode';
+
+const buildTaskResponseMessage = (userId, taskId, accepted) => {
+  const action = accepted ? 'accepted' : 'rejected';
+  return `User ${String(userId)} has ${action} task ${Number(taskId)}`;
+};
 
 const ViewRequests = () => {
   const { isDarkMode } = useTheme();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const { refetch: refetchNotifications, addNotification } = useNotifications();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [respondingId, setRespondingId] = useState(null);
@@ -69,6 +81,27 @@ const ViewRequests = () => {
     fetchRequests();
   }, []);
 
+  const pushTaskResponseIfMissingFromApi = async ({
+    taskId,
+    accepted,
+    effectiveUserId,
+  }) => {
+    const text = buildTaskResponseMessage(effectiveUserId, taskId, accepted);
+    await refetchNotifications();
+    const cached = queryClient.getQueryData(['notifications', user?.userId]);
+    const list = normalizeNotificationList(cached);
+    const already = list.some(
+      (n) => String(n.message ?? n.Message ?? '').trim() === text,
+    );
+    if (!already) {
+      addNotification({
+        type: accepted ? 'task_accept' : 'task_reject',
+        title: accepted ? 'Task accepted' : 'Task rejected',
+        message: text,
+      });
+    }
+  };
+
   const sendTaskResponse = async ({ taskId, isAccepted, userId }) => {
     const token = localStorage.getItem('token');
     const currentUserId = getCurrentUserId();
@@ -118,6 +151,12 @@ const ViewRequests = () => {
       message.success('Request accepted successfully');
       // Remove accepted request from list
       setRequests((prev) => prev.filter((req) => req.id !== requestId));
+      const effectiveUserId = request.assignedMemberId || getCurrentUserId();
+      await pushTaskResponseIfMissingFromApi({
+        taskId: requestId,
+        accepted: true,
+        effectiveUserId,
+      });
     } catch (error) {
       console.error('Error accepting request:', error);
       const detail =
@@ -149,6 +188,12 @@ const ViewRequests = () => {
       message.success('Request rejected successfully');
       // Remove rejected request from list
       setRequests((prev) => prev.filter((req) => req.id !== requestId));
+      const effectiveUserId = request.assignedMemberId || getCurrentUserId();
+      await pushTaskResponseIfMissingFromApi({
+        taskId: requestId,
+        accepted: false,
+        effectiveUserId,
+      });
     } catch (error) {
       console.error('Error rejecting request:', error);
       const detail =

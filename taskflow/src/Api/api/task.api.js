@@ -58,9 +58,13 @@ const getTasksPerMemberAndProject = async (memberId, projectId) => {
 
 const approveTask = async (taskId, userId) => {
   try {
-    const res = await taskClient.post(`/Accept`, {
-      params: { userId: userId, taskId: taskId },
-    });
+    const res = await taskClient.post(
+      `/Accept`,
+      {},
+      {
+        params: { userId: String(userId), taskId: Number(taskId) },
+      },
+    );
     return res?.data;
   } catch (err) {
     throw { err };
@@ -69,9 +73,13 @@ const approveTask = async (taskId, userId) => {
 
 const rejectTask = async (taskId, userId) => {
   try {
-    const res = await taskClient.post(`/Reject`, {
-      params: { userId: userId, taskId: taskId },
-    });
+    const res = await taskClient.post(
+      `/Reject`,
+      {},
+      {
+        params: { userId: String(userId), taskId: Number(taskId) },
+      },
+    );
     return res?.data;
   } catch (err) {
     throw { err };
