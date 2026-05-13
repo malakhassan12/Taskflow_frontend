@@ -8,6 +8,7 @@ import React, {
 import { useAuth } from "./AuthContext";
 import useGetUserNotifications from "../Hooks/Notification/useGetUserNotifications";
 import { markNotificationAsRead, deleteNotification } from "../Api/api/notification.api";
+import { getNotificationTimestampMs } from "../Utils/notificationDate";
 
 const NotificationsContext = createContext(null);
 
@@ -39,15 +40,32 @@ export const NotificationsProvider = ({ children }) => {
   const [localNotifications, setLocalNotifications] = useState([]);
 
   const notifications = useMemo(() => {
-    const backendWithIds = (backendNotifications || []).map((n) => ({
-      id: n.id || n.notificationId,
-      type: n.type || "info",
-      title: n.title || "Notification",
-      message: n.message || n.description || "",
-      createdAt: n.createdAt || n.createdDate || Date.now(),
-      isRead: n.isRead || false,
-      ...n,
-    }));
+    const backendWithIds = (backendNotifications || []).map((n) => {
+      const merged = { ...n };
+      return {
+        ...merged,
+        id:
+          merged.id ??
+          merged.notificationId ??
+          merged.NotificationId,
+        type: merged.type ?? merged.Type ?? "info",
+        title: merged.title ?? merged.Title ?? "Notification",
+        message:
+          merged.message ??
+          merged.Message ??
+          merged.description ??
+          merged.Description ??
+          "",
+        createdAt:
+          getNotificationTimestampMs(
+            merged.createdAt ??
+              merged.CreatedAt ??
+              merged.createdDate ??
+              merged.CreatedDate,
+          ) ?? Date.now(),
+        isRead: merged.isRead ?? merged.IsRead ?? false,
+      };
+    });
     return [...backendWithIds, ...localNotifications];
   }, [backendNotifications, localNotifications]);
 

@@ -25,11 +25,13 @@ const useTaskMutations = () => {
   });
 
   const approveTaskMutation = useMutation({
-    mutationFn: approveTask,
+    mutationFn: ({ taskId, userId }) => approveTask(taskId, userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
 
       queryClient.invalidateQueries({ queryKey: ["task"] });
+
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
 
       message.success("Task approved successfully!");
     },
@@ -39,11 +41,13 @@ const useTaskMutations = () => {
   });
 
   const rejectTaskMutation = useMutation({
-    mutationFn: rejectTask,
+    mutationFn: ({ taskId, userId }) => rejectTask(taskId, userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
 
       queryClient.invalidateQueries({ queryKey: ["task"] });
+
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
 
       message.success("Task reject successfully!");
     },

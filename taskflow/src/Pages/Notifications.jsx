@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 
-import { FiBell, FiCheckCircle, FiClock, FiEdit3, FiUserPlus, FiTrash2, FiCheck } from "react-icons/fi";
+import { FiBell, FiCheckCircle, FiClock, FiEdit3, FiUserPlus, FiTrash2, FiCheck, FiXCircle } from "react-icons/fi";
 
 import { useNotifications } from "../Context/NotificationsProvider";
 
 import { useTheme } from "../Context/DarkModeProvider";
+
+import { formatNotificationRelative } from "../Utils/notificationDate";
+import { notificationHeadline } from "../Utils/notificationDisplay";
 
 
 
@@ -15,6 +18,10 @@ const toneByType = {
   updated: "bg-amber-50 text-amber-600",
 
   comment: "bg-emerald-50 text-emerald-600",
+
+  task_accept: "bg-green-50 text-green-700",
+
+  task_reject: "bg-rose-50 text-rose-700",
 
 };
 
@@ -28,21 +35,9 @@ const iconByType = {
 
   comment: FiCheckCircle,
 
-};
+  task_accept: FiCheckCircle,
 
-
-
-const relativeTime = (createdAt) => {
-
-  const diffSec = Math.max(1, Math.floor((Date.now() - createdAt) / 1000));
-
-  if (diffSec < 60) return "just now";
-
-  if (diffSec < 3600) return `${Math.floor(diffSec / 60)} minutes ago`;
-
-  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)} hours ago`;
-
-  return `${Math.floor(diffSec / 86400)} days ago`;
+  task_reject: FiXCircle,
 
 };
 
@@ -161,7 +156,7 @@ const Notifications = () => {
 
                   <div className="min-w-0 flex-1">
 
-                    <h3 className={`text-sm font-semibold ${isDarkMode ? "text-slate-100" : "text-slate-800"}`}>{item.title || item.message}</h3>
+                    <h3 className={`text-sm font-semibold ${isDarkMode ? "text-slate-100" : "text-slate-800"}`}>{notificationHeadline(item)}</h3>
 
                     <p className={`mt-0.5 text-xs ${isDarkMode ? "text-slate-300" : "text-slate-600"}`}>{item.message}</p>
 
@@ -169,7 +164,7 @@ const Notifications = () => {
 
                       <FiClock className="h-3 w-3" />
 
-                      {item.createdAt ? relativeTime(new Date(item.createdAt).getTime()) : "just now"}
+                      {formatNotificationRelative(item.createdAt)}
 
                     </p>
 
