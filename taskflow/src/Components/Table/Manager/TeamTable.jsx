@@ -54,7 +54,11 @@ const TeamTable = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
 
-  const { data: teamsData, isLoading, error } = useGetTeams();
+  const { data, isLoading, error } = useGetTeams();
+
+  console.log(data)
+
+  const teamsData = data?.filter((ele) => ele.teamMemberId != null);
 
   console.log(teamsData);
 

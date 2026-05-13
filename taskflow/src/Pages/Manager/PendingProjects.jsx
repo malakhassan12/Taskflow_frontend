@@ -26,13 +26,22 @@ import {
 import useGetPendingProjects from "../../Hooks/Manager/useGetPerndingProjects";
 import dayjs from "dayjs";
 import CardSkeleton from "../../Components/Skelton/CardSkelton";
+import useGetProjects from "../../Hooks/Manager/useGetProjects";
 const { Title, Text, Paragraph } = Typography;
 
 const PendingProjects = () => {
   const [selectedProject, setSelectedProject] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const { data: projects, isLoading } = useGetPendingProjects();
+  const { data: moka, isLoading } = useGetPendingProjects();
+
+  console.log(moka)
+  const {data  , } = useGetProjects();
+  const projects = data?.filter((ele)=>ele.status == "PENDING")
+
+
+    console.log(data)
+console.log(projects)
 
   const handleViewDetails = (record) => {
     setSelectedProject(record);

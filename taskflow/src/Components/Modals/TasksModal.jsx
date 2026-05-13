@@ -33,6 +33,7 @@ import TasksTable from "../Table/Task/TasksTable.jsx";
 
 const TasksModal = ({ modalOpen, setModalOpen, memberId, projectId }) => {
   // Get tasks from API
+  console.log(memberId, projectId)
   const { data: tasks = [], isLoading } = useGetTasksPerMemberAndProject(
     memberId,
     projectId,
