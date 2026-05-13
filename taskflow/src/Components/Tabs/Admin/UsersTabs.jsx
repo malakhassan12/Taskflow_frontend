@@ -15,7 +15,7 @@ const UsersTabs = () => {
     },
     {
       key: "managers",
-      label: "Managers",
+      label: "Pending Managers",
       children: (
        <ManagerTab/>
       ),

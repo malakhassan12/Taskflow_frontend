@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from "react";
-import ManagerModal from "../../Modals/Admin/ManagerModal";
 import UsersTable from "../../Table/Admin/UsersTable";
+import UserModal from "../../Modals/User/UserModal";
 import { getAllUsers } from "../../../Api/api/admin.api";
+import { message } from "antd";
 
 const ManagerTab = () => {
   const [dataSource, setDataSource] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const [managerModalOpen, setManagerModalOpen] = useState(false);
-  const [selectedManager, setSelectedManager] = useState(null);
+  const [open, setOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState(null);
 
   useEffect(() => {
     fetchManagers();
@@ -17,34 +18,36 @@ const ManagerTab = () => {
   const fetchManagers = async () => {
     try {
       setLoading(true);
+
       const res = await getAllUsers();
-      const mappedData = Array.isArray(res) ? res.filter((user) => user.role === "ProjectManager").map((user) => ({
-        id: user.id?.toString() || "",
-        name: user.email?.split('@')[0] || user.email || "",
-        email: user.email || "",
-        phone: "",
-        role: "manager",
-        roleName: "Project Manager",
-        status: "active",
-        registeredDate: "",
-        lastActive: "",
-        company: "",
-        experience: "",
-        projectsCount: user.projects?.length || 0,
-        avatarColor: "#1890ff",
-        bio: "",
-      })) : [];
+
+      const mappedData = Array.isArray(res)
+        ? res
+            .filter((user) => user.role === "ProjectManager")
+            .map((user) => ({
+              id: user.id,
+              name: user.email?.split("@")[0] || "User",
+              email: user.email,
+              role: "Project Manager",
+              projectsCount: user.projects?.length || 0,
+              tasksCount: user.tasks?.length || 0,
+              notificationsCount:
+                user.notifications?.length || 0,
+            }))
+        : [];
+
       setDataSource(mappedData);
     } catch (error) {
-      console.error("Error fetching managers:", error);
+      console.error(error);
+      message.error("Failed to load managers");
     } finally {
       setLoading(false);
     }
   };
 
   const handleViewDetails = (record) => {
-    setSelectedManager(record);
-    setManagerModalOpen(true);
+    setSelectedMember(record);
+    setOpen(true);
   };
 
   return (
@@ -54,11 +57,11 @@ const ManagerTab = () => {
         dataSource={dataSource}
         loading={loading}
       />
-      {/* Manager Details Modal */}
-      <ManagerModal
-        viewModalOpen={managerModalOpen}
-        setViewModalOpen={setManagerModalOpen}
-        selectedManager={selectedManager}
+
+      <UserModal
+        open={open}
+        setOpen={setOpen}
+        selectedMember={selectedMember}
       />
     </div>
   );

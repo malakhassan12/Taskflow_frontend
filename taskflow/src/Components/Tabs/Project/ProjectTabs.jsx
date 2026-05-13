@@ -7,6 +7,7 @@ import StatusTab from "./StatusTab";
 import TasksTab from "./TasksTab";
 import TeamTab from "./TeamTab";
 import ProjectFilesTab from "./ProjectFilesTab";
+import UnassignedTasksTab from "./UnassignedTasksTab";
 
 const onChange = (key) => {
   console.log(key);
@@ -16,6 +17,7 @@ const items = [
   { key: "2", label: "Tasks List", children: <TasksTab /> },
   { key: "3", label: "Team", children: <TeamTab /> },
   { key: "4", label: "Files", children: <ProjectFilesTab /> },
+  { key: "5", label: "Unassigned Tasks", children: <UnassignedTasksTab /> },
 ];
 
 const ProjectTabs = () => {

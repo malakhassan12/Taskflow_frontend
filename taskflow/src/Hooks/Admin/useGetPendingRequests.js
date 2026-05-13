@@ -1,14 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
-import { getPendingRequests } from "../../Api/api/admin.api";
 import { useAuth } from "../../Context/AuthContext";
+import { getPendingProjects } from "../../Api/api/manager.api";
 
-const useGetPendingRequests = (page = 1, limit = 10) => {
-  const { token } = useAuth(); // Call the hook here (Legal!)
+const useGetPendingRequests = () => {
+  const { token } = useAuth();
   return useQuery({
-    queryKey: ["pendingRequests", page, limit],
-    queryFn: () => getPendingRequests(page, limit),
-    keepPreviousData: true, 
-    enabled : !!token
+    queryKey: ["pendingRequests"],
+    queryFn: () => getPendingProjects(),
+    keepPreviousData: true,
+    enabled: !!token,
   });
 };
 

@@ -21,6 +21,7 @@ const ManagersTabs = () => {
   const fetchPendingManagers = async () => {
     try {
       const res = await getUserWithStatus();
+      console.log(res)
       const mappedData = Array.isArray(res) ? res.map((user) => ({
         id: user.id,
         name: `${user.firstName} ${user.lastName}`,

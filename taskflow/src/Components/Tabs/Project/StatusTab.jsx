@@ -45,7 +45,7 @@ const StatusTab = () => {
     <div>
       {/* Header with Progress */}
       <div style={{ marginBottom: 32 }}>
-        <Space direction="vertical" size={8} style={{ width: "100%" }}>
+        <Space orientation="vertical" size={8} style={{ width: "100%" }}>
           <div
             style={{
               display: "flex",

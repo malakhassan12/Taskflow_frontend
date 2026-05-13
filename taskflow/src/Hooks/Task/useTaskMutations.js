@@ -1,6 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { message } from "antd";
-import { approveTask, deleteTask, rejectTask } from "../../Api/api/task.api";
+import {
+  approveTask,
+  assignTask,
+  deleteTask,
+  rejectTask,
+} from "../../Api/api/task.api";
 
 const useTaskMutations = () => {
   const queryClient = useQueryClient();
@@ -47,10 +52,25 @@ const useTaskMutations = () => {
     },
   });
 
+  const assignTaskMutation = useMutation({
+    mutationFn: assignTask,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+
+      queryClient.invalidateQueries({ queryKey: ["task"] });
+
+      message.success("Task assigned successfully!");
+    },
+    onError: (err) => {
+      message.error(err?.message || "Failed to assigned  Task");
+    },
+  });
+
   return {
     deleteTaskMutation,
     approveTaskMutation,
     rejectTaskMutation,
+    assignTaskMutation,
   };
 };
 

@@ -33,7 +33,6 @@ const pushComment = async (data) => {
         });
       } catch (notifErr) {
         console.error("Error creating notification:", notifErr);
-        // Don't throw error - notification is optional
       }
     }
 
@@ -43,16 +42,15 @@ const pushComment = async (data) => {
   }
 };
 
-const editComment = async (commentId, data) => {
+const editComment = async ({ commentId, data }) => {
   try {
-    const res = await commentClient.put(`/${commentId}`, data);
+    const res = await commentClient.put(`/${commentId}`,JSON.stringify(data.comment),);
     console.log(res);
     return res?.data;
   } catch (err) {
     throw { err };
   }
 };
-
 const deleteComment = async (commentId) => {
   try {
     const res = await commentClient.delete(`/${commentId}`);

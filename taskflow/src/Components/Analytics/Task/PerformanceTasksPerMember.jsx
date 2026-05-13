@@ -33,7 +33,8 @@ const PerformanceTasksPerMember = ({ tasks = [], projectId }) => {
 
   // Priority-based stats
   const totalPriority = data?.reduce((sum, t) => sum + (t.priority || 0), 0);
-  const earnedPriority = data?.filter((t) => t.status === "done" && t.approved === true)
+  const earnedPriority = data
+    ?.filter((t) => t.status === "done" && t.approved === true)
     .reduce((sum, t) => sum + (t.priority || 0), 0);
 
   // Calculate rates
@@ -59,7 +60,9 @@ const PerformanceTasksPerMember = ({ tasks = [], projectId }) => {
               value={completionRate.toFixed(1)}
               suffix="%"
               prefix={<CheckOutlined />}
-              valueStyle={{ color: green }}
+              styles={{
+                content: { color: green },
+              }}
             />
             <Progress
               percent={completionRate}
@@ -78,7 +81,9 @@ const PerformanceTasksPerMember = ({ tasks = [], projectId }) => {
               value={approvalRate.toFixed(1)}
               suffix="%"
               prefix={<CheckOutlined />}
-              valueStyle={{ color: primaryColor }}
+              styles={{
+                content: { color: primaryColor },
+              }}
             />
             <Progress
               percent={approvalRate}
@@ -115,14 +120,18 @@ const PerformanceTasksPerMember = ({ tasks = [], projectId }) => {
                 <Statistic
                   title="Total Tasks"
                   value={totalTasks}
-                  valueStyle={{ color: primaryColor, fontSize: 20 }}
+                  styles={{
+                    content: { color: primaryColor, fontSize: 20 },
+                  }}
                 />
               </Col>
               <Col span={12}>
                 <Statistic
                   title="Completed"
                   value={completedTasks}
-                  valueStyle={{ color: green, fontSize: 20 }}
+                  styles={{
+                    content: { color: green, fontSize: 20 },
+                  }}
                 />
               </Col>
             </Row>
@@ -201,14 +210,18 @@ const PerformanceTasksPerMember = ({ tasks = [], projectId }) => {
                 <Statistic
                   title="Approved Tasks"
                   value={approvedTasks}
-                  valueStyle={{ color: green, fontSize: 20 }}
+                  styles={{
+                    content: { color: green, fontSize: 20 },
+                  }}
                 />
               </Col>
               <Col span={12}>
                 <Statistic
                   title="Rejected Tasks"
                   value={rejectedTasks}
-                  valueStyle={{ color: "#ff4d4f", fontSize: 20 }}
+                  styles={{
+                    content: { color: "#ff4d4f", fontSize: 20 },
+                  }}
                 />
               </Col>
             </Row>

@@ -38,7 +38,7 @@ const useCommentMutations = (memberId, managerId, taskId) => {
     },
   });
 
-  const editCommentMuatation = useMutation({
+  const editCommentMutation = useMutation({
     mutationFn: editComment,
     onSuccess: () => {
       /// Comment here !!!
@@ -56,7 +56,7 @@ const useCommentMutations = (memberId, managerId, taskId) => {
   return {
     pushCommentMutation,
     deleteCommentMutation,
-    editCommentMuatation,
+    editCommentMutation,
   };
 };
 

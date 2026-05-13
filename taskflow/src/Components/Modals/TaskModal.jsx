@@ -13,18 +13,20 @@ const TaskModal = ({
   setIsTaskModalOpen,
   task = {},
   projectId = null,
-  memberId = null
+  memberId = null,
 }) => {
   console.log(projectId);
-  console.log(memberId)
+  console.log(memberId);
 
   const { projectId: projId } = useParams();
   const finalProjectId = projectId ? projectId : projId;
 
   console.log(finalProjectId);
 
-  const { createTaskMutation, updateTaskMuatation } =
-    useManagerMutations(memberId , finalProjectId);
+  const { createTaskMutation, updateTaskMuatation } = useManagerMutations(
+    memberId,
+    finalProjectId,
+  );
   const [form] = Form.useForm();
   console.log(form);
   console.log(task);
@@ -43,9 +45,12 @@ const TaskModal = ({
           };
 
           console.log(finalTask);
-          updateTaskMuatation.mutate(finalTask);
-          form.resetFields();
-          setIsTaskModalOpen(false);
+          updateTaskMuatation.mutate(finalTask, {
+            onSuccess: () => {
+              form.resetFields();
+              setIsTaskModalOpen(false);
+            },
+          });
 
           console.log(values);
         } else {
@@ -55,16 +60,18 @@ const TaskModal = ({
             ...values,
             projectID: projectId,
           };
-          createTaskMutation.mutate(finalTask);
-
-          form.resetFields();
-          setIsTaskModalOpen(false);
+          createTaskMutation.mutate(finalTask, {
+            onSuccess: () => {
+              form.resetFields();
+              setIsTaskModalOpen(false);
+            },
+          });
 
           console.log(values);
         }
       })
       .catch((errorInfo) => {
-        console.log("Validation failed:", errorInfo); // Add this log
+        console.log("Validation failed:", errorInfo);
       });
   };
   return (
@@ -87,23 +94,28 @@ const TaskModal = ({
       width={600}
       confirmLoading={
         createTaskMutation.isPending || updateTaskMuatation.isPending
-      } // This disables OK button and shows loading
+      } 
       cancelButtonProps={{
         disabled: createTaskMutation.isPending || updateTaskMuatation.isPending,
-      }} // Disable cancel button
-      closable={!createTaskMutation.isPending || !updateTaskMuatation.isPending} // Prevent closing by X button
-      maskClosable={
-        !createTaskMutation.isPending || !updateTaskMuatation.isPending
-      } // Prevent closing by clicking outside
+      }} 
+      mask={{
+        closable:
+          !createTaskMutation.isPending && !updateTaskMuatation.isPending,
+      }}
+      closable={!createTaskMutation.isPending && !updateTaskMuatation.isPending}
+      closing
+      by
+      clicking
+      outside
     >
       <Form
         form={form}
         layout="vertical"
         initialValues={{
-          title: task?.title || "",
+          title: task?.title || "Finish Navbar",
           discription: task?.discription || "Not exist",
           dueTime: task?.dueTime ? dayjs(task?.dueTime) : dayjs(), // Convert to dayjs
-          priority: task?.priority,
+          priority: task?.priority || 0,
           assignedMemberId: task?.assignedMemberId,
         }}
       >
@@ -137,9 +149,20 @@ const TaskModal = ({
         <Form.Item
           name="priority"
           label="Priority"
-          rules={[{ required: true, message: "Please enter priority" }]}
+          rules={[
+            {
+              required: true,
+              message: "Please enter priority",
+            },
+            {
+              type: "number",
+              min: 1,
+              message: "Priority must be at least 1",
+              transform: (value) => Number(value),
+            },
+          ]}
         >
-          <Input type="number" placeholder="Enter task priority" min={0} />
+          <Input type="number" placeholder="Enter task priority" min={1} />
         </Form.Item>
       </Form>
     </Modal>

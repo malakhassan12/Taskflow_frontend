@@ -5,6 +5,7 @@ const UsersTable = ({
   dataSource,
 handleViewDetails
 }) => {
+  console.log(dataSource)
 
   return (
     <Table
