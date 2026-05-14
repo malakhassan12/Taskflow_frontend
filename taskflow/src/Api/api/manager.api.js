@@ -177,9 +177,13 @@ const getTeams = async () => {
   }
 };
 
-const getStatisticsForManager = async () => {
+const getStatisticsForManager = async (managerId) => {
   try {
-    const res = await managerClient.get(`/Project/Statistics`);
+    const res = await managerClient.get(`/Project/Statistics`, {
+      params: {
+        managerId: managerId,
+      },
+    });
     return res?.data;
   } catch (err) {
     throw { err };
