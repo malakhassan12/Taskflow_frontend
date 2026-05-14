@@ -10,6 +10,7 @@ import {
   FiPaperclip,
   FiSend,
   FiTrash2,
+  FiUser,
   FiX,
 } from "react-icons/fi";
 import { useTheme } from "../../../../Context/DarkModeProvider";
@@ -17,6 +18,30 @@ import { primaryColor } from "../../../../Constants/Colors";
 import axios from "axios";
 import { message } from "antd";
 import { jwtDecode } from "jwt-decode";
+import { getTask } from "../../../../Api/api/task.api";
+import { getMember } from "../../../../Api/api/manager.api";
+
+const pickAssigneeFromApiTask = (t) => {
+  if (!t || typeof t !== "object") {
+    return { id: null, name: "" };
+  }
+  const id =
+    t.assignedMemberId ??
+    t.AssignedMemberId ??
+    t.assigneeId ??
+    t.AssigneeId ??
+    null;
+  const nested = t.assignedMember || t.AssignedMember;
+  const name =
+    t.assignedMemberName ??
+    t.AssignedMemberName ??
+    (nested?.name ||
+      `${nested?.firstName || ""} ${nested?.lastName || ""}`.trim() ||
+      nested?.email ||
+      nested?.userName ||
+      "");
+  return { id: id != null ? id : null, name: String(name || "").trim() };
+};
 
 const getAuthUserId = () => {
   const token = localStorage.getItem("token");
@@ -64,6 +89,8 @@ const emptyDraft = {
   lastUpdated: "about 2 years ago",
   attachments: [],
   comments: [],
+  assignedMemberId: null,
+  assignedMemberName: "",
 };
 
 const TaskDetailsModal = ({ task, onClose, onSave }) => {
@@ -195,17 +222,6 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
       }
     };
 
-    const loadComments = async () => {
-      const taskId = task.originalTask?.id;
-      if (taskId) {
-        const comments = await fetchComments(taskId);
-        setDraft((prev) => ({
-          ...prev,
-          comments,
-        }));
-      }
-    };
-
     const dueTimeRaw = task.originalTask?.dueTime;
     const dueDateValue = dueTimeRaw ? new Date(dueTimeRaw).toLocaleDateString("en-US", {
       year: "numeric",
@@ -218,6 +234,12 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
       day: "numeric",
     }) : "";
     
+    const fromOriginal = pickAssigneeFromApiTask(task.originalTask);
+    const assignedMemberName =
+      fromOriginal.name ||
+      (typeof task.assignedTo === "string" ? task.assignedTo : "") ||
+      "";
+
     setDraft({
       title: task.title || "",
       statusLabel: task.statusLabel || "Todo",
@@ -228,7 +250,43 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
       lastUpdated: task.lastUpdated || "about 2 years ago",
       attachments: task.attachments || [],
       comments: task.comments || [],
+      assignedMemberId: fromOriginal.id,
+      assignedMemberName,
     });
+
+    const loadTaskFromServer = async () => {
+      const taskId = task.originalTask?.id;
+      if (!taskId) {
+        return;
+      }
+      try {
+        const server = await getTask(taskId);
+        let { id: aid, name: aname } = pickAssigneeFromApiTask(server);
+        if (aid != null && !aname) {
+          try {
+            const mem = await getMember(aid);
+            aname =
+              mem?.name ||
+              `${mem?.firstName || ""} ${mem?.lastName || ""}`.trim() ||
+              mem?.email ||
+              mem?.userName ||
+              "";
+          } catch {
+            /* member profile may be restricted */
+          }
+        }
+        const serverDesc = server?.discription ?? server?.description ?? "";
+        setDraft((prev) => ({
+          ...prev,
+          assignedMemberId: aid != null ? aid : prev.assignedMemberId,
+          assignedMemberName: aname || prev.assignedMemberName,
+          description: serverDesc !== "" ? serverDesc : prev.description,
+        }));
+      } catch (error) {
+        console.error("Error loading task from server:", error);
+      }
+    };
+    loadTaskFromServer();
 
     loadAttachments();
     
@@ -597,12 +655,6 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
     const token = localStorage.getItem("token");
 
     try {
-      const priorityMap = {
-        low: 0,
-        medium: 1,
-        high: 2,
-      };
-
       const statusMap = {
         "Todo": "todo",
         "In progress": "in_progress",
@@ -698,6 +750,28 @@ const TaskDetailsModal = ({ task, onClose, onSave }) => {
             <option>medium</option>
             <option>low</option>
           </select>
+        </div>
+
+        <div
+          className={`mt-3 rounded-md border p-3 text-xs ${
+            isDarkMode ? "border-slate-600 bg-slate-800/40" : "border-slate-200 bg-slate-50/80"
+          }`}
+        >
+          <p
+            className={`mb-1.5 flex items-center gap-2 font-semibold ${
+              isDarkMode ? "text-slate-200" : "text-slate-700"
+            }`}
+          >
+            <FiUser className="h-3.5 w-3.5 shrink-0" />
+            Assigned member
+          </p>
+          <p className={`leading-relaxed ${isDarkMode ? "text-slate-300" : "text-slate-600"}`}>
+            {draft.assignedMemberName
+              ? draft.assignedMemberName
+              : draft.assignedMemberId != null
+                ? `ID: ${draft.assignedMemberId}`
+                : "Unassigned"}
+          </p>
         </div>
 
         <div className="mt-3 rounded-md border border-slate-200 p-3">
