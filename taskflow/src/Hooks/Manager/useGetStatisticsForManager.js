@@ -7,7 +7,7 @@ const useGetStatisticsForManager = () => {
   console.log(user)
   return useQuery({
     queryKey: ["statistics-for-manager", user?.userId],
-    queryFn: () => getStatisticsForManager(),
+    queryFn: () => getStatisticsForManager(user?.userId),
     keepPreviousData: true,
     enabled: !!token,
   });
