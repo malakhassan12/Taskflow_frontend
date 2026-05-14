@@ -26,22 +26,22 @@ import {
 import useGetPendingProjects from "../../Hooks/Manager/useGetPerndingProjects";
 import dayjs from "dayjs";
 import CardSkeleton from "../../Components/Skelton/CardSkelton";
-import useGetProjects from "../../Hooks/Manager/useGetProjects";
+import { useAuth } from "../../Context/AuthContext";
 const { Title, Text, Paragraph } = Typography;
 
 const PendingProjects = () => {
   const [selectedProject, setSelectedProject] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const { data: moka, isLoading } = useGetPendingProjects();
+  const { data: data, isLoading } = useGetPendingProjects();
 
-  console.log(moka)
-  const {data  , } = useGetProjects();
-  const projects = data?.filter((ele)=>ele.status == "PENDING")
+  const { user } = useAuth();
+  console.log(data);
+  const projects = data?.filter(
+    (ele) => ele.manegerID === user?.userId && ele.status === "PENDING",
+  );
 
-
-    console.log(data)
-console.log(projects)
+  console.log(projects);
 
   const handleViewDetails = (record) => {
     setSelectedProject(record);
@@ -50,13 +50,13 @@ console.log(projects)
 
   if (isLoading) {
     return (
-   <Row gutter={[16, 16]}>
-  {Array.from({ length: 5 }).map((_, index) => (
-    <Col xs={24} sm={12} lg={8} xl={6} key={index}>
-      <CardSkeleton />
-    </Col>
-  ))}
-</Row>
+      <Row gutter={[16, 16]}>
+        {Array.from({ length: 5 }).map((_, index) => (
+          <Col xs={24} sm={12} lg={8} xl={6} key={index}>
+            <CardSkeleton />
+          </Col>
+        ))}
+      </Row>
     );
   }
 
