@@ -178,10 +178,11 @@ const getTeams = async () => {
 };
 
 const getStatisticsForManager = async (managerId) => {
+  console.log(managerId)
   try {
-    const res = await managerClient.get(`/Project/Statistics`, {
+    const res = await managerClient.get(`/Project/Statistics/Manager`, {
       params: {
-        managerId: managerId,
+        managerID: managerId,
       },
     });
     return res?.data;
